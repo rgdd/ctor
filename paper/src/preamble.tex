@@ -1,0 +1,30 @@
+% allow URL breaks on dashes
+\def\UrlBreaks{\do\/\do-}
+
+% math environment
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% prettier line breaks
+\usepackage{microtype}
+
+% figures
+\usepackage{graphicx}
+\usepackage[position=bottom]{subfig}
+\usepackage{tikz}
+\usepackage{tikz-qtree}
+\usetikzlibrary{shapes.misc,positioning,arrows,snakes,calc}
+
+% colors
+\usepackage{color}
+\usepackage{colortbl}
+\definecolor{rgddTeal}{HTML}{009999}
+\definecolor{rgddLime}{HTML}{809933}
+\definecolor{rgddPurple}{HTML}{993380}
+\definecolor{rgddDred}{HTML}{E04644}
+\definecolor{rgddDgreen}{HTML}{008000}
+\definecolor{rgddDblue}{HTML}{2809B2}
+
+% custom commands
+\newcommand{\TODO}[1]{\textcolor{red}{TODO:} \emph{#1}}

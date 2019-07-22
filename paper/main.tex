@@ -1,0 +1,58 @@
+\documentclass[USenglish,oneside,twocolumn]{article}
+
+\usepackage[utf8]{inputenc}%(only for the pdftex engine)
+%\RequirePackage[no-math]{fontspec}%(only for the luatex or the xetex engine)
+\usepackage[big]{dgruyter_NEW}
+\input{src/preamble}
+ 
+\DOI{foobar}
+
+\cclogo{\includegraphics{by-nc-nd.pdf}}
+  
+\begin{document}
+  %\author*[1]{Corresponding Author}
+  %\author[2]{Second Author}
+  %\author[3]{Third Author}
+  %\author[4]{Fourth Author}
+  %\author[5]{Fifth Author}
+  %\affil[1]{Affil, E-mail: email@email.edu}
+  %\affil[2]{Affil, E-mail: email@email.edu}
+  %\affil[3]{Affil, E-mail: email@email.edu}
+  %\affil[4]{Affil, E-mail: email@email.edu}
+  %\affil[5]{Affil, E-mail: email@email.edu}
+
+  \title{\huge Certificate Transparency in Tor}
+  \runningtitle{Certificate Transparency in Tor}
+  %\subtitle{...}
+
+  \begin{abstract}
+      {\input{src/abstract}}
+  \end{abstract}
+
+  \keywords{Certificate Transparency, Tor}
+  %\classification[PACS]{}
+  %\communicated{...}
+  %\dedication{...}
+
+  \journalname{Proceedings on Privacy Enhancing Technologies}
+  \DOI{Editor to enter DOI}
+  \startpage{1}
+  \received{..}
+  \revised{..}
+  \accepted{..}
+
+  \journalyear{..}
+  \journalvolume{..}
+  \journalissue{..}
+ 
+  \maketitle
+  \input{src/introduction}
+  \input{src/background}
+  \input{src/conclusion}
+
+  \bibliographystyle{abbrv}
+  \bibliography{src/ref}
+
+  %\appendix
+  %\section{Extra}
+\end{document}
