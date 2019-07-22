@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PR=( 0.50 0.95 0.999 )
+OMEM=data/mem
+ODISK=data/disk
+
+mkdir -p $OMEM $ODISK
+for pr in ${PR[@]}; do
+	./sim.py --pr $pr > $OMEM/$pr
+	./sim.py --pr $pr --disk > $ODISK/$pr
+done
