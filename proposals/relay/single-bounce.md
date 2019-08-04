@@ -40,4 +40,4 @@ Finally, store the SFO with its `audit_after` timestamp in the SFO buffer.
    3. On any other outcome than valid proof (including timeout), immediately
       toss a biased coin [order: ~20% auditor(s)], either send SFO to auditor(s)
       or bounce to CTR, then (optional) remove SFO from buffer and `break` loop.
-4. Close all circuits from step 2 and `goto 1`.
+4. Close all circuits from step 2 and goto step 1.
