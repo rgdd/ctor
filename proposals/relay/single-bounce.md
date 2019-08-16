@@ -14,8 +14,8 @@ First check the cache, if hit, discard the SFO and stop. Otherwise, calculate an
 
 ```
 audit_after = now()
-if SCT.timestamp+MMD+C > audit_after:
-    audit_after = min(SCT.timestamp+MMD+C, audit_after+MMD+C)
+if SCT.timestamp + MMD + C > audit_after:
+    audit_after = min(SCT.timestamp, audit_after) + MMD + C
 audit_after += random_delay()
 ```
 
