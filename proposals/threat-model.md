@@ -58,9 +58,9 @@ respective CTRs.  This may allow:
 	is lost.
 	2. _takeover_: gain access to a Tor relay's state and continue operating it
 	until the end of an epoch.
-5. Flood/DoS/Pop a fraction of 3rd-party CT auditors that were announced by the
-Tor project.
-6. MitM between Tor's exit relays and a victim's domain.
+5. Operate/Flood/Dos a fraction of 3rd-party CT auditors that were announced by
+the Tor project.
+6. MitM between Tor's exit relays and a given domain.
 7. Control a CA that Tor Browser includes in its trust store.
 8. Control enough logs to pass Tor Browser's CT policy.  This means that:
 	1. valid SCTs can be crafted without merging them into the log(s).
@@ -72,7 +72,7 @@ Strictly speaking (9) might be outside of Tor's threat model, but it is valuable
 to keep in mind because there are at least two reasons to MitM a Tor Browser
 session: traffic inspection and de-anonymization.  The latter can likely be
 achieved with a Tor Browser zero-day, but having such an exploit load for users
-that visit a victim's domain would require an HTTPS MitM for a significant
+that visit a given domain would require an HTTPS MitM for a significant
 amount of websites; e.g., due to HTTPS everywhere and because users are
 anonymous and cannot be targeted via email.  In other words, _by not considering
 (9) we would neglect many incentives to MitM Tor Browser HTTPS sessions_.
