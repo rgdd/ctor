@@ -69,8 +69,8 @@ bottom of any persistent issues.  Ultimately we want the availability of
 - Specify the bias of Tor Browser's coin, e.g., order ~1-10% of submitting.
 This should be sufficient given that our attacker is _risk-averse_, see
   [threat-model](https://github.com/rgdd/ctor/blob/master/proposals/threat-model.md).
-- Specify the CTR criteria, e.g., must be a middle relay and have the stable
-flag.
+- Assign a CTR flag to Tor relays that satisfy some criteria, e.g., must be a
+stable middle relay with a minimum bandwidth.
 - Announce the Tor network's view of all CT logs that Tor Browser recognizes.
 This means that we do not need to worry about split-views _within the Tor
 network_.
