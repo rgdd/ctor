@@ -23,10 +23,10 @@ For each incoming SFO:
 1. Return if `mode == active`
 2. Return if SFO is in the SFO-proof set
 3. For each bucket `b`:
-  1. Flip coin with bias `k/n` for heads [k order ~what?]
-  2. If tails:
-    - continue
-  3. Insert received SFO into bucket `b`
+	1. Flip coin with bias `k/n` for heads [k order ~what?]
+	2. If tails:
+		- continue
+	3. Insert received SFO into bucket `b`
 
 ### Event handler: OnionShare address API
 For an incoming OnionShare address:
@@ -41,21 +41,21 @@ For an incoming OnionShare connection:
 2. Set `mode` to `active`
 3. Create circuit and connect to CT log
 4. For each SFO in the union of all buffers:
-  1. Challenge the log to prove inclusion with regards to the most recent STH
-  in the consensus and a timeout [order ~seconds].
-  2. On failure:
-    - continue
-  3. Store SFO-proof pair in the audited set.
+	1. Challenge the log to prove inclusion with regards to the most recent STH
+	in the consensus and a timeout [order ~seconds].
+	2. On failure:
+		- continue
+	3. Store SFO-proof pair in the audited set.
 5. For each OnionShare address in the list:
-  1. Create circuit and connect
-  2. For each received SFO-proof pair:
-    - Insert it into the audited set.
+	1. Create circuit and connect
+	2. For each received SFO-proof pair:
+		- Insert it into the audited set.
 6. For each sampled CTR `i`, where `i` in `1...n`:
-  1. Create circuit and connect
-  2. For each SFO in bucket `i` that there is no valid SFO-proof pair for:
-    - Submit SFO using a timeout [order ~seconds]
+	1. Create circuit and connect
+	2. For each SFO in bucket `i` that there is no valid SFO-proof pair for:
+		- Submit SFO using a timeout [order ~seconds]
 7. Send audit-onionshare for audit status/results to each CTR_i \neq CTR_0
-  - Note sure what this is supposed to do
+	- Note sure what this is supposed to do
 8. Rotate SFO-proof set so that elements older than [order ~MMD] are removed.
 9. Empty all buckets.
 10. Set `mode` to `passive` and goto step (1).
