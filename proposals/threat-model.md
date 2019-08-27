@@ -67,6 +67,7 @@ the Tor project.
 	2. the attacker decides if and when CT queries are responded to.
 9. Access to a Tor Browser zero-day which allows loading, executing and
 escalating privileges.
+10. Control one or more ISPs that provide connectivity to a fraction of relays.
 
 Strictly speaking (9) might be outside of Tor's threat model, but it is valuable
 to keep in mind because there are at least two reasons to MitM a Tor Browser
