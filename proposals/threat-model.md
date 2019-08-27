@@ -8,7 +8,7 @@ the consensus cannot be forged and there's no global passive attacker that
 controls all network links and/or Tor relays.
 - All domain owners self or third-party monitor the relevant CT logs with
 regards to STHs that were announced in Tor's consensus documents, see
-  (directory-authority.md)[https://github.com/rgdd/ctor/blob/master/proposals/directory-authority.md].
+  [directory-authority.md](https://github.com/rgdd/ctor/blob/master/proposals/directory-authority.md).
 - Any violation of a CA and/or CT log is an existential threat to it/them, i.e.,
 any improperly signed SCT and certificate chain would likely result in removal
 from all relevant trust stores.  This leads to a _risk averse_ attacker.
