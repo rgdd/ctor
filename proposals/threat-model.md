@@ -47,8 +47,8 @@ project announces.
 6. Operate a fraction of Tor relays.
 7. Disrupt a fraction of Tor relays:
 	1. _isolate_: remove a Tor relay's connectivity.
-	1. _restart_: restart a Tor relay so that all volatile memory is lost.
-	2. _takeover_: gain access to a Tor relay's state and continue operating it.
+	2. _restart_: restart a Tor relay so that all volatile memory is lost.
+	3. _takeover_: gain access to a Tor relay's state and continue operating it.
 8. Access to a Tor Browser zero-day which allows loading, executing and
 escalating privileges.
 
