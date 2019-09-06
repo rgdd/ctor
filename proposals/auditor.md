@@ -20,7 +20,7 @@ statistics.  Each list-value is composed of the following three-tuple:
 		- `Report[CTR].last[1] += 1`
 		- Continue
 	2. If SFO not in `Resolved` and SFO not in `Pending`:
-		- Insert (SFO, now()) into `Pending`
+		- Insert `(SFO, now())` into `Pending`
 	3. `Report[CTR].last[2] += 1`
 
 ## Repeat periodically
