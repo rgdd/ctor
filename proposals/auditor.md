@@ -39,7 +39,7 @@ statistics.  Each list-value is composed of the following three-tuple:
 	2. If resolve failure and `timestamp+MMD < now()`:
 		- continue
 	3. Remove `(SFO, timestamp)` from `Pending`
-	4. Insert SFO into `Resolved`
+	4. Insert SFO (or representation thereof) into `Resolved`
 	5. If resolve failure:
 		- Error: `log` ignored `SFO` since `timestamp`, please investigate.
 4. Analyze `Report` statistics for each CTR:
