@@ -45,3 +45,7 @@ statistics.  Each list-value is composed of the following three-tuple:
 4. Analyze `Report` statistics for each CTR:
 	- Are individual relays reporting invalid SFOs or more than expected?
 	- How many CTRs are experiencing resolve failures at this moment?
+
+The purpose of step#4 is to notice both CTR abuse and if any CTR is being
+ignored by the logs.  For example, if all CTRs suddenly start submitting SFOs to
+the announced auditors that would likely indicate that a log is down.
