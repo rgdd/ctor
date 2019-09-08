@@ -3,8 +3,7 @@ This document describes the single-bounce relay design proposal. The proposal is
 called "single-bounce" because only a single SFO is bounced from a relay at a
 time, instead of a buffer of SFOs as in some other possible designs.
 
-For sake of simplicity, assume that each SFO (SCT Feedback Object) consists of a
-single SCT and that there's only one CT log. We denote relays that can be used
+We denote relays that can be used
 for CT-related tasks (as per our proposal) as CTRs. Tor Browser sends SFOs with
 some probability to a random CTR, closing its connection and circuit ASAP. The
 consensus contains a STH to be used for auditing. Relays can operate with a
@@ -21,15 +20,16 @@ When a new SFO is sent over a circuit to the CTR's API:
 4. Check the SCT cache using the first (byte order) SCT in the SFO, if hit,
    discard the SFO and stop.
 5. Check the SFO buffer, if already there, discard the SFO and stop.
-6. Calculate an `audit_after` timestamp as follows:
+6. Based on the SCT in the current SFO that is associated with the largest
+MMD constant, calculate an `audit_after` timestamp as follows:
 ```
 audit_after = now()
 if SCT.timestamp + MMD + C > audit_after:
     audit_after = min(SCT.timestamp, audit_after) + MMD + C
 audit_after += random_delay()
 ```
-Above, `now()` gets the current time, `min(a,b)` returns the smallest of its
-arguments, and `MMD` is a constant. With `random_delay()` we add a small delay
+Above, `now()` gets the current time and `min(a,b)` returns the smallest of its
+arguments. With `random_delay()` we add a small delay
 (order: seconds to few minutes) in case of little load at the relay. Ultimately,
 the above code ensures that we wait at most `MMD+C+random_delay()` seconds until
 auditing the SCT, regardless of what the (attacker's) SCT timestamp implies.
