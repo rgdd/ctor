@@ -16,7 +16,7 @@ When a new SFO is sent over a circuit to the CTR's API:
    stop. 
 2. Check if at most `m` [order: 1-10] SFOs have already been sent over this
    circuit, otherwise return an error and stop.
-3. Verify that the SFO contains necessary STHs in accordance to Tor's CT policy,
+3. Verify that the SFO contains necessary SCTs in accordance to Tor's CT policy,
    otherwise return an error and stop.
 4. Check the SCT cache using the first (byte order) SCT in the SFO, if hit,
    discard the SFO and stop.
