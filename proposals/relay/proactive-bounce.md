@@ -1,7 +1,7 @@
-# Single-bounce relay design
-This document describes the single-bounce relay design proposal. The proposal is
-called "single-bounce" because only a single SFO is bounced from a relay at a
-time, instead of a buffer of SFOs as in some other possible designs.
+# Proactive-bounce relay design
+This document describes the proactive-bounce relay design proposal. The proposal
+is called "proactive-bounce" because each SFO is bounced to another relay
+_before_ being audited.
 
 We denote relays that can be used
 for CT-related tasks (as per our proposal) as CTRs. Tor Browser sends SFOs with
@@ -9,7 +9,7 @@ some probability to a random CTR, closing its connection and circuit ASAP. The
 consensus contains a STH to be used for auditing. Relays can operate with a
 consensus that is as most `C` seconds old. 
 
-## On new SFO
+## On new SFO (from anyone)
 When a new SFO is sent over a circuit to the CTR's API:
 1. Check that the circuit is a three-hop circuit, otherwise return an error and
    stop. 
@@ -36,18 +36,33 @@ auditing the SCT, regardless of what the (attacker's) SCT timestamp implies.
 
 7. Finally, store the SFO with its `audit_after` timestamp in the SFO buffer.
 
+## On new bouncing circuit (from CTR)
+1. Close circuit and stop unless the sender authenticates as a CTR.
+2. Create dedicated circuit(s) and establish connection(s) to at least one
+auditor.
+3. Let `curr_time, prev_time = INT_MAX, INT_MAX`
+4. Let `curr_sfo, prev_sfo = None, None`
+5. For each received `SFO` and on closed connection (in which `SFO=None`):
+	1. Let `prev_time, curr_time = curr_time, now()`
+	2. Let `prev_sfo, curr_sfo = curr_sfo, SFO`
+	3. Continue if `curr_time-prev_time < 0`
+	4. Continue if `curr_time-prev_time < [order ~seconds]`
+	5. Report `prev_sfo` to auditor
+	6. Stop if `curr_sfo` is `None`
+6. Close all circuits from step 2.
+
 ## Core relay loop
 1. Sample a delay [order: ~minute], schedule a timer to continue with step 2
    after the delay.
 2. Create dedicated circuits and establish connections to CT logs and one or
-   more auditor(s).
+   more sampled CTR(s).
 3. Loop (until cannot pick any more): randomly pick a SCT from a random SFO in
     the SFO buffer with `audit_after < now()`: 
-   1. Send a challenge with the SCT to the relevant CT log, using the STH from
+   1. Bounce SFO to the selected CTR(s).
+   2. Send a challenge with the SCT to the relevant CT log, using the STH from
       the latest valid consensus and a sampled `timeout` [order: seconds].
-   2. On valid proof, add SFO to cache by caching the first SCT of the SFO,
+   3. On valid proof, add SFO to cache by caching the first SCT of the SFO,
       remove the SFO from the buffer, and `continue` loop. 
-   3. On any other outcome than valid proof (including timeout), immediately
-      send the entire SFO to one or more auditor(s), then remove the SFO from
-      buffer and `break` the loop.
+   4. On any other outcome than valid proof (including timeout), remove SFO
+      from buffer, wait [order ~seconds], and then `break` the loop.
 4. Close all circuits from step 2 and goto step 1.
