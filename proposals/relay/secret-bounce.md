@@ -1,68 +1,74 @@
-# Proactive-bounce relay design
-This document describes the proactive-bounce relay design proposal. The proposal
-is called "proactive-bounce" because each SFO is bounced to another relay
-_before_ being audited.
+# Secret-bounce relay design
+This document describes the secret-bounce relay design proposal. The proposal
+is called "secret-bounce" because it should be hard for the attacker to learn
+where an SFO is immediately bounced after a client's initial submission.  As
+such, the proposal is orthogonal to some other relay designs and therefore
+incomplete alone.
 
-We denote relays that can be used
-for CT-related tasks (as per our proposal) as CTRs. Tor Browser sends SFOs with
-some probability to a random CTR, closing its connection and circuit ASAP. The
-consensus contains a STH to be used for auditing. Relays can operate with a
-consensus that is as most `C` seconds old. 
+## Preliminaries
+Let I be a set of identity strings.  For example:
+
+```
+I = {
+	"Alice",
+	"Bob",
+	"Cece",
+}
+```
+
+Now somebody with a public-key pair `{vk,sk}` should be able to _prove_ that
+they sampled a given identity string `i` for an identity set `I` based on some
+announced randomness `r` and a secret key `sk`.  In other words, it must be
+possible to _verify_ that `i` is the correct value based on the public
+parameters and a cryptographic proof.  Without access to the secret key `sk` or
+the cryptographic proof that is derived from `sk`, it must be computationally
+hard to learn the sampled value which is associated with the public verification
+key `vk`.
+
+More concretely, define the following two algorithms:
+- `{i,aux} <- Sample(I,n,sk)`: on input of an identity set `I`, nonce `n` and
+secret key `sk`, output an image `{i,aux}` where `i` in `I` and `aux` contains
+auxiliary info.
+- `bool <- Verify(I,n,{i,aux},vk)`: on input of an identity set `I`, a nonce
+`n`, an image `{i,aux}` and a public verification key `vk`, output true iff `vk`
+proves that `{i,aux} <- Sample(I,n,t)` is a valid image for some secret key `t`
+without learning anything about `t`.
+
+Given `I`, `n` and `vk`, it is computationally hard to derive a valid image
+`{i,aux}`.
+
+For all `I`, `n` and `sk`, `Pr["Sample(I,n,sk) outputs i"] = 1/I.size()`.
 
 ## On new SFO (from anyone)
-When a new SFO is sent over a circuit to the CTR's API:
-1. Check that the circuit is a three-hop circuit, otherwise return an error and
-   stop. 
-2. Check if at most `m` [order: 1-10] SFOs have already been sent over this
-   circuit, otherwise return an error and stop.
-3. Verify that the SFO contains necessary SCTs in accordance to Tor's CT policy,
-   otherwise return an error and stop.
-4. Check the SCT cache using the first (byte order) SCT in the SFO, if hit,
-   discard the SFO and stop.
-5. Check the SFO buffer, if already there, discard the SFO and stop.
-6. Based on the SCT in the current SFO that is associated with the largest
-MMD constant, calculate an `audit_after` timestamp as follows:
-```
-audit_after = now()
-if SCT.timestamp + MMD + C > audit_after:
-    audit_after = min(SCT.timestamp, audit_after) + MMD + C
-audit_after += random_delay()
-```
-Above, `now()` gets the current time and `min(a,b)` returns the smallest of its
-arguments. With `random_delay()` we add a small delay
-(order: seconds to few minutes) in case of little load at the relay. Ultimately,
-the above code ensures that we wait at most `MMD+C+random_delay()` seconds until
-auditing the SCT, regardless of what the (attacker's) SCT timestamp implies.
+Setup that runs whenever a new identity set `I` or randomness `r` is available;
+`I` represents CTRs and `r` is used to derive a nonce `n`.
 
-7. Finally, store the SFO with its `audit_after` timestamp in the SFO buffer.
+1. Close previous bouncing circuit, if any.
+2. Derive new bouncing destination by evaluating `Sample(I,n,sk)`.
+3. Establish circuit and connect to the sampled bouncing destination, presenting
+   `{i,aux}` and `vk` as proof of being a legit bouncing source at this time.
 
-## On new bouncing circuit (from CTR)
-1. Close circuit and stop unless the sender authenticates as a CTR.
-2. Create dedicated circuit(s) and establish connection(s) to at least one
-auditor.
-3. Let `curr_time, prev_time = INT_MAX, INT_MAX`
-4. Let `curr_sfo, prev_sfo = None, None`
-5. For each received `SFO` and on closed connection (in which `SFO=None`):
-	1. Let `prev_time, curr_time = curr_time, now()`
-	2. Let `prev_sfo, curr_sfo = curr_sfo, SFO`
-	3. Continue if `curr_time-prev_time < 0`
-	4. Continue if `curr_time-prev_time < [order ~seconds]`
-	5. Report `prev_sfo` to auditor
-	6. Stop if `curr_sfo` is `None`
-6. Close all circuits from step 2.
+When a new SFO is sent over any circuit to the CTR's API:
 
-## Core relay loop
-1. Sample a delay [order: ~minute], schedule a timer to continue with step 2
-   after the delay.
-2. Create dedicated circuits and establish connections to CT logs and one or
-   more sampled CTR(s).
-3. Loop (until cannot pick any more): randomly pick a SCT from a random SFO in
-    the SFO buffer with `audit_after < now()`: 
-   1. Bounce SFO to the selected CTR(s).
-   2. Send a challenge with the SCT to the relevant CT log, using the STH from
-      the latest valid consensus and a sampled `timeout` [order: seconds].
-   3. On valid proof, add SFO to cache by caching the first SCT of the SFO,
-      remove the SFO from the buffer, and `continue` loop. 
-   4. On any other outcome than valid proof (including timeout), remove SFO
-      from buffer, wait [order ~seconds], and then `break` the loop.
-4. Close all circuits from step 2 and goto step 1.
+3. Bounce SFO to the sampled CTR.
+
+## On new SFO connection (from CTR)
+1. Close circuit and stop unless the sender is a legit bouncing source by
+   evaluating `Verify(I,n,{i,aux},vk)`.
+
+For each SFO that is sent over the validated circuit to the CTR's API:
+- Isolate SFOs that were submitted from different CTRs.
+- Follow the logic of another relay design proposal, e.g.,
+[single-bounce.md](https://github.com/rgdd/ctor/blob/master/proposals/relay/single-bounce.md).
+
+Note that it is paramount that SFOs from different CTRs are isolated.  For
+example, the attacker could schedule tags that will be audited throughout the
+next MMD from attacker-controlled CTRs.  And, in practise, there may be multiple
+identity sets that are valid at the same time.  By isolating, there's no
+opportunity to use this for tagging.
+
+# Limitation
+Depending on the fraction of attacker-controlled CTRs, it might be possible to
+conduct network-wide flushes with high certainty.  The steps described in
+[single-bounce.md](https://github.com/rgdd/ctor/blob/master/proposals/relay/single-bounce.md)
+could be applied to make this harder.
