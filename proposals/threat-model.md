@@ -49,17 +49,22 @@ project announces.
 	1. _isolate_: remove a Tor relay's connectivity.
 	2. _restart_: restart a Tor relay so that all volatile memory is lost.
 	3. _takeover_: gain access to a Tor relay's state and continue operating it.
-8. Access to a Tor Browser zero-day which allows loading, executing and
+8. Correlate a fraction of real-time low-latency interactions between:
+   	1. Tor Browser <-> MitM location
+   	2. Tor Browser <-> Tor relay
+	3. Tor relay <-> Tor relay
+	4. Tor relay <-> CT log
+9. Access to a Tor Browser zero-day which allows loading, executing and
 escalating privileges.
 
-Capability (7) includes _roving_, which means that the attacker chooses an
-optimal fraction during each epoch _adaptively_.  This capability may also be
-_probabilistic_, in which case the attacker's action succeeds with probability
-`p`.  The time it takes to disrupt a relay should be treated as a security
-parameter, where ~ms is likely conservative while ~seconds may underestimate
-some attackers.
+Capabilities (7) and (8) include _roving_, which means that the attacker chooses
+an optimal fraction during each epoch _adaptively_.  These capabilities may also
+be _probabilistic_, in which case the attacker's actions succeed with
+probability `p`.  The time it takes to use a capability should be treated as a
+security parameter.  For relay disruption, ~ms is likely conservative while
+~seconds may underestimate some attackers.
 
-Note that (8) might be outside of Tor's threat model, but it is valuable to keep
+Note that (9) might be outside of Tor's threat model, but it is valuable to keep
 in mind because there are at least two reasons to MitM a Tor Browser session:
 traffic inspection and de-anonymization.  The latter can likely be achieved with
 a Tor Browser zero-day, but having such an exploit load for users that visit a
