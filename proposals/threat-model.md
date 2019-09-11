@@ -53,11 +53,11 @@ project announces.
 escalating privileges.
 
 Capability (7) includes _roving_, which means that the attacker chooses an
-optimal set of Tor relays to disrupt during an epoch _adaptively_.  Roving may
-be _probabilistic_, in which case each relay is associated with a disrupt
-probability `p`.  The time it takes to disrupt a given Tor relay should be
-treated as a security parameter, where ~ms is likely conservative while ~seconds
-may underestimate some attackers.
+optimal fraction during each epoch _adaptively_.  This capability may also be
+_probabilistic_, in which case the attacker's action succeeds with probability
+`p`.  The time it takes to disrupt a relay should be treated as a security
+parameter, where ~ms is likely conservative while ~seconds may underestimate
+some attackers.
 
 Note that (8) might be outside of Tor's threat model, but it is valuable to keep
 in mind because there are at least two reasons to MitM a Tor Browser session:
