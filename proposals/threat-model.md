@@ -66,9 +66,4 @@ security parameter.  For relay disruption, ~ms is likely conservative while
 
 Note that (9) might be outside of Tor's threat model, but it is valuable to keep
 in mind because there are at least two reasons to MitM a Tor Browser session:
-traffic inspection and de-anonymization.  The latter can likely be achieved with
-a Tor Browser zero-day, but having such an exploit load for users that visit a
-given domain would require an HTTPS MitM for a significant amount of websites;
-e.g., due to HTTPS everywhere and because users are anonymous and therefore
-harder to target.  In other words, _by not considering (8) we would neglect many
-incentives to MitM Tor Browser HTTPS sessions_.
+traffic inspection and de-anonymization.  It is difficult (nearing impossible) to target a specific user; due to Tor's anonymity, circuit isolation, and HTTPS Everywhere. It is eminently possible to target all users of a given website, by intercepting traffic between that website and all exit nodes. Once traffic interception is achieved (for all users), it becomes trivial to serve an exploit to all users as well as much easier to target an exploit for a given user (either via traffic confirmation observing encrypted traffic of a suspected user or by users identifying themselves to the website.) _It's important to consider (9) because exploitation is a primary reason to MitM Tor Browser HTTPS sessions_.
