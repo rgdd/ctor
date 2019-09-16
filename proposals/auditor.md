@@ -1,4 +1,4 @@
-# Directory authority
+# Auditors
 This document describes what CT auditors should do while interacting with CTRs.
 
 ## Setup
@@ -49,3 +49,10 @@ statistics.  Each list-value is composed of the following three-tuple:
 The purpose of step#4 is to notice both CTR abuse and if any CTR is being
 ignored by the logs.  For example, if all CTRs suddenly start submitting SFOs to
 the announced auditors that would likely indicate that a log is down.
+
+## TO-ADD
+
+Somewhere in here we need the CT Auditor to download an STH (call it the 'latest-externally-seen STH') from the CT logs *not through Tor* and *ideally through a VPN* and then 
+
+1. Request a consistency proof from the prior latest-externally-seen STH to the new one
+2. Request consistency proofs from all* consensus STH's to the new latest-externally-seen STH. This prevents the Tor network from being put onto a split.
