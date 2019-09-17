@@ -1,13 +1,13 @@
-# Single-bounce relay design
-This document describes the single-bounce relay design proposal. The proposal is
-called "single-bounce" because only a single SFO is bounced from a relay at a
-time, instead of a buffer of SFOs as in some other possible designs.
+# Zero-bounce relay design
+This document describes the zero-bounce relay design proposal. The proposal is
+called "zero-bounce" because no SFOs are bounced to other CTRs at all, only sent
+directly to one or more auditors. 
 
-We denote relays that can be used
-for CT-related tasks (as per our proposal) as CTRs. Tor Browser sends SFOs with
-some probability to a random CTR, closing its connection and circuit ASAP. The
-consensus contains a STH to be used for auditing. Relays can operate with a
-consensus that is as most `C` seconds old. 
+This design is fragile, notably, if identified by the attacker,
+DoS/isolating/crashing the CTR is enough to get rid of a problematic SFO. 
+
+For this design, CTRs can operate with a consensus that is as most `C` seconds
+old. 
 
 ## On new SFO
 When a new SFO is sent over a circuit to the CTR's API:
