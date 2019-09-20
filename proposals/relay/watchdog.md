@@ -21,7 +21,7 @@ auditor.
 	4. Continue if `curr_time-prev_time < [order ~seconds]`
 	5. Report `prev_sfo` to auditor
 	6. Stop if `curr_sfo` is `None`
-5. Close all circuits from step 2.
+5. Close all circuits from step 1.
 
 ## Core relay loop
 1. Sample a delay [order: ~minute], schedule a timer to continue with step 2
