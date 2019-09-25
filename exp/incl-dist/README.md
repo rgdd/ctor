@@ -2,7 +2,7 @@
 This document describes an experimental setup that can be used to determine the
 time it takes to query CT logs for inclusion proofs over Tor.
 
-TODO: test instructions, add overview, fix broken links
+TODO: test instructions and add overview
 
 ## Overview
 docdoc
@@ -23,8 +23,8 @@ $ pip install requests
 ```
 $ cp /path/to/rttct.py src/modules/
 ```
-4. Optional: [obtain your own SCT leaf hash data set](https://todo) and save it
-as `ctor/scthash.json`.
+4. Optional: [obtain your own SCT leaf hash data set](https://github.com/rgdd/ctor/tree/master/exp/lh-dl)
+and save it as `ctor/scthash.json`.
 
 ## Test
 1. Build full circuits to Swedish exit relays and query the logs:
