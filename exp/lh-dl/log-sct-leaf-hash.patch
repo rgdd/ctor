@@ -1,0 +1,36 @@
+From c23f3a85f0acb6f772d5705a7a80bb4602181397 Mon Sep 17 00:00:00 2001
+From: Rasmus Dahlberg <rasmus.dahlberg@kau.se>
+Date: Mon, 23 Sep 2019 18:59:30 +0200
+Subject: log b64 leaf hash after computing it
+
+This makes it possible to reuse ctutil/sctcheck without modifications to
+create an SCT leaf hash data set.
+---
+ serialization.go | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/serialization.go b/serialization.go
+index a1b558d..e605f30 100644
+--- a/serialization.go
++++ b/serialization.go
+@@ -24,6 +24,9 @@ import (
+ 
+ 	"github.com/google/certificate-transparency-go/tls"
+ 	"github.com/google/certificate-transparency-go/x509"
++
++	b64 "encoding/base64"
++	"github.com/golang/glog"
+ )
+ 
+ // SerializeSCTSignatureInput serializes the passed in sct and log entry into
+@@ -234,6 +237,7 @@ func LeafHashForLeaf(leaf *MerkleTreeLeaf) ([sha256.Size]byte, error) {
+ 
+ 	data := append([]byte{TreeLeafPrefix}, leafData...)
+ 	leafHash := sha256.Sum256(data)
++	glog.Info("b64__leaf-hash ", b64.StdEncoding.EncodeToString(leafHash[:]))
+ 	return leafHash, nil
+ }
+ 
+-- 
+2.23.0
+
