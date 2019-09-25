@@ -1,0 +1,69 @@
+#!/bin/bash
+
+#
+# probe
+# Runs an exitmap module repeatedly by attempting to start a new measurement
+# every minute.  If no exitmap process is running already, a new one is started.
+#
+# Note: it appears that exitmap can get stuck during the bootstrap phase.  We
+# work around this by identifying the issue after one minute, then cleaning up
+# temporary data files and restarting exitmap.  See details in main() below.
+#
+# Note: unset `FIRST_HOP` to run experiment with full circuits.
+#
+
+EXITMAP=~/ctor/exitmap/bin/exitmap
+ANALYSIS_DIR=~/ctor/data
+TMP_DIR=~/ctor/exitmap_tor_data
+EXITMAP_LOG=~/ctor/exitmap/output.log
+BUILD_DELAY=24
+FIRST_HOP=EDAF30C58D6CCF359EA062C668C7180A17076440
+
+function main() {
+	while :; do
+		sleep 60
+		exitmap_pid=$(ps aux | grep "./bin/[e]xitmap" | xargs | cut -d' ' -f2)
+		if [[ ! -z $exitmap_pid ]]; then
+			log_info "exitmap process found: $exitmap_pid"
+			if [[ ! -z $(cat $EXITMAP_LOG | grep "Successfully started Tor process") ]]; then
+				log_info "exitmap bootstrapped successfully" 1>&2 &&
+				continue
+			fi
+
+			log_error "exitmap is stuck"
+			log_info "killing $exitmap_pid"
+			kill $exitmap_pid
+			log_info "removing $TMP_DIR"
+			rm -rf $TMP_DIR
+		fi
+
+		if [[ -z $FIRST_HOP ]]; then
+			log_info "starting exitmap in full circuit mode"
+			$EXITMAP --country SE \
+				--tor-dir $TMP_DIR \
+				--analysis-dir $ANALYSIS_DIR \
+				--build-delay $BUILD_DELAY \
+				rttct 2>&1 | tee $EXITMAP_LOG &
+			continue
+		fi
+
+		log_info "starting exitmap with two hops from $FIRST_HOP"
+		log_info "starting exitmap in full circuit mode"
+		$EXITMAP --country SE \
+			--tor-dir $TMP_DIR \
+			--analysis-dir $ANALYSIS_DIR \
+			--build-delay $BUILD_DELAY \
+			--first-hop $FIRST_HOP \
+			rttct 2>&1 | tee $EXITMAP_LOG &
+	done
+}
+
+function log_info() {
+	echo "[Info] $@" 1>&2
+}
+
+function log_error() {
+	echo "[Error] $@" 1>&2
+}
+
+main $@
