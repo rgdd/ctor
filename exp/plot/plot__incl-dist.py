@@ -19,12 +19,13 @@ __url2op = {
     "https://ct.cloudflare.com/logs/nimbus2019/": "Cloudflare",
     "https://ct.googleapis.com/logs/argon2019/": "Google",
 }
+__out_dir = "img"
 
 def main():
     for (in_dir, title) in __in_dirs:
         timing, sr = parse(read(in_dir))
         plotter.cdf(timing,
-            "incl-dist__{}.pdf".format(title.split()[1]),
+            "{}/incl-dist__{}.pdf".format(__out_dir, title.split()[1]),
             "time (s)",
             title,
         )
