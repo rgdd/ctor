@@ -8,7 +8,7 @@ import plotter
 log = logging.getLogger(__name__)
 
 __in_path = "../flush/output.json"
-__out_path = "flush-ctr.pdf"
+__out_path = "img/flush-ctr.pdf"
 
 def main():
     log.info("plotting based on: {}".format(__in_path))
