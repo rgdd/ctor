@@ -56,6 +56,7 @@ project announces.
 	4. Tor relay <-> CT log
 9. Access to a Tor Browser zero-day which allows loading, executing and
 escalating privileges.
+10. Inspect any Tor relay's configuration, e.g., how much memory is available.
 
 Capabilities (7) and (8) include _roving_, which means that the attacker chooses
 an optimal fraction during each epoch _adaptively_.  These capabilities may also
