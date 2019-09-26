@@ -14,12 +14,12 @@ any improperly signed SCT and certificate chain would likely result in removal
 from all relevant trust stores.  This leads to a _risk averse_ attacker.
 
 ## Goal
-If an SCT is issued for a mis-issued certificate and subsequently used to MitM a
-_Tor Browser user_ that the attacker does not control, any CT log that violates
-(or violated) its MMD will get caught with non-negligible probability given a
-security parameter `t`.  In other words, the attacker's goal is to MitM an HTTPS
-connection between Tor Browser and a destination server with negligible
-probability of _retroactive_ detection.
+The attacker's goal is to MitM an HTTPS connection between Tor Browser and a
+destination server with negligible probability of _retroactive_ detection.  As
+such, our design must (probabilistically) detect the following:
+- Any mis-issued SCT that is used to MitM a _Tor Browser_ user that the
+attacker does not control.
+- Split-views _within_ the Tor network.
 
 ## Limitations
 - Due to Tor Browser's disk avoidance criteria, any inclusion verification must
