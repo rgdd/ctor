@@ -30,7 +30,7 @@ __color_style = [
 __text_color = [0,0,0,1]
 __legend_bg_color = "#f7f7f7"
 
-def cdf(data, path, xlabel="", title="", percentiles=[]):
+def cdf(data, path, xlabel="", title=""):
     fig, ax = __subplots(xlabel, "cdf", title)
     for i, entry in enumerate(data):
         x, label = entry
@@ -43,11 +43,24 @@ def cdf(data, path, xlabel="", title="", percentiles=[]):
         )
     __plt_config(data[0][1] is not None, path)
 
+def plot(data, path, xlabel="", ylabel="", title=""):
+    fig, ax = __subplots(xlabel, ylabel, title)
+    for i, entry in enumerate(data):
+        x, y, label = entry
+        ax.plot(x, y,
+            ls = __line_style[i % len(__line_style)],
+            color = __color_style[i % len(__color_style)],
+            marker = __marker_style[i % len(__marker_style)],
+            markevery = 1 if len(x)<10 else int(len(x)/10),
+            label = label,
+        )
+    __plt_config(data[0][1] is not None, path)
+
 def __subplots(xlabel, ylabel, title):
     fig, ax = plt.subplots()
     fig.set_size_inches(5,3)
     ax.set_xlabel(xlabel, color=__text_color)
-    ax.set_ylabel("cdf", color=__text_color)
+    ax.set_ylabel(ylabel, color=__text_color)
     ax.set_title(title, color=__text_color)
     return fig, ax
 
