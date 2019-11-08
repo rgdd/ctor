@@ -32,7 +32,7 @@ arguments. With `random_delay()` we add a small delay
 the above code ensures that we wait at most `MMD+C+random_delay()` seconds until
 auditing the SCT, regardless of what the (attacker's) SCT timestamp implies.
 
-7. Finally, store the SFO with its `audit_after` timestamp in the SFO buffer.
+6. Finally, store the SFO with its `audit_after` timestamp in the SFO buffer.
 
 ## Core relay loop
 1. Sample a delay [order: ~minute], schedule a timer to continue with step 2
