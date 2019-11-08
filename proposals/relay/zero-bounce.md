@@ -11,16 +11,14 @@ old.
 
 ## On new SFO
 When a new SFO is sent over a circuit to the CTR's API:
-1. Check that the circuit is a three-hop circuit, otherwise return an error and
-   stop. 
-2. Check if at most `m` [order: 1-10] SFOs have already been sent over this
+1. Check if at most `m` [order: 1-10] SFOs have already been sent over this
    circuit, otherwise return an error and stop.
-3. Verify that the SFO contains necessary SCTs in accordance to Tor's CT policy,
+2. Verify that the SFO contains necessary SCTs in accordance to Tor's CT policy,
    otherwise return an error and stop.
-4. Check the SCT cache using the first (byte order) SCT in the SFO, if hit,
+3. Check the SCT cache using the first (byte order) SCT in the SFO, if hit,
    discard the SFO and stop.
-5. Check the SFO buffer, if already there, discard the SFO and stop.
-6. Based on the SCT in the current SFO that is associated with the largest
+4. Check the SFO buffer, if already there, discard the SFO and stop.
+5. Based on the SCT in the current SFO that is associated with the largest
 MMD constant, calculate an `audit_after` timestamp as follows:
 ```
 audit_after = now()
