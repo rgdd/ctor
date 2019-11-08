@@ -42,10 +42,10 @@ auditing the SCT, regardless of what the (attacker's) SCT timestamp implies.
 3. Loop (until cannot pick any more): randomly pick a SCT from a random SFO in
     the SFO buffer with `audit_after < now()`: 
    1. Send a challenge with the SCT to the relevant CT log, using the STH from
-      the latest valid consensus and a sampled `timeout` [order: seconds].
-   2. On valid proof, add SFO to cache by caching the first SCT of the SFO,
-      remove the SFO from the buffer, and `continue` loop. 
-   3. On any other outcome than valid proof (including timeout), immediately
-      send the entire SFO to one or more auditor(s), then remove the SFO from
-      buffer and `break` the loop.
+      the latest valid consensus and a sampled `timeout` [order: seconds]:
+      1. On valid proof, add SFO to cache by caching the first SCT of the SFO,
+         remove the SFO from the buffer, and `continue` loop. 
+      2. On any other outcome than valid proof (including timeout), immediately
+         send the entire SFO to one or more auditor(s), then remove the SFO from
+         buffer and `break` the loop.
 4. Close all circuits from step 2 and goto step 1.
