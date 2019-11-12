@@ -10,8 +10,9 @@ import plotter
 log = logging.getLogger(__name__)
 
 __in_dirs = [
-    ("../incl-dist/data__single-hop", "Successful single-hop queries"),
-    ("../incl-dist/data__full-circuit", "Successful full-circuit queries"),
+    ("../incl-dist/tor/data__single-hop", "Successful single-hop queries"),
+    ("../incl-dist/tor/data__full-circuit", "Successful full-circuit queries"),
+    ("../incl-dist/mullvad/data", "Successful VPN queries"),
 ]
 __url2op = {
     "https://ct2.digicert-ct.com/log/": "Digicert",
