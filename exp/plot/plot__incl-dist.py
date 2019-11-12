@@ -20,10 +20,12 @@ __url2op = {
     "https://ct.googleapis.com/logs/argon2019/": "Google",
 }
 __out_dir = "img"
+__timeout = 5 # seconds
 
 def main():
+    print("using timeout: {}s".format(__timeout))
     for (in_dir, title) in __in_dirs:
-        timing, sr = parse(read(in_dir))
+        timing, sr = parse(read(in_dir), __timeout)
         plotter.cdf(timing,
             "{}/incl-dist__{}.pdf".format(__out_dir, title.split()[1]),
             "time (s)",
@@ -36,7 +38,7 @@ def main():
             print("{:12} {:.3} {:2}k".format(op, rate, queries/1000))
         print("")
 
-def parse(data):
+def parse(data, timeout):
     log2timing = {}
     log2sr = {}
     for exit_fpr, exit_msms in data.items():
@@ -45,7 +47,7 @@ def parse(data):
                 log2timing.setdefault(log_url, [])
                 log2sr.setdefault(log_url, {"success":0, "fail":0})
                 for result in results:
-                    if result > 0:
+                    if result > 0 and result <= timeout:
                         log2timing[log_url] += [ result ]
                         log2sr[log_url]["success"] += 1
                     else:
