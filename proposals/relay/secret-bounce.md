@@ -65,4 +65,4 @@ VRF](http://www.wisdom.weizmann.ac.il/~zvikab/localpapers/wvrf.pdf), since
 - poor man's VRF: create an ed25519 signature, then sign that signature with a prefix...,
         and use the inner signature?
 - FIXME: probably also hash the fingerprints in the list of CTRs, as in rend-spec-v3
-- in step 4 above, we could replace using the signature with the identity of the CTR, and then not need a VRF. This has no downside?
+- We need to use a signature, or something the attacker cannot derive (without being one of the CTRs directly contacted), to prevent the attacker from knowing where a given SFO will end up at.
