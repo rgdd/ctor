@@ -2,10 +2,7 @@
 This document describes an experimental setup that can be used to determine the
 time it takes to query CT logs for inclusion proofs over Tor.
 
-TODO: test instructions and add overview
-
-## Overview
-docdoc
+TODO: test instructions
 
 ## Setup
 1. Create an experiment directory and clone `exitmap`:
