@@ -1,6 +1,6 @@
 # Timed inclusion queries over Mullvad
 This document describes an experimental setup that can be used to determine the
-time it takes to query CT logs for inclusion proofs over Mullvad VPN.
+time it takes to query CT logs for inclusion proofs over all Mullvad VPN relays.
 
 ## Setup
 1. Install Mullvad, see instructions [here](https://mullvad.net/en/help/install-mullvad-app-linux/).
@@ -45,7 +45,7 @@ $ cat output.json
 ```
 
 ## Run
-Repeat and instance of the `rttct` module forever until killed:
+Repeat and instance of the `rttct` module for each Mullvad relay until killed:
 ```
 $ ./main 2>&1 | tee main.log
 ```
