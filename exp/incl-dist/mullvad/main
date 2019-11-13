@@ -4,19 +4,24 @@
 # Usage: ./main 2>&1 | tee main.log
 #
 
+BACKOFF=600 # seconds to wait until scheduling another job
+TIMEOUT=10 # seconds to wait before killing an unresponsive connection
+WAKEUP=10 # seconds to wait after starting Mullvad
+DATA_DIR=data # path to store timestamped results
+
 function main() {
 	log_info "press ctrl+c to quit"
 	while :; do
-		job && log_info "waiting: 900" && sleep 900
+		job && log_info "sleeping: ${BACKOFF}s" && sleep $BACKOFF
 	done
 }
 
 function job() {
-	dir=data/$(date +"%Y%m%d_%H%M%S")
+	dir=$DATA_DIR/$(date +"%Y%m%d_%H%M%S")
 	mkdir -p $dir
 	log_info "created output directory: $dir"
 
-	normal_ip=$(timeout 10 curl ifconfig.me 2>/dev/null)
+	normal_ip=$(timeout $TIMEOUT curl ifconfig.me 2>/dev/null)
 	if [[ -z $normal_ip ]]; then
 		log_error "no connectivity"
 		return 1
@@ -29,9 +34,9 @@ function job() {
 	while read config; do
 		mullvad relay set location $config
 		mullvad connect
-		sleep 5 # ensure that mullvad got some time to start
+		sleep $WAKEUP # ensure that mullvad got some time to start
 
-		vpn_ip=$(timeout 10 curl ifconfig.me 2>/dev/null)
+		vpn_ip=$(timeout $TIMEOUT curl ifconfig.me 2>/dev/null)
 		if [[ -z $vpn_ip ]]; then
 			log_error "no connectivity for config: $config"
 			continue
@@ -43,7 +48,7 @@ function job() {
 		fi
 
 		log_info "using config: $config ($vpn_ip)"
-		python3 rttct.py -i scthash.json -o "$dir/$config.json" -t 10
+		python3 rttct.py -i scthash.json -o "$dir/$config.json" -t $TIMEOUT
 		mullvad disconnect
 	done < .tmp.mullvad.config
 	rm -f .tmp.mullvad.config
