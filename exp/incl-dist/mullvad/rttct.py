@@ -82,7 +82,7 @@ def get_sth_size(session, url, timeout):
             return None, "invalid response for {}".format(url_sth)
         return r.json()["tree_size"], None
     except Exception as e:
-        return "failed fetching {} => {}".format(url, e)
+        return None, "failed fetching {} => {}".format(url, e)
 
 def write(data, path):
     try:
