@@ -43,3 +43,16 @@ $ cat output.json
 
 As shown above, 1.2M SFO submissions flush a CTR with 1GiB memory and 0.999
 certainty.
+
+# Flushing the entire network
+TODO
+1. Use data from:
+	- Mani et al for an estimate of circuits per day
+	- Tor metrics - available bandwidth, both relay-specific and full network
+	(?)
+2. Interesting questions:
+	- How difficult/feasible is it to flush entire network in `k<=MMD` hours?
+	- How does this analysis change if CTRs accept at most `m` SFOs per
+	circuit, and for different assumptions about the number of CTRs `n` and
+	desired certainty `c`? Would more bandwidth-intense SFO submissions make
+	sense in any circumstance?
