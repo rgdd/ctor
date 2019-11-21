@@ -1,15 +1,29 @@
-using timeout: 5s
+using timeout: 3s
 
 Success rate and total queries (single-hop)
-Digicert     0.988 325.97k
-Sectigo      0.988 325.97k
-Cloudflare   0.987 325.97k
-Google       0.987 325.97k
+Digicert     0.998 320.536k
+Sectigo      0.998 320.494k
+Cloudflare   0.996 318.019k
+Google       0.997 319.527k
 
 
 Success rate and total queries (full-circuit)
-Digicert     0.985 272.53k
-Sectigo      0.985 272.53k
-Cloudflare   0.984 272.53k
-Google       0.983 272.53k
+Digicert     0.997 266.117k
+Sectigo      0.997 266.296k
+Cloudflare   0.995 264.105k
+Google       0.996 264.892k
+
+
+Success rate and total queries (VPN)
+Google       1.0 142.428k
+Cloudflare   0.998 141.451k
+Sectigo      1.0 142.685k
+Digicert     1.0 142.701k
+
+
+Success rate and total queries (torify)
+Google       0.999 122.091k
+Cloudflare   0.998 121.643k
+Sectigo      0.999 122.326k
+Digicert     0.999 122.329k
 
