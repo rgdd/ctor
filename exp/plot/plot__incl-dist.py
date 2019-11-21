@@ -10,9 +10,10 @@ import plotter
 log = logging.getLogger(__name__)
 
 __in_dirs = [
-    ("../incl-dist/tor/data__single-hop", "Successful single-hop queries"),
-    ("../incl-dist/tor/data__full-circuit", "Successful full-circuit queries"),
+    ("../incl-dist/exitmap/data__single-hop", "Successful single-hop queries"),
+    ("../incl-dist/exitmap/data__full-circuit", "Successful full-circuit queries"),
     ("../incl-dist/mullvad/data", "Successful VPN queries"),
+    ("../incl-dist/torify/data", "successful torify queries"),
 ]
 __url2op = {
     "https://ct2.digicert-ct.com/log/": "Digicert",
@@ -21,7 +22,7 @@ __url2op = {
     "https://ct.googleapis.com/logs/argon2019/": "Google",
 }
 __out_dir = "img"
-__timeout = 5 # seconds
+__timeout = 3 # seconds
 
 def main():
     print("using timeout: {}s".format(__timeout))
@@ -53,6 +54,7 @@ def parse(data, timeout):
                         log2sr[log_url]["success"] += 1
                     else:
                         log2sr[log_url]["fail"] += 1
+                        break # "close circuit after first failure"
     timing = []
     for log_url in log2timing:
         timing += [ (log2timing[log_url], __url2op[log_url]) ]
