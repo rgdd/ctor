@@ -1,0 +1,30 @@
+#!/bin/bash
+
+#
+# Usage: ./collect 2> collect.log
+#
+
+src=test.list
+dst=raw
+tmp=.tmp-collect
+timeout=15 # seconds that we wait while loading a given web page
+
+rm -rf $tmp $dst
+mkdir -p $tmp $dst
+
+i=0
+while (( i++ )); read -r url; do
+	sleep 1 # limit the number of spawned children
+	rm -rf $tmp/$(( $i - $timeout * 2 )) # clean-up as we go
+
+	[[ -z $(echo $url | grep ^https://) ]] && continue
+	echo "[Info] $i $url" >&2
+
+	xvfb-run -a \
+		timeout -s9 $timeout \
+		./77/chrome-linux/chrome --no-sandbox --user-data-dir=$tmp/$i --log-net-log=$dst/$i $url >/dev/null 2>&1 &
+done < $src
+wait
+
+rm -rf $tmp # clean-up anything that remains
+echo "[Info] done" >&2
