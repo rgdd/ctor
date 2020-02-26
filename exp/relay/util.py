@@ -44,7 +44,7 @@ def tor_network_sim_num_sites(ms=1000):
     return int(math.ceil(140*1000*1000 / (24*60*60*1000) * ms))
 
 def sfo_dist(website):
-    return [ (website,i) for i in range(32) ] # TODO: accurate sfo distribution
+    return [ (website,i) for i in range(8) ] # TODO: (more) accurate sfo dist?
 
 if __name__ == "__main__":
     log.critical("module contains no main")
