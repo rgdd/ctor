@@ -3,62 +3,57 @@ We assume a risk-averse attacker: we want to make the \emph{probability} of
 detection as well as the \emph{impact} of detection as high as possible.
 
 \subsection{Probability of Being Detected}
-We briefly reason about the probability of an attacker being detected, $p_a$,
-assuming a simple CTR-based design and our threat model. 
-
-The probability that a client (Tor Browser) will send a SFO to a CTR, $p_c$, is
-\emph{an upper bound} on the attacker being detected: $p_a \leq p_c$. If a
-client does not attempt to get a SFO audited, the attacker won. The probability
-of detection can further be reduced by:
+Given our design and threat model, consider the case of an attacker that
+attempts to MitM a single connection by creating an inconsistent SFO. Let $p_a$
+be the probability of an attacker being detected. This probability will be bound
+by:
 
 \begin{itemize}
-    \item The attacker DoS-ing auditors, the Tor-network, and/or CTRs, lowering
-    the probability $p_d$ that a SFO will be be successfully delivered to an
-    auditor. A special case of this is a SFO flushing attack, where the attacker
-    floods a CTR with valid SFOs exhausting its (presumably volatile) storage of
-    SFOs to audit, causing it to discard SFOs.
-    \item The probability $p_o$ that the CTR with the SFO discards its cache due
-    to going offline or restarting by chance.
-    \item The probability $p_z$ that the attacker manages to identify and
-    isoloate the CTR with the SFO before it sends the SFO to an auditor. This
-    can be done by a tagging attack to identify the SFO and then, e.g., using a
-    zero-day to compromise/crash the CTR or disconnecting it from the Internet
-    by disabling its uplink.
+    \item $p_c$, the probability that a client (TB) will successfully send the
+    SFO to a CTR. Assuming that our design makes it unlikely that an attacker
+    has time to compromise the client and prevent the SFO from being sent, this
+    probability is dominated by the sending probability of TB set in the
+    consensus.
+    \item $p_h$, the probability that the CTR that receives the SFO is honest
+    (i.e., not controlled by the attacker). This we make assumptions about given
+    Tor's threat model.
+    \item $p_s$, the probability that the CTR successfully sends the SFO to an
+    auditor. The hardest probability to estimate because it includes flushing
+    attacks, tagging attacks, and global network DoS.
+    \item $p_r$, the probability that the auditor that receives the SFO is
+    honest (i.e., not controlled by the attacker). This we make assumptions
+    about being low.
 \end{itemize}
 
-Therefore, at least: 
+We can express this as:  
 
 \begin{align}
-    p_a \leq p_c p_d(1-p_o)(1-p_z)
+    p_a \leq p_c p_h p_s p_r
 \end{align}
 
-For a short time-frame, $p_o$ might be negligible (or we only selected relays
-with the stable flag as CTRs). Estimating $p_z$ depends in part on the timeout
-parameter used by querying CTRs and CTR diversity in the network.
+Our design assumes that $p_c$ will be low, in the order of $\approx0.1$. An
+attacker that controls a fraction $f$ of all CTRs in the network has $p_h =
+1-f$. We may reasonably assume that $p_r \approx 1$ with proper vetting by the
+Tor Project (if few trusted auditors are OK). This leaves $p_s$.
+
+Reasoning about $p_s$ is complex. Infrequently causing network-wide DoS or
+trivially \emph{detectable} flushing may be acceptable to some attackers
+compared to the impact of SFO detection (see following section). In such a case,
+$p_s \approx 0$ and the rest is moot. 
+
+We need to focus on reliable ways for an attacker to drop $p_s$, i.e., ways to
+prevent SFOs to being sent to auditors without causing any detectable
+abnormalities in the network. For this flushing is important, since it's an
+attack that has no other impact on the network beyond the CTor functionality.
+The same is true for DoSing the auditors. 
 
 \subsection{Impact of Being Detected}
-if we don't wait at least MMD before auditing, the \emph{impact} of the
-inconsistent SFO reaching an auditor can be reduced by the attacker by including
-the certificate in the log, damaging the reputation of the issuing CA (or maybe
-completely killing it), instead of the involved CT-logs.
-
-\subsection{Comments on Above}
-The impact-side is our strength: it's devestatingly expensive for an attacker,
-especially if we want to make drag-net surveillance harder, not very few
-targetted attacks.
-
-The probability of being detected is more complex. We have full control of
-$p_c$, can make $p_o$ negligible, but at the cost of some lack of CTR diversity,
-negatively impacting $p_z$. Likely, for $p_z$, the timeout is key. If $p_c$ is
-small, then having an aggressive timeout for $p_z$ should be fine from a
-privacy-perspective. If $p_c$ is large, then the negative impact of an
-aggressive timeout becomes worse. 
-
-The special-case of $p_d$ with SFO flushing is important, since it's an attack
-that has no auxillary impact on the network beyond the CTor functionality. The
-second such attack, also part of $p_d$, is DoS of the auditors. We can make it
-slightly harder to DoS auditors by introducing more of them. Likely, we don't
-want auditors running as onions due to the inherent DoS issues? Or doesn't
-matter because this vector is unfixable really? Maybe the collateral damage here
-as an onion would be good? More likely we want many potential auditors, also
-used outside of Tor?
+In general, the impact of the public detecting that some attack is ongoing may
+be modest. The key impact is when an inconsistent SFO is found, since it is
+signed. An inconsistent SFO indicates one of two things: either the issuing CA
+messed up, or it was the CT log. Since a log has a MMD of time since the SFO to
+act, it is likely a good idea to wait at least MMD before auditing. This will
+maximize the impact, since proving log misbehaviour is significantly more costly
+than for a CA. This is a strength of our proposal we need to lean on: it's
+devastatingly expensive for an attacker, especially if we want to make dragnet
+surveillance harder, not few targeted attacks.
