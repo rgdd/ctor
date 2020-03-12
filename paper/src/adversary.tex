@@ -1,0 +1,110 @@
+\section{Adversary Model}
+\label{sec:adversary}
+
+The primary goal of our adversary is to undetectably engage in
+misbehavior at TLS certificate authorities (CAs) and Certificate
+Transparency (CT) logs so that clients are deceived about which
+certificates are both valid and included in CT logs.  The two versions
+of the primary adversary goal are \emph{omission}, to not add a
+certificate to a CT log after promising to include it, and
+\emph{inconsistency}, to include two different certificates for a
+single domain in the same CT log by creating split versions of the
+log, one for each certificate.
+
+An omission attack causes a browser to accept a TLS certificate
+fraudulently issued by a misbehaving CA\@. Undetectability stems from
+doing so without creating the standard records in the Certificate
+Transparency system that could implicate this fraudulent CA behavior
+to anyone who checked.  In particular, this means the browser will
+receive a signed certificate timestamp (SCT) for the certificate,
+which is effectively a promise by a CT log to add that certificate to
+the log within a specified time. (CT logs are append-only, designed so
+that any deletion will be publicly visible.) The log will, however,
+not include the certificate. Thus, any monitor checking up on
+certificates issued for the target website will not find in the log
+evidence of the fraudulent certificate.
+
+An adversary might use an inconsistency attack to hide the issuance of
+a fraudulent certificate.  In principle, an inconsistency attack might
+involve no misbehavior on the part of any CA, however. For example, a
+site owner might validly obtain multiple certificates for its site from
+a single CA\@. A malicious CT log could hide this even while including
+each certificate in a different version of its log. We will assume 
+the adversary owns a CA, rather than explore whether any practical
+attacks could result from a weaker adversary that does not. 
+
+We assume a powerful adversary, one that controls a CA, one or more CT
+logs, some Tor clients and a moderate fraction of Tor network
+relays. The adversary remains within the threat model of Tor and 
+Tor Browser, however. The adversary cannot alter consensus values
+produced and authenticated from the directory authorities, including
+the current signed tree head (STH) for any CT log in Tor's trust store.
+Domain owners and others able to connect to the Tor network cannot
+be blocked from accessing the current consensus STH\@.
+
+We use elements of the public Tor network in our design and thus
+consider attacks only on Tor Browser clients, but it would be
+straighforward to check certificates and SCTs received by other
+clients by creating an API to submit these via our design. For
+purposes of this paper, we do not consider an attacker that attempts
+to offers one consistent version of a CT log via Tor and a different
+(consitent) version not via Tor.  Our design uses CT-auditing Tor
+relays (CTRs) to periodically query CT logs for inclusion of
+certificates for which SCTs have been issued during client
+handshakes. The adversary obviously can issue fraudulent certificates
+and SCTs. The attacks below describe how the adversary can identify
+within seconds the relay responsible for a query to a malicious log,
+and can hamper or prevent an identified CTR from reporting to
+third-party CT auditors.
+
+Such a powerful adversary could be expected to succeed some of the
+time.  But, a CA caught issuing fraudulent certificates or a CT log
+caught failing to add certficates for issued SCTs will no longer be
+included as trusted by browsers or network infrastructure. We thus
+assume that our adversary is risk-averse.  In particular, above a
+relatively low threshold probability of attack detection, the
+adversary would prefer to avoid detection than to succeed in sending
+the SCT to a client without adding the certificate to the SCT-issuing CT log
+or maintaining multiple versions of that CT log.
+
+%\subsection{Attacks}
+%\label{sec:attacks}
+
+Even if communication between a CTR and a CT log is
+via Tor, by timing correlation of traffic exiting and entering the CTR
+with queries to and responses from an adversary-controlled CT log, an
+adversary might identify the CTR responsible for sending a log
+query. Tagging the CTR, however, so that the log can recognize queries
+the CTR sends is generally more certain and requires less effort.
+
+\noindent {\bf Tagging:} Since the adversary controls Tor clients and
+relays, it can send a sufficient number of different SCTs to different
+CTRs such that any SFOs a CTR sends to a CT log reflecting SCTs
+received that are now past the maximum merge delay (MMD) will include
+some SCTs that are unique to that CTR\@. (In this paper, we are not
+describing any of the designs we have considered that bounce some SCTs to
+other CTRs before querying logs. And avoiding tags by sending just one
+SCT per query connection will incur too much overhead.)
+
+\noindent {\bf Flushing:} The adversary might also attempt to
+eliminate the offending SCT from the CTR by flushing out its cache of
+all SCTs that are awaiting audit\@. (Or if flushing is not permitted,
+conversely filling its cache so that it will not accept new ones.) The
+adversary is not so powerful that it can observe all traffic to/from
+\emph{every} CTR, whether via owned adjacent Tor relays or local
+monitoring of the underlying network.  Thus, before any log has been
+queried, which SCT has been sent by an honest client to which honest
+CTR may not be known. To have an adequate guarantee of success, the
+adversary must flush all the CTRs in the network. This is already
+likely to be detectable. Overhead of a flushing attack for the
+adversary could be significantly raised and probability of attack
+success significantly diminished by making probabilistic the selection
+of individual cached and newly received SCTs to be dropping as
+capacity of the cache is exceeded.
+
+
+
+%%% Local Variables: 
+%%% mode: latex 
+%%% TeX-master: "../main"
+%%% End:          

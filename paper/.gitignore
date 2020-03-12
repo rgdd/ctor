@@ -1,3 +1,4 @@
+# tex things
 *.aux
 *.bbl
 *.blg
@@ -9,3 +10,8 @@
 *.log
 *.out
 main.pdf
+
+# emacs 
+*~
+# osx things
+.DS_Store
