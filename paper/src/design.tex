@@ -1,6 +1,18 @@
 \section{Design}
-An overview of our design idea is shown in Figure~\ref{fig:overview}.
-
+Figure~\ref{fig:overview} provides an overview of our design idea.  The starting
+point is that zero or more certificate chains and SCTs are presented
+throughout a website visit (step~1).  We refer to these as SCT Feedback Objects
+(SFOs)~\cite{nordberg}.  Tor Browser accepts an SFO if it adheres to an
+SCT-centric CT policy similar to Chrome and Safari~%
+\cite{chrome-policy,safari-policy}, but it may also be submitted to a CTR
+in the background using a fresh independent circuit (step~2).  CTR flags are
+assigned by Tor's directory authorities, and among other things, they also
+determine Tor's view of the CT landscape by publishing STHs and announcing
+third-party CT auditors in the Tor consensus.  CTRs store SFOs temporarily
+before challenging the logs to prove inclusion with regards to Tor's published
+STHs (step~3).  Should a log fail to provide a valid inclusion proof for an SFO
+within a timely manner, it is reported to an auditor that investigates the issue
+further (step~4).
 \begin{figure}
 	\centering
 	\input{img/overview}
@@ -10,10 +22,7 @@ An overview of our design idea is shown in Figure~\ref{fig:overview}.
 	\label{fig:overview}
 \end{figure}
 
-%\subsection{Tor Browser}
-%
-%\subsection{Tor Relay}
-%
-%\subsection{Directory Authority}
-%
-%\subsection{Announced Auditor}
+\subsection{Tor Consensus}
+\subsection{Tor Browser}
+\subsection{CT-Auditing Tor Relays}
+\subsection{Announced Auditors}
