@@ -23,6 +23,48 @@ further (step~4).
 \end{figure}
 
 \subsection{Tor Consensus}
+Tor's directory authorities produce an hourly consensus document that defines
+how the Tor network is composed.  Our proposal further requires the following
+parameters:
+\begin{description}
+	\item[ct-get-sth:] Occurs multiple times.  Log ID, followed by an STH that is
+		formatted as returned by the log's \texttt{get-sth}
+		endpoint~\cite{ct,ct/bis}.
+	\item[ct-submit-pr:] Occurs exactly once.  A floating-point in $[0,1]$
+		that determines the probability that an SFO should be submitted from Tor
+		Browser to a CTR.
+	\item[ct-auditor:] Occurs multiple times.  A submission URI, followed by a
+		SPKI hash that must be present in the TLS certificate presented by the
+		auditor~\cite{hpkp}.
+\end{description}
+
+Throughout any given voting timeline, each directory authority is expected to
+obtain the most recent STH from all recognized CT logs.  Next, while computing
+the consensus, they must agree to use the most recent STH by inspecting the
+timestamp field and resolving ties by appealing to lexicographical
+order.\footnote{%
+	Note that there is cryptographic proof of log misbehaviour if two STHs with
+	the same tree size have different root hashes.
+}  A log is recognized and a proposed CT auditor is announced if a majority of
+all directory authorities voted on their inclusion, which is implicit by
+proposing a value.  The submit probability is computed as
+the median of all votes.
+
+Other than the new parameters introduced above, we also need to extend the
+\texttt{know-flags} parameter as described below.  A relay is assigned the CTR
+flag if a majority of directory authorities voted for it.
+\begin{description}
+	\item[known-flags:] A flag named \texttt{CTR}, which indicates
+		that a Tor relay should be used for CT-auditing purposes.  The CTR
+		criteria is to be a stable middle relay with some minimum bandwidth.
+		\TODO{bw necessary?}
+\end{description}
+% - A CTR should be stable both to permit long-lived circuits to the CT logs and
+% to increase the likelihood of them staying online.
+% - The criteria of being a middle relay, as opposed to an exit relay, follows
+% mainly from resource utilization considerations.  It is also about not making
+% exit relays "more attractive targets" due to also storing SFOs.
+
 \subsection{Tor Browser}
 \subsection{CT-Auditing Tor Relays}
 \subsection{Announced Auditors}
