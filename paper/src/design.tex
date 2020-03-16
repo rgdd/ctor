@@ -90,5 +90,71 @@ once.
 % pr (<=1/10) it should be common to submit at most once per tab anyway.
 %
 
-\subsection{CT-Auditing Tor Relays}
+\subsection{CTR}
+A relay that is assigned the CTR flag accepts incoming SFO submissions on a
+dedicated HTTP endpoint.  As such, we suggest using Tor's existing HTTP
+DirServer as an extension point to interact with the tor daemon.  An auditing
+process then runs somewhat periodically, ensuring that the received SFOs are
+either merged into the logs or given attention to by the announced auditors.
+Following from the threat of flushing, CTRs also publish additional health
+metrics in the extra relay descriptor.
+
+\subsubsection{Submission Endpoint}
+As outlined in detail below, a CTR listens for incoming SFO submissions on an
+HTTP endpoint.  For example, it is possible to reuse the SCT feedback mechanism
+that Nordberg~\emph{et~al.}~\cite{nordberg} defined.  At most one SFO is
+expected per circuit.  Therefore, a submission should be rejected if it
+contains more than one SFO (step~1).  A CTR should also reject a submission if
+it contains no SCT from a recognized CT log, as there would be no STH available
+in the Tor consensus to use while querying for inclusion (step~2).
+If an SFO corresponds to a frequently visited website, it might already be
+resolved or waiting to be resolved in a \emph{cache} or a \emph{buffer} of
+pending SFOs (step~3).  Both the cache and the buffer of pending SFOs could be
+managed by Tor's OOM, which takes care of similar resources such as DNS.  If an
+SFO is neither resolved nor waiting to be resolved, an \texttt{audit\_after}
+timestamp $t$ is computed.  Unless the current time is greater than $t$, the SFO
+in question will not be audited despite being stored in the buffer of pending
+SFOs (step~5).  The reason why an SFO is not audited immediately is two-fold.
+First, adding a random delay in the order of minutes makes it harder for the log
+to learn about real-time website visits.  Secondly, a log is not forced to add
+an SCT's entry unless an MMD elapsed (discussed in Section~\ref{sec:todo}).
+
+For each incoming SFO $s$:
+\begin{enumerate}
+	\item Return and error and stop if some SFO was already received over the
+		current circuit.
+	\item Return an error and stop if $s$ contains no SCT from a recognized log.
+		Unrecognized SCTs are dropped. % otherwise can exploit for flush
+	\item Check if $s$ is already cached or pending inclusion verification.
+		If so, discard $s$ and stop without error.
+	\item Select the first SCT in $s$ using lexicographical order and compute
+		an \texttt{audit\_after} timestamp (Figure~\ref{fig:audit-after}).
+	\item Store $s$ and its \texttt{audit\_after} timestamp in a buffer of
+		pending SFOs that is managed by Tor's OOM.
+\end{enumerate}
+
+\begin{figure}
+	\centering
+	\pseudocode[linenumbering, syntaxhighlight=auto]{%
+		\textrm{t} \gets \mathsf{now}() \\
+		\pcif \textrm{SCT.timestamp} + \textrm{MMD} + \textrm{C} >
+				\textrm{t}:\\
+			\pcind\textrm{t} \gets \mathsf{min}(
+				\textrm{SCT.timestamp}, \textrm{t} +
+				\textrm{MMD} +
+				\textrm{C}
+			)\\
+			\textrm{t} \gets \textrm{t} + \mathsf{random\_delay}()
+	}
+	\caption{%
+		docdoc;
+		\TODO{C needed here? Or, better to have this in audit process with
+		regards to available STHs?}
+	}
+	\label{fig:audit-after}
+\end{figure}
+
+\subsubsection{Auditing Process}
+\subsubsection{Extra Relay Descriptor}
+
 \subsection{Announced Auditors}
