@@ -97,7 +97,7 @@ DirServer as an extension point to interact with the tor daemon.  An auditing
 process then runs somewhat periodically, ensuring that the received SFOs are
 either merged into the logs or given attention to by the announced auditors.
 Following from the threat of flushing, CTRs also publish additional health
-metrics in the extra relay descriptor.
+metrics in the extra-info document.
 
 \subsubsection{Submission Endpoint}
 As outlined in detail below, a CTR listens for incoming SFO submissions on an
@@ -193,6 +193,23 @@ TODO: add context
 		\ref{enm:log-circuit} and go to step~\ref{enm:backoff}.
 \end{enumerate}
 
-\subsubsection{Extra Relay Descriptor}
+\subsubsection{Extra-Info Document}
+The extra-info document tells us something about a relay's internal state of
+affairs.  For example, \texttt{read-history} and \texttt{write-history} list how
+many bytes were consumed throughout different time intervals.  To detect
+flushing attempts and track CT overhead in Tor, we suggest that the following
+metrics should be added:
+\begin{description}
+	\item[ct-submit-bytes:] Occurs at most once.  Interval width, followed by a
+		list of received SFO bytes per interval.
+	\item[ct-submit-count:] Occurs at most once.  Interval width, followed by a
+		list of received SFO submission counts per interval.
+	\item[ct-delete-count:] Occurs at most once.  Interval width, followed by a
+		list of deleted SFO submissions per interval.
+\end{description}
+
+A CTR should generate a new descriptor and extra-info document if the most
+current extra-info document had no deletions while the next one will have more
+than a threshold.  This is \emph{in addition} to already existing criteria.
 
 \subsection{Announced Auditors}
