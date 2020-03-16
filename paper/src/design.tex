@@ -109,7 +109,7 @@ it contains no SCT from a recognized CT log, as there would be no STH available
 in the Tor consensus to use while querying for inclusion (step~2).
 If an SFO corresponds to a frequently visited website, it might already be
 resolved or waiting to be resolved in a \emph{cache} or a \emph{buffer} of
-pending SFOs (step~3).  Both the cache and the buffer of pending SFOs could be
+pending SFOs (step~3).  Both the cache and the buffer of pending SFOs should be
 managed by Tor's OOM, which takes care of similar resources such as DNS.  If an
 SFO is neither resolved nor waiting to be resolved, an \texttt{audit\_after}
 timestamp $t$ is computed.  Unless the current time is greater than $t$, the SFO
