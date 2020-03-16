@@ -66,5 +66,29 @@ flag if a majority of directory authorities voted for it.
 % exit relays "more attractive targets" due to also storing SFOs.
 
 \subsection{Tor Browser}
+Similar to Chrome and Safari~\cite{chrome-policy,safari-policy}, we suggest that
+Tor Browser should use an SCT-centric CT policy.  This means that a certificate
+chain is accepted as valid if it is accompanied by a threshold of SCTs.  Such a
+policy would ideally come from Mozilla directly (like many other components),
+but at the time of writing there is no official CT policy that can be inherited
+from Firefox.
+
+If an SFO passes Tor Browser's CT policy, a biased coin is flipped based on the
+current value of \texttt{ct-submit-pr}.  Should the outcome indicate auditing,
+a CTR is sampled uniformly from the set of available CTRs and then the SFO is
+submitted on a fresh independent circuit that is closed as soon as possible.  In
+other words, at most one SFO is submitted per circuit.  In case that an SFO is
+presented multiple times within the same tab, it is only considered for auditing
+once.
+
+%
+% - close circuit asap to make it harder for an attacker to figure out which
+% CTR received a submission (should it have access to a zero-day takeover).
+% - clearly a submission circuit cannot be reused across tabs, but not doing
+% so within tabs may (i) reduce the chance that the receiving CTR knows exactly
+% which website was visited, and (ii) make sense because with small submission
+% pr (<=1/10) it should be common to submit at most once per tab anyway.
+%
+
 \subsection{CT-Auditing Tor Relays}
 \subsection{Announced Auditors}
