@@ -133,6 +133,10 @@ For each incoming SFO $s$:
 		pending SFOs that is managed by Tor's OOM.
 \end{enumerate}
 
+If memory becomes a scarce resource due to flushing, OOM should trigger and
+delete SFOs \emph{at random}~\cite{nordberg}.  The impact of such bulk-deletes
+are discussed in Section~\ref{sec:todo}.
+
 \begin{figure}
 	\centering
 	\pseudocode[linenumbering, syntaxhighlight=auto]{%
@@ -153,6 +157,7 @@ For each incoming SFO $s$:
 	}
 	\label{fig:audit-after}
 \end{figure}
+
 
 \subsubsection{Auditing Process}
 TODO: add context
