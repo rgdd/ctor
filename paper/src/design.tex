@@ -155,6 +155,39 @@ For each incoming SFO $s$:
 \end{figure}
 
 \subsubsection{Auditing Process}
+TODO: add context
+\begin{enumerate}
+	% TODO: distribution?
+	\item\label{enm:backoff} Sample a delay in the order of a few minutes, then
+		schedule a timer and wait until that time elapsed.
+	\item\label{enm:audit-circuit} Establish a new circuit and connect to a
+		randomly selected announced auditor in the Tor consensus.
+	\item\label{enm:log-circuit} Establish a new circuit and use it for all
+		subsequent log connections.  Connect to the logs when needed.
+	\item\label{enm:audit-loop} Until there are no more SFOs such that their
+		\texttt{audit\_after} timestamps are less than $\mathsf{now}()$:
+		\begin{enumerate}
+			% TODO: is sampled timeout justified?  Or just set the minimal one,
+			% which is what we have data on..
+			\item Select a random SCT from the current SFO.
+			% TODO: what if we don't have a reference STH where the MMD elapsed?
+			\item Set a query-timeout in the order of seconds and challenge the
+				log to prove inclusion with regards to the most recent STH in
+				the Tor consensus.
+				\begin{itemize}
+					\item On valid proof: cache the SFO in question by storing
+						the first SCT in lexicographical order, then continue
+						the loop from step~\ref{enm:audit-loop}.
+						% TODO: H(sct) instead?
+					\item On any other outcome: immediately send the entire SFO
+						to the auditor from step~\ref{enm:audit-circuit}, then
+						remove it from the buffer and break.
+				\end{itemize}
+		\end{enumerate}
+	\item Close all circuits from steps~\ref{enm:audit-circuit}--%
+		\ref{enm:log-circuit} and go to step~\ref{enm:backoff}.
+\end{enumerate}
+
 \subsubsection{Extra Relay Descriptor}
 
 \subsection{Announced Auditors}
