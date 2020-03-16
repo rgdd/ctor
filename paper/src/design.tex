@@ -213,3 +213,31 @@ current extra-info document had no deletions while the next one will have more
 than a threshold.  This is \emph{in addition} to already existing criteria.
 
 \subsection{Announced Auditors}
+An announced auditor is expected to implement the SCT feedback interface of
+Nordberg~\emph{et~al.}~\cite{nordberg}.  If a well-formed SFO is received, the
+auditor in question should endeavor to validate the inclusion status of each SCT
+with regards to the first STH in the Tor consensus that elapsed the log's MMD.
+Like any interested party, an announced auditor can and should verify that all
+STHs in the Tor consensus are consistent by fetching such proofs.
+
+% TODO: two-component system??
+If the log appears to function correctly except for some evidence that cannot be
+resolved despite multiple attempts that span a given time period, the auditor
+software must alert its operator.  More precisely:
+\begin{itemize}
+	\item If the log fails to provide a valid inclusion proof for an SCT with
+		regards to the first applicable STH in the Tor consensus
+		(an MMD violation is suspected).
+	\item If the log fails to provide a valid consistency proof between any two
+		STHs in the Tor consensus
+		(a split-view is suspected within the Tor network).
+	\item If an STH in the Tor consensus exceeds the log's MMD (general log
+		misbehaviour is suspected).
+\end{itemize}
+
+An announced auditor may choose to replicate possible evidence of log
+misbehaviour to the other announced auditors prematurely to ensure that
+it is persisted beyond its own durable storage.  At some point, the auditor
+software should generate a complete report that can be forwarded by the
+auditor's operator to the CT-policy mailing list for further community
+investigation.
