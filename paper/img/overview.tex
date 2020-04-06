@@ -1,10 +1,7 @@
-\def\ed{0.8} % distance between entities (cm)
-\def\orWidth{0.67} % onion router width (cm)
-\def\wsWidth{1} % website width (cm)
-\def\tbWidth{0.8} % tor browser width (cm)
-\def\logWidth{1} % ct log width (cm)
-\def\auditorWidth{1} % ct auditor width (cm)
-\def\consensusWidth{1} % Tor consensus width (cm)
+\def\entityWidth{1cm}
+\def\entityHDist{2.2cm}
+\def\entityVDist{1cm}
+\def\onionWidth{.33cm}
 
 \begin{tikzpicture}[
 	label/.style = {
@@ -20,119 +17,73 @@
 	},
 ]
 	%%%
-	% ORs in the centre
+	% Entities
 	%%%
-	\node[draw=none](clor){\includegraphics[width=\orWidth cm]{%
-		img/overview/or}
+	\node[draw=none](tb){%
+		\includegraphics[width=\entityWidth]{img/overview/tb}
 	};
-	\node[draw=none, right=\ed cm of clor](cmor){%
-		\includegraphics[width=\orWidth cm]{img/overview/or}
-	};
-	\node[draw=none, right=\ed cm of cmor](cror){%
-		\includegraphics[width=\orWidth cm]{img/overview/or}
+	\node[label, below=0pt of tb]{\textbf{Tor Browser}};
+
+	\node[draw, circle, fill=gray!33, right=\entityHDist of tb](ctr){%
+		CTR% TODO: add proper CTR figure
 	};
 
-	\coordinate(lc) at ($ (clor) !.5! (cmor) $);
-	\coordinate(rc) at ($ (cmor) !.5! (cror) $);
+	\node[draw=none, right=\entityHDist of ctr](log){%
+		\includegraphics[width=\entityWidth]{img/overview/log}
+	};
+	\node[label, below=0pt of log]{\textbf{CT Log}};
+
+	\node[draw=none, above=\entityVDist of ctr](website){%
+		\includegraphics[width=\entityWidth]{img/overview/ws}
+	};
+	\node[label, above=0pt of website]{\textbf{Website}};
+
+	\node[draw=none, below=\entityVDist of log](auditor){%
+		\includegraphics[width=\entityWidth]{img/overview/auditor}
+	};
+	\node[label, below=0pt of auditor]{\textbf{Auditor}};
+
+	\node[draw=none, right=\entityHDist of website](consensus) {%
+		\includegraphics[width=\entityWidth]{img/overview/consensus}
+	};
+	\node[label, above=0pt of consensus]{\textbf{Tor Consensus}};
 
 	%%%
-	% ORs on the top
-	%%%
-	\node[draw=none, above=\ed cm of lc](tlor){%
-		\includegraphics[width=\orWidth cm]{img/overview/or}
-	};
-	\node[draw=none, above=\ed cm of rc](tror){}; % hide unnecessary OR
-
-	%%%
-	% ORs on the bottom
-	%%%
-	\node[draw=none, below=\ed cm of lc](blor){%
-		\includegraphics[width=\orWidth cm]{img/overview/or}
-	};
-	\node[draw=none, below=\ed cm of rc](bror){%
-		\includegraphics[width=\orWidth cm]{img/overview/or}
-	};
-
-	%%%
-	% Website
-	%%%
-	\node[draw=none, right=\ed cm of cror](ws){%
-		\includegraphics[width=\wsWidth cm]{img/overview/ws}
-	};
-	\node[label, above=0pt of ws]{\textbf{Website}};
-
-	%%%
-	% Tor browser
-	%%%
-	\node[draw=none, left=\ed cm of clor](tb){%
-		\includegraphics[width=\tbWidth cm]{img/overview/tb}
-	};
-	\node[label, below=0pt of tb]{\textbf{Tor browser}};
-
-	%%%
-	% CT log
-	%%%
-	\coordinate(tc) at ($ (tlor) !.5! (tror) $);
-	\node[draw=none, above=\ed cm of tc](log) {%
-		\includegraphics[width=\logWidth cm]{img/overview/log}
-	};
-	\node[label, above=0pt of log]{\textbf{CT log}};
-
-	%%%
-	% Announced auditor
-	%%%
-	\node[draw=none, right=\ed cm of log](auditor) {%
-		\includegraphics[width=\auditorWidth cm]{img/overview/auditor}
-	};
-	\node[label, above=0pt of auditor]{\textbf{Auditor}};
-
-	%%%
-	% Consensus
-	%%%
-	\node[draw=none, left=\ed cm of log](consensus) {%
-		\includegraphics[width=\consensusWidth cm]{img/overview/consensus}
-	};
-	\path[edges, densely dotted]
-		($ (consensus) !.40! (tlor) $) --
-		($ (consensus) !.65! (tlor) $);
-	\node[label, above=0pt of consensus]{\textbf{Tor consensus}};
-	
-	%%%
-	% 1) Website -> TB
+	% Interactions
 	%%%
 	\path[edges]
-		(ws) |-
-			node[label,below,pos=.75]{1. present SFO}
-		(bror.350);
-	\path[edges] (bror.190) -- (blor.350);
-	\path[edges] (blor.190) -| (clor);
-	\path[edges] (clor.210) to[out=230, in=310] (tb.330);
+		(website) -|
+			node[draw=none, pos=.75]{%
+				\includegraphics[width=\onionWidth]{img/overview/onion}
+			}
+			node[label, above, pos=.25]{1. present SFO}
+		(tb);
 
-	%%%
-	% 2) TB -> CTR
-	%%%
-	\path[edges, dashed]
-		(tb.30) to[out=10, in=130]
-			node[label, above, pos=0.25]{2. submit SFO}
-		(clor.150);
-	\path[edges, dashed] (clor) |- (tlor.190);
-	\path[edges, dashed] (tlor.350) -| (cmor);
-	\path[edges, dashed] (cmor.350) -- (cror.190);
+	\path[edges]
+		(tb) --
+			node[draw=none, pos=.5]{%
+				\includegraphics[width=\onionWidth]{img/overview/onion}
+			}
+			node[label, above, pos=.5]{2. submit SFO}
+		(ctr);
 
-	%%%
-	% 3) CTR auditing
-	%%%
-	\path[edges, latex-latex, dotted]
-		(cror.135) --
-			node[label, below, sloped]{3. audit SFO}
+	\path[edges]
+		(ctr) --
+			node[draw=none, pos=.5]{%
+				\includegraphics[width=\onionWidth]{img/overview/onion}
+			}
+			node[label, above, pos=.5]{3. audit SFO}
 		(log);
 
-	%%%
-	% 4) CTR reporting
-	%%%
-	\path[edges, dashdotted]
-		(cror) --
-			node[label, above, sloped]{4. report SFO}
-			node[label, below, sloped]{on timeout}
+	\path[edges]
+		(ctr) |-
+			node[draw=none, pos=.25]{%
+				\includegraphics[width=\onionWidth]{img/overview/onion}
+			}
+			node[label, below, pos=.75]{4. report SFO on timeout}
 		(auditor);
+
+	\path[edges, densely dotted]
+		($ (consensus) !.20! (ctr) $) --
+		($ (consensus) !.45! (ctr) $);
 \end{tikzpicture}
