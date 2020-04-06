@@ -171,36 +171,37 @@ are discussed in Section~\ref{sec:todo}.
 \subsubsection{Auditing Process}
 TODO: add context
 \begin{enumerate}
+	\item\label{enm:extract} Extract CT parameters from the most recent Tor
+		consensus.
 	\item\label{enm:backoff} Sample a uniform delay from
-			$[0, \texttt{ct-backoff}]$, then
-		schedule a timer and wait until that time elapsed.
+			$[0, \texttt{ct-backoff}]$,
+		then schedule a timer and wait until that time elapsed.
 	\item\label{enm:audit-circuit} Establish a new circuit and connect to a
 		randomly selected announced auditor in the Tor consensus.
 	\item\label{enm:log-circuit} Establish a new circuit and use it for all
 		subsequent log connections.  Connect to the logs when needed.
-	\item\label{enm:audit-loop} Until there are no more SFOs such that their
-		\texttt{audit\_after} timestamps are less than $\mathsf{now}()$:
+	\item\label{enm:audit-loop} Enumerate the set of pending SFOs:
 		\begin{enumerate}
+			\item Continue if
+				$\textrm{SFO}.\mathsf{audit\_after} > \mathsf{now}()$.
 			\item Select a random SCT from the current SFO.
-			\item Disregard this SFO until the next wake-phase if there is no
-				most recent STH available such that $\textrm{STH.timestamp} +
-				\textrm{MMD} \ge
+			\item Continue if there is no STH available such that
+					$\textrm{STH.timestamp} + \textrm{MMD} \ge
 					\textrm{SCT.timestamp}$.
-			\item Use the most recent Tor consensus to set a query-timeout and
-				challenge the log to prove inclusion with regards to the
-				announced STH.
+			\item Set a query-timeout and challenge the log to prove
+				inclusion with regards to $\textrm{STH.treesize}$.
 				\begin{itemize}
 					\item On valid proof: cache the SFO in question by storing
-						the first SCT in lexicographical order hashed using a
-						cryptographic hash function, then continue the loop from
-						step~\ref{enm:audit-loop}.
+						the first SCT in lexicographical order, then continue.
+						Apply a cryptographic hash function to reduce memory
+						overhead.
 					\item On any other outcome: immediately send the entire SFO
 						to the auditor from step~\ref{enm:audit-circuit}, then
 						remove it from the buffer and break.
 				\end{itemize}
 		\end{enumerate}
 	\item Close all circuits from steps~\ref{enm:audit-circuit}--%
-		\ref{enm:log-circuit} and go to step~\ref{enm:backoff}.
+		\ref{enm:log-circuit} and go to step~\ref{enm:extract}.
 \end{enumerate}
 
 \subsubsection{Extra-Info Document}
