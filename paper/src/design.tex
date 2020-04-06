@@ -209,21 +209,27 @@ TODO: add context
 \subsubsection{Extra-Info Document}
 The extra-info document tells us something about a relay's internal state of
 affairs.  For example, \texttt{read-history} and \texttt{write-history} list how
-many bytes were consumed throughout different time intervals.  To detect
-flushing attempts and track CT overhead in Tor, we suggest that the following
-metrics should be added:
+many bytes were consumed throughout different time intervals.  We require that
+the following metrics be added:
 \begin{description}
-	\item[ct-submit-bytes:] Occurs at most once.  Interval width, followed by a
+	\item[ct-receive-bytes:] Occurs at most once.  Interval width, followed by a
 		list of received SFO bytes per interval.
-	\item[ct-submit-count:] Occurs at most once.  Interval width, followed by a
-		list of received SFO submission counts per interval.
-	\item[ct-delete-count:] Occurs at most once.  Interval width, followed by a
-		list of deleted SFO submissions per interval.
+	\item[ct-delete-bytes:] Occurs at most once.  Interval width, followed by a
+		list of deleted SFO bytes per interval.
 \end{description}
 
 A CTR should generate a new descriptor and extra-info document if the most
-current extra-info document had no deletions while the next one will have more
-than a threshold.  This is \emph{in addition} to already existing criteria.
+current extra-info document had no deletions while the next one will have at
+least one deletion:
+	this enables \emph{early detection} of flushing-related activities
+	(or suspicion thereof).
+There are other health-related metrics that could be added in the
+extra-info document, such as
+	the number of SFO submissions and deletions,
+	the ratio between SFOs that are younger than an MMD, and
+	per-log failure rates while querying for inclusion.
+The latter, for example, could be used as an indicator that the current
+query-timeout is too optimistic.
 
 \subsection{Announced Auditors}
 An announced auditor is expected to implement the SCT feedback interface of
