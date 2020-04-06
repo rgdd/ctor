@@ -33,6 +33,9 @@ parameters:
 	\item[ct-submit-pr:] Occurs exactly once.  A floating-point in $[0,1]$
 		that determines the probability that an SFO should be submitted from Tor
 		Browser to a CTR.
+	\item[ct-query-timeout:] Occurs exactly once.  A natural number that
+		determines how many ms a CTR waits before concluding that a CT log is
+		unresponsive.
 	\item[ct-auditor:] Occurs multiple times.  A submission URI, followed by a
 		SPKI hash that must be present in the TLS certificate presented by the
 		auditor~\cite{hpkp}.
@@ -47,7 +50,7 @@ order.\footnote{%
 	the same tree size have different root hashes.
 }  A log is recognized and a proposed CT auditor is announced if a majority of
 all directory authorities voted on their inclusion, which is implicit by
-proposing a value.  The submit probability is computed as
+proposing a value.  The submit probability and query timeout are computed as
 the median of all votes.
 
 Other than the new parameters introduced above, we also need to extend the
@@ -178,13 +181,11 @@ TODO: add context
 	\item\label{enm:audit-loop} Until there are no more SFOs such that their
 		\texttt{audit\_after} timestamps are less than $\mathsf{now}()$:
 		\begin{enumerate}
-			% TODO: is sampled timeout justified?  Or just set the minimal one,
-			% which is what we have data on..
 			\item Select a random SCT from the current SFO.
 			% TODO: what if we don't have a reference STH where the MMD elapsed?
-			\item Set a query-timeout in the order of seconds and challenge the
-				log to prove inclusion with regards to the most recent STH in
-				the Tor consensus.
+			\item Use the most recent Tor consensus to set a query-timeout and
+				challenge the log to prove inclusion with regards to the
+				announced STH.
 				\begin{itemize}
 					\item On valid proof: cache the SFO in question by storing
 						the first SCT in lexicographical order hashed using a
