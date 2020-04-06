@@ -150,19 +150,16 @@ are discussed in Section~\ref{sec:todo}.
 	\centering
 	\pseudocode[linenumbering, syntaxhighlight=auto]{%
 		\textrm{t} \gets \mathsf{now}() \\
-		\pcif \textrm{SCT.timestamp} + \textrm{MMD} + \textrm{C} >
+		\pcif \textrm{SCT.timestamp} + \textrm{MMD} >
 				\textrm{t}:\\
 			\pcind\textrm{t} \gets \mathsf{min}(
 				\textrm{SCT.timestamp}, \textrm{t} +
-				\textrm{MMD} +
-				\textrm{C}
+				\textrm{MMD}
 			)\\
 			\textrm{t} \gets \textrm{t} + \mathsf{random\_delay}()
 	}
 	\caption{%
-		docdoc;
-		\TODO{C needed here? Or, better to have this in audit process with
-		regards to available STHs?}
+		Algorithm that computes an \texttt{audit\_after} timestamp.
 	}
 	\label{fig:audit-after}
 \end{figure}
@@ -182,7 +179,10 @@ TODO: add context
 		\texttt{audit\_after} timestamps are less than $\mathsf{now}()$:
 		\begin{enumerate}
 			\item Select a random SCT from the current SFO.
-			% TODO: what if we don't have a reference STH where the MMD elapsed?
+			\item Disregard this SFO until the next wake-phase if there is no
+				most recent STH available such that $\textrm{STH.timestamp} +
+				\textrm{MMD} \ge
+					\textrm{SCT.timestamp}$.
 			\item Use the most recent Tor consensus to set a query-timeout and
 				challenge the log to prove inclusion with regards to the
 				announced STH.
