@@ -36,6 +36,9 @@ parameters:
 	\item[ct-query-timeout:] Occurs exactly once.  A natural number that
 		determines how many ms a CTR waits before concluding that a CT log is
 		unresponsive.
+	\item[ct-backoff:] Occurs exactly once.  A natural number that determines
+		how many ms a CTR backs-off at most while auditing SFOs for inclusion.
+		Note that this is the upper bound of a uniform distribution.
 	\item[ct-auditor:] Occurs multiple times.  A submission URI, followed by a
 		SPKI hash that must be present in the TLS certificate presented by the
 		auditor~\cite{hpkp}.
@@ -50,8 +53,8 @@ order.\footnote{%
 	the same tree size have different root hashes.
 }  A log is recognized and a proposed CT auditor is announced if a majority of
 all directory authorities voted on their inclusion, which is implicit by
-proposing a value.  The submit probability and query timeout are computed as
-the median of all votes.
+proposing a value.  The submit probability, query timeout, and CTR back-off
+parameters are all computed as the median values of the respective votes.
 
 Other than the new parameters introduced above, we also need to extend the
 \texttt{know-flags} parameter as described below.  A relay is assigned the CTR
@@ -168,8 +171,8 @@ are discussed in Section~\ref{sec:todo}.
 \subsubsection{Auditing Process}
 TODO: add context
 \begin{enumerate}
-	% TODO: distribution?
-	\item\label{enm:backoff} Sample a delay in the order of a few minutes, then
+	\item\label{enm:backoff} Sample a uniform delay from
+			$[0, \texttt{ct-backoff}]$, then
 		schedule a timer and wait until that time elapsed.
 	\item\label{enm:audit-circuit} Establish a new circuit and connect to a
 		randomly selected announced auditor in the Tor consensus.
