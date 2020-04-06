@@ -187,9 +187,9 @@ TODO: add context
 				the Tor consensus.
 				\begin{itemize}
 					\item On valid proof: cache the SFO in question by storing
-						the first SCT in lexicographical order, then continue
-						the loop from step~\ref{enm:audit-loop}.
-						% TODO: H(sct) instead?
+						the first SCT in lexicographical order hashed using a
+						cryptographic hash function, then continue the loop from
+						step~\ref{enm:audit-loop}.
 					\item On any other outcome: immediately send the entire SFO
 						to the auditor from step~\ref{enm:audit-circuit}, then
 						remove it from the buffer and break.
