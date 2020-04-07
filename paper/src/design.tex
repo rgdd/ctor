@@ -173,8 +173,7 @@ are discussed in Section~\ref{sec:todo}.
 \subsubsection{Auditing Process}
 TODO: add context
 \begin{enumerate}
-	\item\label{enm:extract} Extract CT parameters from the most recent Tor
-		consensus.
+	\item\label{enm:extract} Extract CT parameters from the Tor consensus.
 	\item\label{enm:backoff} Sample a uniform delay from
 			$[0, \texttt{ct-backoff}]$,
 		then schedule a timer and wait until that time elapsed.
@@ -207,10 +206,10 @@ TODO: add context
 \end{enumerate}
 
 \subsubsection{Extra-Info Document}
-The extra-info document tells us something about a relay's internal state of
+The extra-info document tells us something about a Tor relay's internal state of
 affairs.  For example, \texttt{read-history} and \texttt{write-history} list how
-many bytes were consumed throughout different time intervals.  We require that
-the following metrics be added:
+many bytes were consumed throughout different time intervals.  We further
+require that the following metrics be added:
 \begin{description}
 	\item[ct-receive-bytes:] Occurs at most once.  Interval width, followed by a
 		list of received SFO bytes per interval.
