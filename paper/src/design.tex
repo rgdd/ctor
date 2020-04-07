@@ -173,7 +173,6 @@ are discussed in Section~\ref{sec:todo}.
 \subsubsection{Auditing Process}
 TODO: add context
 \begin{enumerate}
-	\item\label{enm:extract} Extract CT parameters from the Tor consensus.
 	\item\label{enm:backoff} Sample a uniform delay from
 			$[0, \texttt{ct-backoff}]$,
 		then schedule a timer and wait until that time elapsed.
@@ -181,18 +180,17 @@ TODO: add context
 		randomly selected announced auditor in the Tor consensus.
 	\item\label{enm:log-circuit} Establish a new circuit and use it for all
 		subsequent log connections.  Connect to the logs when needed.
-	\item\label{enm:audit-loop} Enumerate the set of pending SFOs:
+	\item\label{enm:audit-loop} Enumerate the set of pending SFOs, referring to
+		the SCTs in Section~\ref{sec:design:api},
+		step~\ref{enm:ctr-api:audit-after}, and their logs' STHs:
 		\begin{enumerate}
 			\item Continue if
 				$\textrm{SFO}.\mathsf{audit\_after} > \mathsf{now}()$.
-			\item Extract from the current SFO the same SCT as previously
-				sampled in Section~\ref{sec:design:api},
-				step~\ref{enm:ctr-api:audit-after}.
-			\item Continue if there is no STH available such that
-					$\textrm{STH.timestamp} + \textrm{MMD} \ge
-					\textrm{SCT.timestamp}$.
+			\item Continue if
+				$\textrm{SFO}.\mathsf{audit\_after} >
+				\textrm{STH}.\mathsf{timestamp}$.
 			\item Set a query-timeout and challenge the log to prove
-				inclusion with regards to $\textrm{STH.treesize}$.
+				inclusion with regards to $\textrm{STH}.\mathsf{treesize}$.
 				\begin{itemize}
 					\item On valid proof: cache the SFO in question by storing
 						the first SCT in lexicographical order, then continue.
@@ -204,7 +202,7 @@ TODO: add context
 				\end{itemize}
 		\end{enumerate}
 	\item Close all circuits from steps~\ref{enm:audit-circuit}--%
-		\ref{enm:log-circuit} and go to step~\ref{enm:extract}.
+		\ref{enm:log-circuit} and go to step~\ref{enm:backoff}.
 \end{enumerate}
 
 \subsubsection{Extra-Info Document}
