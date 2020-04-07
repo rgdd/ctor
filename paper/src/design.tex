@@ -129,7 +129,7 @@ considered for auditing despite being stored in the buffer of pending SFOs
 The reason why an SFO is not audited immediately is two-fold.  First, adding a
 random delay in the order of minutes makes it harder for the log to learn about
 real-time website visits.  Secondly, a log is not forced to add an SCT's entry
-unless an MMD elapsed (see Section~\ref{sec:todo}).
+unless an MMD elapsed (discussed in Section~\ref{sec:todo}).
 
 For each incoming SFO $s$:
 \begin{enumerate}
@@ -147,8 +147,8 @@ For each incoming SFO $s$:
 		timestamp in a buffer of pending SFOs that is managed by Tor's OOM.
 \end{enumerate}
 
-If memory becomes a scarce resource due to flushing, OOM should trigger and
-delete SFOs at random~\cite{nordberg}.  The impact of such bulk-deletes
+If memory becomes a scarce relay resource, e.g., due to flushing, OOM
+should delete SFOs at random~\cite{nordberg}.  The impact of such bulk-deletes
 are discussed in Section~\ref{sec:todo}.
 
 \begin{figure}
