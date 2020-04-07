@@ -107,7 +107,7 @@ either merged into the logs or given attention to by the announced auditors.
 Following from the threat of flushing, CTRs also publish additional health
 metrics in the extra-info document.
 
-\subsubsection{Submission Endpoint}
+\subsubsection{Submission Endpoint} \label{sec:design:api}
 As outlined in detail below, a CTR listens for incoming SFO submissions on an
 HTTP endpoint.  For example, it is possible to reuse the SCT feedback mechanism
 that Nordberg~\emph{et~al.} defined~\cite{nordberg}.  At most one SFO is
@@ -122,9 +122,9 @@ pending SFOs (step~\ref{enm:ctr-api:cached}).
 Both the cache and the buffer of pending SFOs should be managed by Tor's OOM,
 which takes care of similar resources such as DNS.  If an SFO is neither
 resolved nor waiting to be resolved, an \texttt{audit\_after} timestamp $t$ is
-computed (step~\ref{enm:ctr-api:audit-after}).
+computed for a randomly selected SCT (step~\ref{enm:ctr-api:audit-after}).
 Unless the current time is greater than $t$, the SFO in question will not be
-audited despite being stored in the buffer of pending SFOs
+considered for auditing despite being stored in the buffer of pending SFOs
 (step~\ref{enm:ctr-api:store}).
 The reason why an SFO is not audited immediately is two-fold.  First, adding a
 random delay in the order of minutes makes it harder for the log to learn about
@@ -140,8 +140,8 @@ For each incoming SFO $s$:
 		% otherwise can exploit for flush
 	\item\label{enm:ctr-api:cached} Check if $s$ is already cached or pending
 		inclusion verification.  If so, discard $s$ and stop without error.
-	\item\label{enm:ctr-api:audit-after} Select the first SCT in $s$ using
-		lexicographical order and compute an \texttt{audit\_after} timestamp
+	\item\label{enm:ctr-api:audit-after} Sample an SCT in $s$, noting down the
+		outcome and a corresponding \texttt{audit\_after} timestamp
 		(Figure~\ref{fig:audit-after}).
 	\item\label{enm:ctr-api:store} Store $s$ and its \texttt{audit\_after}
 		timestamp in a buffer of pending SFOs that is managed by Tor's OOM.
@@ -185,7 +185,9 @@ TODO: add context
 		\begin{enumerate}
 			\item Continue if
 				$\textrm{SFO}.\mathsf{audit\_after} > \mathsf{now}()$.
-			\item Select a random SCT from the current SFO.
+			\item Extract from the current SFO the same SCT as previously
+				sampled in Section~\ref{sec:design:api},
+				step~\ref{enm:ctr-api:audit-after}.
 			\item Continue if there is no STH available such that
 					$\textrm{STH.timestamp} + \textrm{MMD} \ge
 					\textrm{SCT.timestamp}$.
