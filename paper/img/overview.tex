@@ -24,9 +24,10 @@
 	};
 	\node[label, below=0pt of tb]{\textbf{Tor Browser}};
 
-	\node[draw, circle, fill=gray!33, right=\entityHDist of tb](ctr){%
-		CTR% TODO: add proper CTR figure
+	\node[draw=none, right=\entityHDist of tb](ctr){%
+		\includegraphics[width=\entityWidth]{img/overview/onion-empty}
 	};
+	\node[label, below=2pt of tb] at (ctr) {\textbf{CTR}};
 
 	\node[draw=none, right=\entityHDist of ctr](log){%
 		\includegraphics[width=\entityWidth]{img/overview/log}
