@@ -56,6 +56,9 @@ and SCTs. The attacks below describe how the adversary can identify
 within seconds the relay responsible for a query to a malicious log,
 and can hamper or prevent an identified CTR from reporting to
 third-party CT auditors.
+The adversary is expected to know the configuration and resources of
+all CTRs: their memory and processing capacities, maximum sustained
+bandwidth, etc. 
 
 Such a powerful adversary could be expected to succeed some of the
 time.  But, a CA caught issuing fraudulent certificates or a CT log
@@ -64,8 +67,27 @@ included as trusted by browsers or network infrastructure. We thus
 assume that our adversary is risk-averse.  In particular, above a
 relatively low threshold probability of attack detection, the
 adversary would prefer to avoid detection than to succeed in sending
-the SCT to a client without adding the certificate to the SCT-issuing CT log
-or maintaining multiple versions of that CT log.
+the SCT to a client without adding the certificate to the SCT-issuing
+CT log or maintaining multiple versions of that CT log. 
+
+For example, the adversary might possess adequate bandwidth to DoS
+individual CTRs for at least several hours. But whether a sustained
+DoS of all CTRs is feasible for the adversary, it is out of scope
+simply because the attack would be too visible. An attack that
+attempts to overwhelm the storage capacity for SFOs at all CTRs would
+similarly be likely too visible, though see the discussion of flushing
+attacks below for details. Likewise an adversary may have access to a
+zero-day that could affect Tor Browser clients or a zero-day for some
+CTRs. But these should be considered expensive, and relatively quickly
+detected and repaired.  So, an adversary will not preemptively spend a
+zero-day that affects only one family of operating systems because
+CTRs run on multiple OSes and which CTR is relevant to a given attack
+cannot be known ahead of time. And a zero-day that effectively allows
+the simultaneous takeover of all Tor relays is out of scope. Likewise
+the adversary may otherwise have the ability to take over or simply
+restart individual CTRs or groups of CTRs, but taking over or
+restarting all CTRs simultaneously or within several hours of each
+other is also out of scope.
 
 %\subsection{Attacks}
 %\label{sec:attacks}
@@ -78,29 +100,35 @@ query. Tagging the CTR, however, so that the log can recognize queries
 the CTR sends is generally more certain and requires less effort.
 
 \noindent {\bf Tagging:} Since the adversary controls Tor clients and
-relays, it can send a sufficient number of different SCTs to different
-CTRs such that any SFOs a CTR sends to a CT log reflecting SCTs
-received that are now past the maximum merge delay (MMD) will include
-some SCTs that are unique to that CTR\@. (In this paper, we are not
-describing any of the designs we have considered that bounce some SCTs to
-other CTRs before querying logs. And avoiding tags by sending just one
-SCT per query connection will incur too much overhead.)
+relays, it can regularly send many different SFOs to different
+CTRs. This means that, whatever the interval at which a CTR might
+request audit to a CT log, some adversary SCTs will have exceeded
+maximum merge delay (MMD) during each interval.  Thus, any SFOs a CTR
+sends to a CT log reflecting SCTs received that are now past the
+maximum merge delay (MMD) will include some SCTs that are unique to
+that CTR\@. (In this paper, we are not describing any of the designs
+we have considered that bounce some SCTs to other CTRs before querying
+logs. And avoiding tags by sending just one SCT per query connection
+will incur too much overhead.)
 
 \noindent {\bf Flushing:} The adversary might also attempt to
 eliminate the offending SCT from the CTR by flushing out its cache of
 all SCTs that are awaiting audit\@. (Or if flushing is not permitted,
-conversely filling its cache so that it will not accept new ones.) The
-adversary is not so powerful that it can observe all traffic to/from
+conversely filling its cache so that the CTR will not accept new ones
+until the next audit.) 
+The adversary is not so powerful that it can observe all traffic to/from
 \emph{every} CTR, whether via owned adjacent Tor relays or local
 monitoring of the underlying network.  Thus, before any log has been
-queried, which SCT has been sent by an honest client to which honest
+queried, which SFO has been sent by an honest client to which honest
 CTR may not be known. To have an adequate guarantee of success, the
-adversary must flush all the CTRs in the network. This is already
-likely to be detectable. Overhead of a flushing attack for the
+adversary must thus flush all the CTRs in the network. This is already
+likely to be detectable. In addition, overhead of a flushing attack for the
 adversary could be significantly raised and probability of attack
-success significantly diminished by making probabilistic the selection
-of individual cached and newly received SCTs to be dropping as
-capacity of the cache is exceeded.
+success significantly diminished by following a strategy used by some
+types of mix in anonymous communication: make probabilistic the
+selection of individual SFOs amongst both the cached and newly
+received SFOs to be dropped as capacity of the cache is
+exceeded~\cite{trickle02}.
 
 
 
