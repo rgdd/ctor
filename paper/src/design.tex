@@ -1,4 +1,5 @@
 \section{Design}
+\label{sec:design}
 Figure~\ref{fig:overview} provides an overview of our design idea.  The starting
 point is that zero or more certificate chains and SCTs are presented
 throughout a website visit (step~1).  We refer to these as SCT Feedback Objects
@@ -26,8 +27,8 @@ further (step~4).
 
 \subsection{Tor Consensus}
 Tor's directory authorities produce an hourly consensus document that defines
-how the Tor network is composed.  Our proposal further requires the following
-parameters:
+how the Tor network is composed.  Our proposal adds the following parameters,
+further explained throughout Section~\ref{sec:design}:
 \begin{description}
 	\item[ct-get-sth:] Occurs multiple times.  Log ID, followed by an STH that is
 		formatted as returned by the log's \texttt{get-sth}
