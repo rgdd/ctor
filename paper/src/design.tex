@@ -82,13 +82,12 @@ policy would ideally come from Mozilla directly (like many other components),
 but at the time of writing there is no official CT policy that can be inherited
 from Firefox.
 
-If an SFO passes Tor Browser's CT policy, a biased coin is flipped based on the
-current value of \texttt{ct-submit-pr}.  Should the outcome indicate auditing,
-a CTR is sampled uniformly from the set of available CTRs and then the SFO is
-submitted on a fresh independent circuit that is closed as soon as possible.  In
-other words, at most one SFO is submitted per circuit.  In case that an SFO is
-presented multiple times within the same tab, it is only considered for auditing
-once.
+For each observed SFO by Tor Browser, if the SFO passes Tor Browser's CT policy,
+a biased coin is flipped based on the current value of \texttt{ct-submit-pr}.
+Should the outcome indicate auditing, a CTR is sampled uniformly from the set of
+available CTRs and then the SFO is submitted on a fresh independent circuit that
+is then immediately closed.  In case that an SFO is presented multiple times
+within the same tab, it is only considered for auditing once.
 
 %
 % - close circuit asap to make it harder for an attacker to figure out which
