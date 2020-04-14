@@ -2,6 +2,23 @@
 We assume a risk-averse attacker: we want to make the \emph{probability} of
 detection as well as the \emph{impact} of detection as high as possible.
 
+\subsection{Impact of Being Detected}
+
+% TODO Tobias: rework below to make the following split more clear
+% - if network-wide attack, significant event but relatively hard to attribute
+% - if misbehaving CA (how do we get to this point?), CA burned
+% - if misbehaving CT log, log burned (massive)
+
+In general, the impact of the public detecting that some attack is ongoing may
+be modest. The key impact is when an inconsistent SFO is found, since it is
+signed. An inconsistent SFO indicates one of two things: either the issuing CA
+messed up, or it was the CT log. Since a log has a MMD of time since the SFO to
+act, it is likely a good idea to wait at least MMD before auditing. This will
+maximize the impact, since proving log misbehaviour is significantly more costly
+than for a CA. This is a strength of our proposal we need to lean on: it's
+devastatingly expensive for an attacker, especially if we want to make dragnet
+surveillance harder, not few targeted attacks.
+
 \subsection{Probability of Being Detected}
 Given our design and threat model, consider the case of an attacker that
 attempts to MitM a single connection by creating an inconsistent SFO. Let $p_a$
@@ -46,14 +63,3 @@ prevent SFOs to being sent to auditors without causing any detectable
 abnormalities in the network. For this flushing is important, since it's an
 attack that has no other impact on the network beyond the CTor functionality.
 The same is true for DoSing the auditors. 
-
-\subsection{Impact of Being Detected}
-In general, the impact of the public detecting that some attack is ongoing may
-be modest. The key impact is when an inconsistent SFO is found, since it is
-signed. An inconsistent SFO indicates one of two things: either the issuing CA
-messed up, or it was the CT log. Since a log has a MMD of time since the SFO to
-act, it is likely a good idea to wait at least MMD before auditing. This will
-maximize the impact, since proving log misbehaviour is significantly more costly
-than for a CA. This is a strength of our proposal we need to lean on: it's
-devastatingly expensive for an attacker, especially if we want to make dragnet
-surveillance harder, not few targeted attacks.
