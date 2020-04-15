@@ -60,14 +60,11 @@ proposing a value.  The submit probability, query timeout, and CTR back-off
 parameters are all computed as the median values of the respective votes.
 
 Other than the new parameters introduced above, we also need to extend the
-\texttt{know-flags} parameter as described below.  A relay is assigned the CTR
-flag if a majority of directory authorities voted for it.
-\begin{description}
-	\item[known-flags:] A flag named \texttt{CTR}, which indicates
-		that a Tor relay should be used for CT-auditing purposes.  The CTR
-		criteria is to be a stable middle relay with some minimum bandwidth.
-		\TODO{bw necessary?}
-\end{description}
+\texttt{know-flags} parameter by adding a CTR-flag.  The CTR-flag is 
+assigned to stable middle relays if a majority of directory authorities voted
+for it, and it indicates that a given Tor relay should take on the additional
+responsibility of auditing CT logs.
+
 % - A CTR should be stable both to permit long-lived circuits to the CT logs and
 % to increase the likelihood of them staying online.
 % - The criteria of being a middle relay, as opposed to an exit relay, follows
