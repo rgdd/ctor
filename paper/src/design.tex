@@ -285,13 +285,18 @@ An announced auditor is expected to implement the SCT feedback interface of
 Nordberg~\emph{et~al.}~\cite{nordberg}.  If a well-formed SFO is received, the
 auditor in question should endeavor to validate the inclusion status of each SCT
 with regards to the first STH in the Tor consensus that elapsed the log's MMD.
-Like any interested party, an announced auditor can and should verify that all
-STHs in the Tor consensus are consistent by fetching such proofs.
+An announced auditor should also verify that each STH in the Tor consensus is
+in fact consistent by fetching consistency proofs from the logs.
+While not within our threat model, we do encourage the announced auditors to
+verify that STHs in the Tor consensus are consistent with external views of the
+CT landscape.  For example, operate an STH pollination~\cite{nordberg} endpoint
+and fetch STHs actively from many diverse vantage points using Tor, VPN
+services, DoH resolvers, and RIPE Atlas (to mention a few low-cost options).
 
 % TODO: two-component system??
 If the log appears to function correctly except for some evidence that cannot be
-resolved despite multiple attempts that span a given time period, the auditor
-software must alert its operator.  More precisely:
+resolved despite multiple attempts that span a given time period, it is
+paramount that the auditor software alerts its operator.  In detail:
 \begin{itemize}
 	\item If the log fails to provide a valid inclusion proof for an SCT with
 		regards to the first applicable STH in the Tor consensus
@@ -299,8 +304,8 @@ software must alert its operator.  More precisely:
 	\item If the log fails to provide a valid consistency proof between any two
 		STHs in the Tor consensus
 		(a split-view is suspected within the Tor network).
-	\item If an STH in the Tor consensus exceeds the log's MMD (general log
-		misbehaviour is suspected).
+	\item If an STH in the Tor consensus is future-dated or backdated more than
+		an MMD (general log misbehavior suspected).
 \end{itemize}
 
 An announced auditor may choose to replicate possible evidence of log
