@@ -43,8 +43,8 @@ further explained throughout Section~\ref{sec:design}:
 		how many ms a CTR backs-off at most while auditing SFOs for inclusion.
 		Note that this is the upper bound of a uniform distribution.
 	\item[ct-auditor:] Occurs multiple times.  A submission URI, followed by a
-		SPKI hash that must be present in the TLS certificate presented by the
-		auditor~\cite{hpkp}.
+		SPKI fingerprint that must be present in the TLS certificate presented
+		by the auditor~\cite{hpkp}.
 \end{description}
 
 Throughout any given voting timeline, each directory authority is expected to
