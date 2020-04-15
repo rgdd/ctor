@@ -9,11 +9,11 @@ Equation~\ref{eq:sub-oh}, we can now estimate the resulting circuit overhead.
 		\frac{p}{n} \sum_{i=1}^{n} c_i, \textrm{where } c_i\sample\mathcal{D}
 \end{equation}
 
-We decided to approximate $\mathcal{D}$ using the most frequently viewed reddit
-pages as of December 4, 2019.\footnote{%
+We decided to approximate $\mathcal{D}$ using the most popular webpages
+submitted to Reddit (r/frontpage, all time) as of December 4, 2019.\footnote{%
 	\url{https://github.com/pylls/padding-machines-for-tor/commit/353bfa75e9f7d6aa0a1dff9516ff234cbf0f4562}
-} This was motivated by the intuition that such web pages should include more
-resources than basic front pages, such that $\mathcal{D}$ is more likely to be
+} This was motivated by the intuition that such webpages should include more
+resources than basic frontpages, such that $\mathcal{D}$ is more likely to be
 overestimated rather than underestimated.  Further, we are likely not
 underestimating $\mathcal{D}$ because these SFOs were collected using fresh
 Chromium instances that call home on start-up, thereby generating a few
