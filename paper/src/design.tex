@@ -223,9 +223,8 @@ Section~\ref{todo} shows that it is reasonable to cancel the auditing instance.
 				% where sth first after mmd elapsed !  Missing right now
 				\begin{itemize}
 					\item\label{enm:audit-loop:challenge:success} On valid
-						proof: cache the SFO in question by storing the first
-						SCT in lexicographical order, then continue.  Apply a
-						cryptographic hash function to reduce memory overhead.
+						proof: cache the SFO in question by storing a hashed
+						representation.
 					\item\label{enm:audit-loop:challenge:fail} On any other
 						outcome: immediately send the entire SFO to the auditor
 						from step~\ref{enm:audit-circuit}, then remove it from
