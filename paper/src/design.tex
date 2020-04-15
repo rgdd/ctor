@@ -39,6 +39,9 @@ further explained throughout Section~\ref{sec:design}:
 	\item[ct-query-timeout:] Occurs exactly once.  A natural number that
 		determines how many ms a CTR waits before concluding that a CT log is
 		unresponsive.
+	\item[ct-submit-timeout:] Occurs exactly once.  A natural number that
+		determines how many ms Tor Browser waits before concluding that a CTR
+		is unresponsive.
 	\item[ct-backoff:] Occurs exactly once.  A natural number that determines
 		how many ms a CTR backs-off at most while auditing SFOs for inclusion.
 		Note that this is the upper bound of a uniform distribution.
@@ -79,12 +82,19 @@ policy would ideally come from Mozilla directly (like many other components),
 but at the time of writing there is no official CT policy that can be inherited
 from Firefox.
 
-For each observed SFO by Tor Browser, if the SFO passes Tor Browser's CT policy,
-a biased coin is flipped based on the current value of \texttt{ct-submit-pr}.
-Should the outcome indicate auditing, a CTR is sampled uniformly from the set of
-available CTRs and then the SFO is submitted on a fresh independent circuit that
-is then immediately closed.  In case that an SFO is presented multiple times
-within the same tab, it is only considered for auditing once.
+If an SFO passes Tor Browser's CT policy, the value of
+\texttt{ct-submit-pr} is used to flip a biased coin.  The outcome determines
+whether further inclusion verification should take place, in which case the SFO
+is submitted to a sampled CTR over a fresh independent circuit
+that is \emph{pre-built} and closed immediately after use.  In other words, Tor
+Browser should maintain a pool of circuits that can be used for CT-auditing
+purposes, and such circuits are used at most once.
+Should the same SFO be presented multiple times within the same tab, it is only
+considered for further auditing on the \emph{first encounter}.
+If a submitted SFO remains unacknowledged after some maximum time
+as decided by \texttt{ct-submit-timeout}, it is resubmitted as if there was no
+failure to begin with, i.e., sample a new CTR and use a fresh independent
+circuit.
 
 %
 % - close circuit asap to make it harder for an attacker to figure out which
@@ -93,7 +103,16 @@ within the same tab, it is only considered for auditing once.
 % so within tabs may (i) reduce the chance that the receiving CTR knows exactly
 % which website was visited, and (ii) make sense because with small submission
 % pr (<=1/10) it should be common to submit at most once per tab anyway.
+% - resubmission:
+%   a) new circuit because the exit might be attacker controlled and
+%   intentionally be blocking access to a CTR that is not attacker-controlled
+%   b) new ctr because we don't wanna keep on trying indefinitely if there is
+%   an actual problem with the selected ctr.  At the same time, it will be
+%   difficult for the attacker to rely on Tor Browser never sampling both a
+%   benign exit and ctr (in which case the submission should succeed).
 %
+% TODO: should pre-built CT-circuits be connected to CTRs before use?  It
+% would be good to minimize submit window, but overhead cost unclear atm.
 
 \subsection{CTR}
 A relay that is assigned the CTR flag accepts incoming SFO submissions on a
