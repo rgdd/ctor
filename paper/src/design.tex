@@ -116,45 +116,23 @@ circuit.
 
 \subsection{CTR}
 A relay that is assigned the CTR flag accepts incoming SFO submissions on a
-dedicated HTTP endpoint.  As such, we suggest using Tor's existing HTTP
-DirServer as an extension point to interact with the tor daemon.  An auditing
-process then runs somewhat periodically, ensuring that the received SFOs are
-either merged into the logs or given attention to by the announced auditors.
-Following from the threat of flushing, CTRs also publish additional health
-metrics in the extra-info document.
+dedicated endpoint.  Somewhat periodically, an auditing process then runs which
+verifies the inclusion status of SFOs that are pending.  CTRs also
+publish health metrics in the extra-info document.
 
 \subsubsection{Submission Endpoint} \label{sec:design:api}
-As outlined in detail below, a CTR listens for incoming SFO submissions on an
-HTTP endpoint.  For example, it is possible to reuse the SCT feedback mechanism
-that Nordberg~\emph{et~al.} defined~\cite{nordberg}.  At most one SFO is
-expected per circuit.  Therefore, a submission should be rejected if it
-contains more than one SFO (step~\ref{enm:ctr-api:incoming}).
-A CTR should also reject a submission if it contains no SCT from a recognized CT
-log, as there would be no STH available in the Tor consensus to use while
-querying for inclusion (step~\ref{enm:ctr-api:well-formed}).
-If an SFO corresponds to a frequently visited website, it might already be
-resolved or waiting to be resolved in a \emph{cache} or a \emph{buffer} of
-pending SFOs (step~\ref{enm:ctr-api:cached}).
-Both the cache and the buffer of pending SFOs should be managed by Tor's OOM,
-which takes care of similar resources such as DNS.  If an SFO is neither
-resolved nor waiting to be resolved, an \texttt{audit\_after} timestamp $t$ is
-computed for a randomly selected SCT (step~\ref{enm:ctr-api:audit-after}).
-Unless the current time is greater than $t$, the SFO in question will not be
-considered for auditing despite being stored in the buffer of pending SFOs
-(step~\ref{enm:ctr-api:store}).
-The reason why an SFO is not audited immediately is two-fold.  First, adding a
-random delay in the order of minutes makes it harder for the log to learn about
-real-time website visits.  Secondly, a log is not forced to add an SCT's entry
-unless an MMD elapsed (discussed in Section~\ref{sec:todo}).
-
-For each incoming SFO $s$:
+We suggest that CTRs accept SFO submissions on an HTTP endpoint.\footnote{%
+	Tor's HTTP DirServer codebase can be reused as extension point to interact
+	with the tor daemon, i.e., add another listener.
+} For example, Nordberg~\emph{et~al.} defined an SCT feedback interface that can
+be reused if an array-length of one is enforced by the CTR~\cite{nordberg}.
+With regards to some circuit, process an incoming SFO $s$ as follows:
 \begin{enumerate}
 	\item\label{enm:ctr-api:well-formed} Close the circuit and stop if $s$
 		contains no SCT that matches at least one log ID in a
 	\texttt{ct-get-sth} entry.
 	\item\label{enm:ctr-api:ack} Update $s$ by discarding any
-		unrecognized SCT,
-		% otherwise can exploit for easier flush
+		unrecognized SCT, % otherwise can exploit for easier flush
 		then acknowledge the reception and close the circuit.
 	\item\label{enm:ctr-api:cached}
 		Stop if $s$ is cached or pending inclusion verification.
@@ -164,6 +142,22 @@ For each incoming SFO $s$:
 	\item\label{enm:ctr-api:store} Store $s$ and its \texttt{audit\_after}
 		timestamp in a buffer of pending SFOs that is managed by Tor's OOM.
 \end{enumerate}
+
+First we verify that the submitted SFO is well-formed and that it contains at
+least one SCT that corresponds to an STH in the Tor consensus.
+Possibly preceded by an acknowledgment that the SFO will be audited, the
+associated circuit is then closed.  This means that no acknowledgment should be
+treated as an error, and at most one SFO can be submitted on a given circuit.
+New SFOs, i.e., SFOs that are neither \emph{cached} nor waiting to be resolved
+in a \emph{buffer} of pending SFOs, are stored.  We only keep recognized
+SCTs around to ensure that no CTR memory is wasted, and one of these SCTs are
+sampled so that an \texttt{audit\_after} timestamp can be computed.  The
+\texttt{audit\_after} timestamp determines the earliest point in time that an
+SFO will be considered for auditing:
+	a random delay is added to leak less real-time information regarding visited
+		websites to the CT logs, and
+	by auditing after an SCT's MMD elapsed the log \emph{must} have an
+		inclusion proof available or it misbehaves.
 
 If memory becomes a scarce relay resource, e.g., due to flushing, OOM
 should delete SFOs at random~\cite{nordberg}.  The impact of such bulk-deletes
@@ -182,7 +176,8 @@ are discussed in Section~\ref{sec:todo}.
 			\textrm{t} \gets \textrm{t} + \mathsf{random\_delay}()
 	}
 	\caption{%
-		Algorithm that computes an \texttt{audit\_after} timestamp.
+		Algorithm that computes an \texttt{audit\_after} timestamp that is
+		bound by the CTR's perception of time and the log's MMD.
 	}
 	\label{fig:audit-after}
 \end{figure}
