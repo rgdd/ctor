@@ -15,6 +15,7 @@ STHs (step~3).  Should a log fail to provide a valid inclusion proof for an SFO
 within a timely manner, it is reported to an auditor that investigates the issue
 further (step~4).
 \begin{figure}
+	% TODO: clarify circuit structure to CTR in the overview figure?
 	\centering
 	\input{img/overview}
 	\caption{%
@@ -86,15 +87,17 @@ If an SFO passes Tor Browser's CT policy, the value of
 \texttt{ct-submit-pr} is used to flip a biased coin.  The outcome determines
 whether further inclusion verification should take place, in which case the SFO
 is submitted to a sampled CTR over a fresh independent circuit
-that is \emph{pre-built} and closed immediately after use.  In other words, Tor
-Browser should maintain a pool of circuits that can be used for CT-auditing
-purposes, and such circuits are used at most once.
+that is \emph{pre-built} from the client's guard relay (three hops in total) 
+and closed immediately after use.  In other words, Tor Browser should maintain a
+pool of one-time circuits that are used for CT-auditing purposes only.
 Should the same SFO be presented multiple times within the same tab, it is only
-considered for further auditing on the \emph{first encounter}.
-If a submitted SFO remains unacknowledged after some maximum time
-as decided by \texttt{ct-submit-timeout}, it is resubmitted as if there was no
-failure to begin with, i.e., sample a new CTR and use a fresh independent
-circuit.
+considered for further auditing on a \emph{first-encounter} basis.
+If a submitted SFO is unacknowledged after some maximum time as decided by
+\texttt{ct-submit-timeout}, it is resubmitted as if there was no failure to
+begin with:
+	use another pre-built circuit to a sampled CTR.
+This ensures that Tor Browser does not keep submitting to a CTR that are no
+longer available, while at the same time having limited security impact.
 
 %
 % - close circuit asap to make it harder for an attacker to figure out which
