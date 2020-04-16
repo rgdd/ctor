@@ -149,13 +149,15 @@ unless an MMD elapsed (discussed in Section~\ref{sec:todo}).
 
 For each incoming SFO $s$:
 \begin{enumerate}
-	\item\label{enm:ctr-api:incoming} Return and error and stop if some SFO was
-		already received over the current circuit.
-	\item\label{enm:ctr-api:well-formed} Return an error and stop if $s$
-		contains no SCT from a recognized log.  Unrecognized SCTs are dropped.
-		% otherwise can exploit for flush
-	\item\label{enm:ctr-api:cached} Check if $s$ is already cached or pending
-		inclusion verification.  If so, discard $s$ and stop without error.
+	\item\label{enm:ctr-api:well-formed} Close the circuit and stop if $s$
+		contains no SCT that matches at least one log ID in a
+	\texttt{ct-get-sth} entry.
+	\item\label{enm:ctr-api:ack} Update $s$ by discarding any
+		unrecognized SCT,
+		% otherwise can exploit for easier flush
+		then acknowledge the reception and close the circuit.
+	\item\label{enm:ctr-api:cached}
+		Stop if $s$ is cached or pending inclusion verification.
 	\item\label{enm:ctr-api:audit-after} Sample an SCT in $s$, noting down the
 		outcome and a corresponding \texttt{audit\_after} timestamp
 		(Figure~\ref{fig:audit-after}).
