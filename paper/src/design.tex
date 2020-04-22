@@ -43,6 +43,8 @@ further explained throughout Section~\ref{sec:design}:
 	\item[ct-submit-timeout:] Occurs exactly once.  A natural number that
 		determines how many ms Tor Browser waits before concluding that a CTR
 		is unresponsive.
+	\item[ct-report-timeout:] TODO: docdoc
+	\item[ct-report-count:] TODO: docdoc
 	\item[ct-backoff:] Occurs exactly once.  A natural number that determines
 		how many ms a CTR backs-off at most while auditing SFOs for inclusion.
 		Note that this is the upper bound of a uniform distribution.
@@ -254,6 +256,13 @@ Section~\ref{todo} shows that it is reasonable to cancel the auditing instance.
 		steps~\ref{enm:audit-circuit}--\ref{enm:log-circuit} and go to
 		step~\ref{enm:backoff}.
 \end{enumerate}
+
+If an SFO must be submitted to an announced auditor, the CTR should timeout
+after \texttt{ct-report-timeout} triggers.  Next, take the following actions:
+	resubmit $s$ to \texttt{ct-report-count} auditors, \emph{and}
+	submit the certificate chain in $s$ to \texttt{ct-report-count} CT logs
+		in the Tor consensus that are not referred by $s$.
+Use a separate circuit for each (re)submission.
 
 \subsubsection{Extra-Info Document}
 The extra-info document tells us something about a Tor relay's internal state of
