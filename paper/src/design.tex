@@ -190,43 +190,18 @@ are discussed in Section~\ref{sec:todo}.
 
 \subsubsection{Auditing Process}
 CTR auditing is initiated at random time intervals to spread out the load
-imposed by the Tor network on CT logs (step~\ref{enm:backoff}).
-As described in detail below, each auditing instance is composed of
-	initialization (steps~\ref{enm:audit-circuit}--\ref{enm:log-circuit}) and
-	tear-down (step~\ref{enm:teardown})
-of two dedicated Tor circuits that are used while interacting with the announced
-auditors and CT logs, as well as an enumeration phase where the
-inclusion statuses of the pending SFOs are checked with regards to their sampled
-SCTs (step~\ref{enm:audit-loop}).  We audit a sampled SCT because it is
-sufficient to verify that the corresponding certificate chain is available to
-the public in \emph{some} log.  Such verification is, however, delayed
-until an MMD elapsed (step~\ref{enm:audit-loop:wait-sct}) and an available STH
-captures it (step~\ref{enm:audit-loop:wait-sth}).
-This assures that the attacker cannot merge a certificate chain into the log
-as a result of an SCT being audited by a CTR, i.e., the MMD
-violation would already be captured by an STH in the Tor consensus.
-Finally, when the log is challenged to prove inclusion in
-step~\ref{enm:audit-loop:challenge}, the SFO is cached iff a valid proof is
-provided in a timely manner (step~\ref{enm:audit-loop:challenge:success});
-otherwise it is submitted to an announced auditor and the remainder of the
-auditing instance is canceled (step~\ref{enm:audit-loop:challenge:fail}).
-Section~\ref{todo} shows that it is reasonable to cancel the auditing instance.
-
-% TODO: note on separated circuits
-% TODO: clarify where timeout form and that it is a security parameter
-
-% Auditor and log circuits are separated to enforce good circuit hygiene
-% E.g., the attacker could delay the time it takes for an SFO to reach an
-% auditor by DoS:ing the shared exit relay while 4c timesout
-
-% Remember: audit sampled sct -> less overhead, less info leak to ct logs
+imposed by the Tor network on CT logs.  Each auditing instance is composed of
+circuit setup, a core loop of SFO enumeration, and circuit tear-down.
 
 \begin{enumerate}
 	\item\label{enm:backoff} Sample a uniform delay from
 			$[0, \texttt{ct-backoff}]$,
 		then schedule a timer and wait until that time elapsed.
 	\item\label{enm:audit-circuit} Establish a new circuit and connect to a
-		randomly selected announced auditor in the Tor consensus.
+		randomly selected auditor in the Tor consensus.  Test that the
+		auditor is available by submitting a dummy-SFO using
+		\texttt{ct-report-timeout}.  If not, close the circuit and repeat this
+		step at most \texttt{ct-report-count} times.
 	\item\label{enm:log-circuit} Establish a new circuit and use it for all
 		subsequent log connections.  Connect to the logs when needed.
 	\item\label{enm:audit-loop} Enumerate the set of pending SFOs, referring to
@@ -238,31 +213,53 @@ Section~\ref{todo} shows that it is reasonable to cancel the auditing instance.
 			\item\label{enm:audit-loop:wait-sth} Continue if
 				$\textrm{SFO}.\mathsf{audit\_after} >
 				\textrm{STH}.\mathsf{timestamp}$.
-			\item\label{enm:audit-loop:challenge} Set a query-timeout and
-				challenge the log to prove inclusion with regards to
-				$\textrm{STH}.\mathsf{treesize}$.
-				% where sth first after mmd elapsed !  Missing right now
+			\item\label{enm:audit-loop:challenge}
+				Use \texttt{ct-query-timeout} and
+				$\textrm{STH}.\mathsf{treesize}$ to set a timer and challenge
+				the log to prove inclusion.
 				\begin{itemize}
 					\item\label{enm:audit-loop:challenge:success} On valid
 						proof: cache the SFO in question by storing a hashed
 						representation.
 					\item\label{enm:audit-loop:challenge:fail} On any other
-						outcome: immediately send the entire SFO to the auditor
-						from step~\ref{enm:audit-circuit}, then remove it from
-						the buffer and break.
+						outcome: use \texttt{ct-report-timeout} to set a timer
+						and send the entire SFO to the auditor in
+						step~\ref{enm:audit-circuit}.  On any failure, log $s$
+						to torlog and re-report it:
+						\begin{itemize}
+							\item Sample \texttt{ct-report-count}
+								auditors and resubmit $s$ on (new) separated
+								circuits.
+							\item Sample \texttt{ct-report-count} CT logs not
+								referred by $s$ and submit the underlying
+								certificate chain via \texttt{add-chain}~\cite{ct}
+								or \texttt{submit-entry}~\cite{ct/bis}
+								on separated circuits.
+						\end{itemize}
+						Finally, discard the SFO and break the loop.
 				\end{itemize}
 		\end{enumerate}
-	\item\label{enm:teardown} Close all circuits from
-		steps~\ref{enm:audit-circuit}--\ref{enm:log-circuit} and go to
+	\item\label{enm:teardown} Close all opened circuits and go back to
 		step~\ref{enm:backoff}.
 \end{enumerate}
 
-If an SFO must be submitted to an announced auditor, the CTR should timeout
-after \texttt{ct-report-timeout} triggers.  Next, take the following actions:
-	resubmit $s$ to \texttt{ct-report-count} auditors, \emph{and}
-	submit the certificate chain in $s$ to \texttt{ct-report-count} CT logs
-		in the Tor consensus that are not referred by $s$.
-Use a separate circuit for each (re)submission.
+Keeping auditor and log interactions separate is good circuit hygiene in
+general.  For example,  sharing these circuits would allow the attacker to
+identify which exit relay should be DoS:ed to delay an auditor submission.
+In the core loop, we only audit an SFO's sampled SCT if its MMD elapsed
+and there is an STH available in the Tor consensus that captures it.  Note that
+the full SFO is always reported on failure, which ensures that the auditors can
+validate all SCTs further.  If an auditor becomes unavailable, we take several
+actions to increase the likelihood that an SFO and/or its underlying certificate
+chain makes it into the public domain.  Namely, resubmit to several auditors,
+log it locally to torlog, and submit the underlying certificate chain for
+merging into independent CT logs that the attacker may not control.
+
+% where sth first after mmd elapsed !  Missing right now
+% - not necessary, let auditor bother with that
+%
+% Remember: audit sampled sct -> less overhead, less info leak to ct logs
+%
 
 \subsubsection{Extra-Info Document}
 The extra-info document tells us something about a Tor relay's internal state of
