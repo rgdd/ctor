@@ -9,15 +9,16 @@ Equation~\ref{eq:sub-oh}, we can now estimate the resulting circuit overhead.
 		\frac{p}{n} \sum_{i=1}^{n} c_i, \textrm{where } c_i\sample\mathcal{D}
 \end{equation}
 
-We decided to approximate $\mathcal{D}$ using the most popular webpages
+We decided to approximate $\mathcal{D}$ using the $n$ most popular webpages
 submitted to Reddit (r/frontpage, all time) as of December 4, 2019.\footnote{%
 	\url{https://github.com/pylls/padding-machines-for-tor/commit/353bfa75e9f7d6aa0a1dff9516ff234cbf0f4562}
 } This was motivated by the intuition that such webpages should include more
 resources than basic frontpages, such that $\mathcal{D}$ is more likely to be
-overestimated rather than underestimated.  Further, we are likely not
-underestimating $\mathcal{D}$ because these SFOs were collected using fresh
-Chromium instances that call home on start-up, thereby generating a few
-additional SFOs per data point that were left \emph{unfiltered} in our data set.
+overestimated rather than underestimated.  This should further be the case
+because we collected the SFO data set using fresh Chromium instances, simply
+harvesting all SFOs that appeared in NetLog.  In other words, due to some
+initial call-home behavior on start-up, a few additional SFOs are included per
+data point.
 
 Using $p=\frac{1}{10}$ and plugging our approximated $\mathcal{D}$ into
 Equation~\ref{eq:sub-oh}, the resulting circuit overhead is $0.70$.  It should be
