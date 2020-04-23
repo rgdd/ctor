@@ -34,3 +34,17 @@ to loading an entire website.
 	}
 	\label{fig:sfo-dist}
 \end{figure}
+
+\subsection{SFO Timeouts}
+Large timeouts imply less chance that an SFO is leaked to more parties
+unnecessarily (privacy).  Small timeouts reduce the attacker's window to
+intervene (security).
+
+\subsubsection{Tor Browser}
+Recommend a value based on transmitting \texttt{ct-max-sfo-bytes} over many
+independent circuits, which gives us a distribution that can be considered.
+
+\subsubsection{CTR}
+Recommend a value based on fetching inclusion proofs from several different
+logs over Tor, which gives us a distribution that can be considered.  Use the
+results from Tor Browser and CTR to reason about \texttt{ct-report-timeout}.
