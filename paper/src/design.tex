@@ -78,28 +78,60 @@ responsibility of auditing CT logs.
 % exit relays "more attractive targets" due to also storing SFOs.
 
 \subsection{Tor Browser}
-Similar to Chrome and Safari~\cite{chrome-policy,safari-policy}, we suggest that
-Tor Browser should use an SCT-centric CT policy.  This means that a certificate
-chain is accepted as valid if it is accompanied by a threshold of SCTs.  Such a
-policy would ideally come from Mozilla directly (like many other components),
-but at the time of writing there is no official CT policy that can be inherited
-from Firefox.
+Given a tab $t$ and an incoming SFO $s$:
+\begin{enumerate}
+	\item Accept $s$ and stop if it was already validated in $t$.
+	\item Raise a certificate error and stop if the certificate chain of $s$
+		is not rooted in Tor Browser's trust store.
+	\item Raise a certificate transparency error and stop if the SCTs of $s$
+		fail Tor Browser's SCT-centric CT policy.
+	\item Conduct the following steps in the background:
+		\begin{enumerate}
+			\item Signal that $s$ should be accepted as valid if its byte-size
+				is \texttt{ct-max-sfo-bytes} or less.
+			\item Flip a coin based on \texttt{ct-submit-pr} and go to
+				step~\ref{enm:tb:done} if there should be no further auditing.
+			\item\label{enm:tb:submit} Use \texttt{ct-submit-timeout} to set a
+				timer and submit $s$ to a sampled CTR's SFO-endpoint on a
+				pre-built CT-circuit that starts from the client's guard and
+				ends at the CTR: three hops in total.
+				\begin{itemize}
+					\item On a timely acknowledgment: close the submission
+						circuit and go forward to step~\ref{enm:tb:done}.
+					\item On any other outcome: close the submission circuit and
+						repeat step~\ref{enm:tb:submit}.
+				\end{itemize}
+			\item\label{enm:tb:done} Signal that $s$ should be accepted as valid
+				if its byte-size is larger than \texttt{ct-max-sfo-bytes}.
+		\end{enumerate}
+	\item Wait for a signal that $s$ should be accepted as valid, then mark it
+		as validated in $t$ and stop.
+\end{enumerate}
 
-If an SFO passes Tor Browser's CT policy, the value of
-\texttt{ct-submit-pr} is used to flip a biased coin.  The outcome determines
-whether further inclusion verification should take place, in which case the SFO
-is submitted to a sampled CTR over a fresh independent circuit
-that is \emph{pre-built} from the client's guard relay (three hops in total) 
-and closed immediately after use.  In other words, Tor Browser should maintain a
-pool of one-time circuits that are used for CT-auditing purposes only.
-Should the same SFO be presented multiple times within the same tab, it is only
-considered for further auditing on a \emph{first-encounter} basis.
-If a submitted SFO is unacknowledged after some maximum time as decided by
-\texttt{ct-submit-timeout}, it is resubmitted as if there was no failure to
-begin with:
-	use another pre-built circuit to a sampled CTR.
-This ensures that Tor Browser does not keep submitting to a CTR that is no
-longer available, while at the same time having limited security impact.
+TODO: readd context text
+
+%Similar to Chrome and Safari~\cite{chrome-policy,safari-policy}, we suggest that
+%Tor Browser should use an SCT-centric CT policy.  This means that a certificate
+%chain is accepted as valid if it is accompanied by a threshold of SCTs.  Such a
+%policy would ideally come from Mozilla directly (like many other components),
+%but at the time of writing there is no official CT policy that can be inherited
+%from Firefox.
+%
+%If an SFO passes Tor Browser's CT policy, the value of
+%\texttt{ct-submit-pr} is used to flip a biased coin.  The outcome determines
+%whether further inclusion verification should take place, in which case the SFO
+%is submitted to a sampled CTR over a fresh independent circuit
+%that is \emph{pre-built} from the client's guard relay (three hops in total) 
+%and closed immediately after use.  In other words, Tor Browser should maintain a
+%pool of one-time circuits that are used for CT-auditing purposes only.
+%Should the same SFO be presented multiple times within the same tab, it is only
+%considered for further auditing on a \emph{first-encounter} basis.
+%If a submitted SFO is unacknowledged after some maximum time as decided by
+%\texttt{ct-submit-timeout}, it is resubmitted as if there was no failure to
+%begin with:
+%	use another pre-built circuit to a sampled CTR.
+%This ensures that Tor Browser does not keep submitting to a CTR that is no
+%longer available, while at the same time having limited security impact.
 
 %
 % - close circuit asap to make it harder for an attacker to figure out which
@@ -116,8 +148,6 @@ longer available, while at the same time having limited security impact.
 %   difficult for the attacker to rely on Tor Browser never sampling both a
 %   benign exit and ctr (in which case the submission should succeed).
 %
-% TODO: should pre-built CT-circuits be connected to CTRs before use?  It
-% would be good to minimize submit window, but overhead cost unclear atm.
 
 \subsection{CTR}
 A relay that is assigned the CTR flag accepts incoming SFO submissions on a
