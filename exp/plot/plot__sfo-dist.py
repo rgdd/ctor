@@ -6,6 +6,7 @@ import json
 import logging
 
 import plotter
+import numpy as np
 
 log = logging.getLogger(__name__)
 
@@ -24,6 +25,9 @@ def main():
             "{}/sfo-dist.pdf".format(OUT_DIR),
             "number of SFOs per website",
         )
+        log.info("avg num of sfos per website: {}".format(
+            np.mean(sfo_per_website_visit),
+        ))
 
         sfo_summary = extract_sfo_summary(data)
         plotter.cdf([
