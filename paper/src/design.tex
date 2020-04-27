@@ -28,48 +28,21 @@ further (step~4).
 
 \subsection{Tor Consensus}
 Tor's directory authorities produce an hourly consensus document that defines
-how the Tor network is composed.  Our proposal adds the following parameters,
-further explained throughout Section~\ref{sec:design}:
-\begin{description}
-	\item[ct-get-sth:] Occurs multiple times.  Log ID, followed by an STH that is
-		formatted as returned by the log's \texttt{get-sth}
-		endpoint~\cite{ct,ct/bis}.
-	\item[ct-submit-pr:] Occurs exactly once.  A floating-point in $[0,1]$
-		that determines the probability that an SFO should be submitted from Tor
-		Browser to a CTR.
-	\item[ct-query-timeout:] Occurs exactly once.  A natural number that
-		determines how many ms a CTR waits before concluding that a CT log is
-		unresponsive.
-	\item[ct-submit-timeout:] Occurs exactly once.  A natural number that
-		determines how many ms Tor Browser waits before concluding that a CTR
-		is unresponsive.
-	\item[ct-report-timeout:] TODO: docdoc
-	\item[ct-report-count:] TODO: docdoc
-	\item[ct-backoff:] Occurs exactly once.  A natural number that determines
-		how many ms a CTR backs-off at most while auditing SFOs for inclusion.
-		Note that this is the upper bound of a uniform distribution.
-	\item[ct-auditor:] Occurs multiple times.  A submission URI, followed by a
-		SPKI fingerprint that must be present in the TLS certificate presented
-		by the auditor~\cite{hpkp}.
-\end{description}
+how the Tor network is composed.  Our proposal extends Tor's consensus document
+so that it entails information regarding
+	CTRs,
+	recognized CT logs,
+	announced auditors, and
+	security parameters.
 
-Throughout any given voting timeline, each directory authority is expected to
-obtain the most recent STH from all recognized CT logs.  Next, while computing
-the consensus, they must agree to use the most recent STH by inspecting the
-timestamp field and resolving ties by appealing to lexicographical
-order.\footnote{%
-	Note that there is cryptographic proof of log misbehaviour if two STHs with
-	the same tree size have different root hashes.
-}  A log is recognized and a proposed CT auditor is announced if a majority of
-all directory authorities voted on their inclusion, which is implicit by
-proposing a value.  The submit probability, query timeout, and CTR back-off
-parameters are all computed as the median values of the respective votes.
-
-Other than the new parameters introduced above, we also need to extend the
-\texttt{know-flags} parameter by adding a CTR-flag.  The CTR-flag is 
-assigned to stable middle relays if a majority of directory authorities voted
-for it, and it indicates that a given Tor relay should take on the additional
-responsibility of auditing CT logs.
+\subsubsection{CTR Flag}
+The existing \texttt{know-flags} item determines the different flags that a
+given consensus document might contain.  For example, documented flags include
+\texttt{Authority}, \texttt{Exit}, and \texttt{Running}.  We add another flag
+named \texttt{CTR}, which indicates that a relay should support CT-auditing as
+described in Section~\ref{sec:design:ctr}.  A relay qualifies as a CTR if it is
+flagged as \texttt{stable} and \texttt{middle}.  The \texttt{CTR} flag is
+assigned if a majority of directory authorities voted for it.
 
 % - A CTR should be stable both to permit long-lived circuits to the CT logs and
 % to increase the likelihood of them staying online.
@@ -77,7 +50,75 @@ responsibility of auditing CT logs.
 % mainly from resource utilization considerations.  It is also about not making
 % exit relays "more attractive targets" due to also storing SFOs.
 
-\subsection{Tor Browser}
+\subsubsection{Recognized CT Log}
+The CT landscape is composed of a few dozen logs.  At minimum, the Tor
+consensus must recognize those referred by Tor Browser's CT policy.  At some
+point during the voting timeline, each directory authority
+(i) checks whether there are any CT policy updates, and
+(ii) fetches an STH from each log that is recognized.
+To agree on a single STH per log, choose the most recent one as determined by
+timestamp and resolve ties by appealing to lexicographical order.  A log is
+included in the Tor consensus if a majority of directory authorities voted
+for it by proposing an instance of \texttt{ct-log-info}:
+\begin{description}
+	\item[ct-log-info:] Contains a log ID, an MMD and a base URL as found in
+		Tor Browser's CT policy, as well as an STH following the log's
+		\texttt{get-sth} format~\cite{ct,ct/bis}.
+\end{description}
+
+There should be no disagreement regarding a log's basic metadata.  However, if
+such an erroneous state occurs, deterministic rules could be used to agree upon
+an MMD and a base URL while investigating the issue further.
+
+\subsubsection{Announced Auditor}
+Whenever log misbehavior is suspected, the CTR in question reports it to a
+CT auditor that investigates the issues further.  Tor's directory authorities
+announce CT auditors by proposing a value for the item below, and it is included
+in the Tor consensus if a majority of directory authorities voted for it.
+\begin{description}
+	\item[ct-auditor:] Contains a base URL and a fingerprint that is derived
+		from the auditor's public key info.
+\end{description}
+
+As built upon in Section~\ref{sec:design:auditor}, the base URL determines the
+start of an auditor's submission endpoint.  Moreover, it should be noted that
+we pin the auditor's public key because we are dealing with an attacker that
+forges TLS certificates.  E.g., a SPKI fingerprint could be used~\cite{hpkp}.
+
+\subsubsection{Security Parameters}
+The security of our proposal depends on parameters that Tor's directory
+authorities set.  These parameters are first outlined below briefly, then used
+throughout the remainder of this section and discussed further later on.
+Note that each item occurs exactly once in the Tor consensus:
+it is based on the median value of all votes.
+\begin{description}
+	\item[ct-submit-pr:] A floating-point in $[0,1]$ that determines Tor
+		Browser's submission probability, i.e., whether an SFO should be sent to
+		a random CTR for further auditing.  E.g., $0$ disables auditing
+		while $0.10$ implies every 10$^{\mathsf{th}}$ SFO is audited
+		on average.
+	\item[ct-submit-timeout:] A natural number that determines how many ms Tor
+		Browser waits before concluding that a CTR is unresponsive.  As
+		outlined in Section~\ref{sec:design:tb}, a submission timeout results
+		in a resubmission to another CTR that is selected at random.
+	\item[ct-query-timeout:] A natural number that determines how many ms a CTR
+		waits before concluding that a CT log is unresponsive.  As outlined in
+		Section~\ref{sec:design:ctr:audit}, a query timeout triggers an
+		auditor submission.
+	\item[ct-report-timeout:] A natural number that determines how many ms a
+		CTR waits before concluding that an announced auditor is unresponsive.
+	\item[ct-report-count:] The number of announced auditors that a CTR
+		resubmits an SFO to after a report timeout, as well as the number of CT
+		logs that the underlying certificate chain is submitted to for public
+		logging.  Further details are outlined in
+		Section~\ref{sec:design:ctr:audit}.
+	\item[ct-backoff:] A natural number that determines how many ms a CTR
+		may wait between two auditing instances.  As outlined in
+		Section~\ref{sec:design:ctr:audit}, CTRs audit pending SFOs
+		in batches at random time intervals.
+\end{description}
+
+\subsection{Tor Browser} \label{sec:design:tb}
 Given a tab $t$ and an incoming SFO $s$:
 \begin{enumerate}
 	\item Accept $s$ and stop if it was already validated in $t$.
@@ -149,7 +190,7 @@ TODO: readd context text
 %   benign exit and ctr (in which case the submission should succeed).
 %
 
-\subsection{CTR}
+\subsection{CTR} \label{sec:design:ctr}
 A relay that is assigned the CTR flag accepts incoming SFO submissions on a
 dedicated endpoint.  Somewhat periodically, an auditing process then runs which
 verifies the inclusion status of SFOs that are pending.  CTRs also
@@ -218,7 +259,7 @@ are discussed in Section~\ref{sec:todo}.
 \end{figure}
 
 
-\subsubsection{Auditing Process}
+\subsubsection{Auditing Process} \label{sec:design:ctr:audit}
 CTR auditing is initiated at random time intervals to spread out the load
 imposed by the Tor network on CT logs.  Each auditing instance is composed of
 circuit setup, a core loop of SFO enumeration, and circuit tear-down.
@@ -316,7 +357,7 @@ extra-info document, such as
 The latter, for example, could be used as an indicator that the current
 query-timeout is too optimistic.
 
-\subsection{Announced Auditors}
+\subsection{Announced Auditors} \label{sec:design:auditor}
 An announced auditor is expected to implement the SCT feedback interface of
 Nordberg~\emph{et~al.}~\cite{nordberg}.  If a well-formed SFO is received, the
 auditor in question should endeavor to validate the inclusion status of each SCT
