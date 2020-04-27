@@ -206,7 +206,7 @@ With regards to some circuit, process an incoming SFO $s$ as follows:
 \begin{enumerate}
 	\item\label{enm:ctr-api:well-formed} Close the circuit and stop if $s$
 		contains no SCT that matches at least one log ID in a
-	\texttt{ct-get-sth} entry.
+	\texttt{ct-log-info} entry.
 	\item\label{enm:ctr-api:ack} Update $s$ by discarding any
 		unrecognized SCT, % otherwise can exploit for easier flush
 		then acknowledge the reception and close the circuit.
