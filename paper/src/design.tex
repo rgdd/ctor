@@ -291,7 +291,7 @@ merging into independent CT logs that the attacker may not control.
 % Remember: audit sampled sct -> less overhead, less info leak to ct logs
 %
 
-\subsubsection{Extra-Info Document}
+\subsubsection{Extra-Info Document} \label{sec:design:extra-info}
 The extra-info document tells us something about a Tor relay's internal state of
 affairs.  For example, \texttt{read-history} and \texttt{write-history} list how
 many bytes were consumed throughout different time intervals.  We further
@@ -342,7 +342,14 @@ paramount that the auditor software alerts its operator.  In detail:
 		(a split-view is suspected within the Tor network).
 	\item If an STH in the Tor consensus is future-dated or backdated more than
 		an MMD (general log misbehavior suspected).
+	\item If a log ignores parts of or the entire Tor network (uptime
+		misbehavior suspected).
 \end{itemize}
+
+An unresponsive log can be suspected by inspecting the report frequency, and
+possibly confirmed by querying the log in question over a diverse set of Tor
+circuits.  As mentioned in Section~\ref{sec:design:extra-info}, it could be
+valuable to let CTRs publish their failure rates while querying the logs.
 
 An announced auditor may choose to replicate possible evidence of log
 misbehaviour to the other announced auditors prematurely to ensure that
