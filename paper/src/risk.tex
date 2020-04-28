@@ -3,63 +3,67 @@ We assume a risk-averse attacker: we want to make the \emph{probability} of
 detection as well as the \emph{impact} of detection as high as possible.
 
 \subsection{Impact of Being Detected}
+Upon detection of a mitm attack, we consider four possible types of impact for
+the attacker:
+\begin{itemize}
+    \item None, the attack was detected but how it was carried out remains
+    unknown.
+    \item Minor, the attack was detected and carried out by performing a
+    network-wide attack (e.g., by flooding CTRs or a network-wide DoS). This is
+    likely hard to attribute to the actual attacker but due to its network-wide
+    effects draws a lot of unwanted attention.
+   \item Significant, cryptographic evidence is public that proves that a
+   certificate authority has misbehaved.
+   \item Catastrophic, cryptographic evidence is public that proves that a CT
+   log has misbehaved.
+\end{itemize}
 
-% TODO Tobias: rework below to make the following split more clear
-% - if network-wide attack, significant event but relatively hard to attribute
-% - if misbehaving CA (how do we get to this point?), CA burned
-% - if misbehaving CT log, log burned (massive)
+Obviously, we aim to to minimize the existance of successful attacks where it
+cannot be established how the attack was carried out. Attacks with only minor
+impact for an attacker are unavoiable due to Tor's threat model. The primary
+goal of our design is to maximise the outcome with significant or catastrophic
+impact.
 
-In general, the impact of the public detecting that some attack is ongoing may
-be modest. The key impact is when an inconsistent SFO is found, since it is
-signed. An inconsistent SFO indicates one of two things: either the issuing CA
-messed up, or it was the CT log. Since a log has a MMD of time since the SFO to
-act, it is likely a good idea to wait at least MMD before auditing. This will
-maximize the impact, since proving log misbehaviour is significantly more costly
-than for a CA. This is a strength of our proposal we need to lean on: it's
-devastatingly expensive for an attacker, especially if we want to make dragnet
-surveillance harder, not few targeted attacks.
+% In general, the impact of the public detecting that some attack is ongoing may
+% be modest. The key impact is when an inconsistent SFO is found, since it is
+% signed. An inconsistent SFO indicates one of two things: either the issuing CA
+% messed up, or it was the CT log. Since a log has a MMD of time since the SFO to
+% act, it is likely a good idea to wait at least MMD before auditing. This will
+% maximize the impact, since proving log misbehaviour is significantly more costly
+% than for a CA. This is a strength of our proposal we need to lean on: it's
+% devastatingly expensive for an attacker, especially if we want to make dragnet
+% surveillance harder, not few targeted attacks.
 
 \subsection{Probability of Being Detected}
 Given our design and threat model, consider the case of an attacker that
-attempts to MitM a single connection by creating an inconsistent SFO. Let $p_a$
-be the probability of an attacker being detected. This probability will be bound
-by:
+attempts to MitM a single connectionOur goal here is to reason about the
+probability of an attacker being detected. First, we can go back to our threat
+model: an attacker can perform am undetected MitM by either \emph{inconsistency}
+or \emph{omission}. As we argue later in Section~\ref{sec:security}, we consider
+in the case of inconsistency that a probability of detection of $1.0$ is
+reasonable. Therefore, we focus next on what we can say about the probability of
+undetectable omission.
 
-\begin{itemize}
-    \item $p_c$, the probability that a client (TB) will successfully send the
-    SFO to a CTR. Assuming that our design makes it unlikely that an attacker
-    has time to compromise the client and prevent the SFO from being sent, this
-    probability is dominated by the sending probability of TB set in the
-    consensus.
-    \item $p_h$, the probability that the CTR that receives the SFO is honest
-    (i.e., not controlled by the attacker). This we make assumptions about given
-    Tor's threat model.
-    \item $p_s$, the probability that the CTR successfully sends the SFO to an
-    auditor. The hardest probability to estimate because it includes flushing
-    attacks, tagging attacks, and global network DoS.
-    \item $p_r$, the probability that the auditor that receives the SFO is
-    honest (i.e., not controlled by the attacker). This we make assumptions
-    about being low.
-\end{itemize}
+Omission for an attacker that attempts to MitM a single connection by creating
+an inconsistent SFO can occur at any of the following four phases of our design:
+\begin{enumerate}
+    \item As soon as the SFO is received at Tor Browser until it has been sent
+    to a CTR.
+    \item At the CTR before auditing (see Section~\ref{sec:design:api}).
+    \item At the CTR while auditing (see Section~\ref{sec:design:ctr:audit}).
+    \item At the CTR after auditing but before reaching the auditor (see
+    Section~\ref{sec:design:ctr:audit}).
+\end{enumerate}
 
-We can express this as:  
+We assume that auditors are trusted, so once the SFO arrives at an auditor the
+attack been detected. 
 
-\begin{align}
-    p_a \leq p_c p_h p_s p_r
-\end{align}
-
-Our design assumes that $p_c$ will be low, in the order of $\approx0.1$. An
-attacker that controls a fraction $f$ of all CTRs in the network has $p_h =
-1-f$. We may reasonably assume that $p_r \approx 1$ with proper vetting by the
-Tor Project (if few trusted auditors are OK). This leaves $p_s$.
-
-Reasoning about $p_s$ is complex. Infrequently causing network-wide DoS or
-trivially \emph{detectable} flushing may be acceptable to some attackers
-compared to the impact of SFO detection (see following section). In such a case,
-$p_s \approx 0$ and the rest is moot. 
-
-We need to focus on reliable ways for an attacker to drop $p_s$, i.e., ways to
-prevent SFOs to being sent to auditors without causing any detectable
-abnormalities in the network. For this flushing is important, since it's an
-attack that has no other impact on the network beyond the CTor functionality.
-The same is true for DoSing the auditors. 
+The above four phases form a weakest link scenario: if any of them fails, the
+attack is not detected. In terms of probability, the probability of being
+detected cannot be higher than \texttt{ct-submit-pr}; the probability that TB
+submits a SFO to a CTR. Our design attempts to make \texttt{ct-submit-pr} be the
+dominant factor in the probability of detection for phase 1. For phase 2, an
+important consideration is the assumption about the fraction of CTRs in control
+of the attacker. Phase 3 and 4 are more complicated to reason about. Clearly, a
+risk awerse attacker will look for reliable ways to prevent detection in any of
+these phases. This analysis is the focus of our security analysis.
