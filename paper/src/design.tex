@@ -116,6 +116,10 @@ it is based on the median value of all votes.
 		may wait between two auditing instances.  As outlined in
 		Section~\ref{sec:design:ctr:audit}, CTRs audit pending SFOs
 		in batches at random time intervals.
+	\item[ct-sfo-max-bytes:] A natural number that determines how many
+		wire-bytes a normal SFO should not exceed.  As outlined in
+		Section~\ref{sec:design:tb}, excessively large SFOs are subject to
+		stricter verification criteria.
 \end{description}
 
 \subsection{Tor Browser} \label{sec:design:tb}
