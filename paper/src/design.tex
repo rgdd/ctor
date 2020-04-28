@@ -14,17 +14,22 @@ before challenging the logs to prove inclusion with regards to Tor's published
 STHs (step~3).  Should a log fail to provide a valid inclusion proof for an SFO
 within a timely manner, it is reported to an auditor that investigates the issue
 further (step~4).
-\begin{figure}
-	% TODO: clarify circuit structure to CTR in the overview figure?
+\begin{figure*}
 	\centering
-	\input{img/overview}
-	\caption{%
-		Design overview---Tor Browser submits presented SFOs to CTRs that follow
-		up on their inclusion statuses.  Entity-to-entity interactions are
-		conveyed over full Tor circuits, labeled by onions.
-	}
+	\includegraphics[width=0.85\textwidth]{img/setting-with-consensus}
+	\caption{An overview of our design: Tor's consensus is extended by including
+		the latest STH from each relevant CT log (periodically fetched by
+		Directory Authorities) together with global CTor parameters (presented
+		throughout Section~\ref{sec:design}). A website presents a SFO to Tor
+		Browser, and Tor Browser in turn submits this SFO with some probability
+		(consensus parameter) to a randomly selected CTR (phase 1). The CTR
+		temporarily stores the SFO (phase 2). After some random delay (another
+		parameter), the CTR attempts to audit the SFO by challening the issuing
+		CT log using the STH in the consensus (phase 3). Upon failed audit, the
+		SFO is reported to a trusted auditor listed in the consensus (phase 4).
+		All connections are made over dedicated independent circuits.}
 	\label{fig:overview}
-\end{figure}
+\end{figure*}
 
 \subsection{Tor Consensus}
 Tor's directory authorities produce an hourly consensus document that defines
