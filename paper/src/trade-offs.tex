@@ -84,3 +84,101 @@ may intervene with any follow-up auditing.
 	}
 	\label{fig:incl-dist}
 \end{figure}
+
+\subsection{Flushing}
+\label{sec:flooding}
+
+As described in Section~\ref{sec:adversary}, an adversary might attempt to
+prevent an offending SFO from being sent to auditors by flooding
+one or all CTRs with SFOs. Abstractly, this could have two possible
+effects. If CTRs have a limited cache, which, once full, will not
+accept new SFOs, then the adversary can block the offending SFO
+from ever being held by any CTR by attempting to fill all
+CTR caches. If, however, a CTR might drop some cached SFOs
+so as to be able to cache some or all newly received SFOs, then
+the adversary can try to flush the cache of any CTR that might
+hold the offending SFO by flooding that CTR with new SFOs.
+
+A flooding attack could be directed at specific CTRs
+known or suspected of holding or being the intended recipient of
+an offending SFO\@. Our design, however, limits the ability of
+an adversary to know in advance the CTR to which a client will
+submit an offending SFO, or to know which CTR is holding
+an offending SFO until the CTR sends it to a log for auditing.
+And, at that point, there is no longer any point in flushing
+or blocking the CTR's cache.
+
+To have sufficient chance of succeeding, flooding attacks must thus be
+conducted against all CTRs in the network. To block, this would need to
+be sustained in anticipation of an offending SFO being received by
+a client or spun up quickly enough after a connection on which an
+offending SFO will be sent is initiated to fill all caches within
+seconds. Either would be highly visible and would require a
+DoS of Tor network resources that exceeds our threat model.\\
+***Need to justify that.***
+
+A flushing attack on all CTRs in the network has different time and
+knowledge parameters. The adversary need not flush CTRs before an
+offending SFO is sent. Indeed, that would be pointless. Once sent,
+however, the adversary must sustain a flooding attack so that the
+probability that the offending SFO is in any cache at the time of
+audit is very low. This gives the adversary effectively an interval
+of at least MMD to flush all CTR caches.
+
+To counter flushing, a CTR might adopt a combined strategy of caching
+some SFOs with a fixed or parameterized probability and dropping some
+SFOs from the cache with a separate fixed or parameterized
+probability. To simplify both design and analysis, our CTRs accept all
+inbound SFOs. Even if this exceeds the capacity of the cache, we
+assume the adversary is not able to exceed the combined capacity of
+the cache and inbound buffer. All cached and recently received SFOs
+are thus pooled together when considering which to drop. 
+
+By submitting an SFO for auditing at the earliest opportunity a CTR
+minimizes the risk of it being flushed and the load on its cache. On
+the other hand, by expanding the range of the random delay a CTR adds
+to MMD before auditing we expand the uncertainty of the adversary
+about whether or not the SFO might still be submitted, thus requiring
+him to both spend more resources and increase the risk of exposure by
+sustaining the flooding attack for a longer period.
+
+Overhead of a flushing attack for the adversary could be significantly
+raised and probability of attack success significantly diminished by
+following a strategy used by some types of mix in anonymous
+communication: make probabilistic the selection of individual SFOs
+amongst both the cached and newly received SFOs to be dropped as
+capacity of the cache is exceeded~\cite{trickle02}.
+
+
+Parameters:
+
+total CTR SFOs: those in the cache plus those in the inbound buffer\\
+CTR cache size\\
+randomized delay, uniform or decaying distribution?\\
+
+dropping strategies:
+
+uniform = total/cache-size\\
+MMD parameterized: Drop SFOs < MMD with one (lower) distribution,
+SFOs $\geq$ MMD with another (higher)\\
+Dynamic MMD parameterized: Drop only SFOs past MMD + constant until
+SFOs not yet to MMD exceeds cache size (following a Poisson or
+binomial distribution) . If only SFOs not yet to MMD are in the cache,
+then drop SFOs with a distribution that makes it more likely
+to drop a newer SFO from the cache until there are again some
+above MMD + constant.
+
+Advantage of the latter, is that it requires more resources for
+preventing an SFO from even making it to MMD. And by having randomized
+delays that follow, e.g., a Poisson or binomial distribution,
+the expected time an SFO must be cached is diminished and the
+chance of auditing before a flush is increased, even if
+the adversary optimizes its flooding strategy.
+
+
+
+
+%%% Local Variables: 
+%%% mode: latex 
+%%% TeX-master: "../main"
+%%% End:          

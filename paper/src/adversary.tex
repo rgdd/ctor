@@ -111,24 +111,17 @@ we have considered that bounce some SCTs to other CTRs before querying
 logs. And avoiding tags by sending just one SCT per query connection
 will incur too much overhead.)
 
-\noindent {\bf Flushing:} The adversary might also attempt to
+\noindent {\bf Flooding:} The adversary might also attempt to
 eliminate the offending SCT from the CTR by flushing out its cache of
 all SCTs that are awaiting audit\@. (Or if flushing is not permitted,
-conversely filling its cache so that the CTR will not accept new ones
+blocking, filling its cache so that the CTR will not accept new ones
 until the next audit.) 
 The adversary is not so powerful that it can observe all traffic to/from
 \emph{every} CTR, whether via owned adjacent Tor relays or local
 monitoring of the underlying network.  Thus, before any log has been
 queried, which SFO has been sent by an honest client to which honest
 CTR may not be known. To have an adequate guarantee of success, the
-adversary must thus flush all the CTRs in the network. This is already
-likely to be detectable. In addition, overhead of a flushing attack for the
-adversary could be significantly raised and probability of attack
-success significantly diminished by following a strategy used by some
-types of mix in anonymous communication: make probabilistic the
-selection of individual SFOs amongst both the cached and newly
-received SFOs to be dropped as capacity of the cache is
-exceeded~\cite{trickle02}.
+adversary must thus flush or block all the CTRs in the network.
 
 
 
