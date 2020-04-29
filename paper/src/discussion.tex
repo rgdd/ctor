@@ -1,8 +1,26 @@
 \section{Discussion} \label{sec:discussion}
 
 \subsection{Privacy}
-At least mention privacy leaks to auditor. For example, related to CT logs uptime.
+At least mention privacy leaks to auditor. For example, related to CT logs
+uptime. Caching of already resolved SFOs at CTRs reduce leak to CT logs and
+auditors.
 
 \subsection{Design}
 Mention that it would be valuable if SCTs could be ``cross-logged'', i.e.,
 submit SFO rather than certificate chain to a CT log.
+
+\subsection{Extension: Signal to CTRs}
+On suspicion of network-wide attack, network health / auditors / DAs could
+signal to CTRs through consensus flag to persist buffer of SFOs to disk for
+later auditing to prevent loss on flooding or downtime. The reason for doing
+this is that it shifts the potential \emph{impact} of detection (see
+Section~\ref{sec:risk:impact}) from minor to potentially signfiicant or
+catastrophic for the attacker.
+
+There are huge privacy implications here, since the auditor gets a snapshot of
+the current state of visited websites over Tor. At the very least, CTRs should
+persist data in encrypted form (under provided public key in consensus), such as
+not able to decrypt on its own to reduce risk of legal pressure on CTR
+operators.
+
+
