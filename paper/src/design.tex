@@ -201,8 +201,8 @@ TODO: readd context text
 
 \subsection{CTR} \label{sec:design:ctr}
 A relay that is assigned the CTR flag accepts incoming SFO submissions on a
-dedicated endpoint.  Somewhat periodically, an auditing process then runs which
-verifies the inclusion status of SFOs that are pending.  CTRs also
+dedicated endpoint.  At random time intervals, an auditing process then runs
+which verifies the inclusion status of SFOs that are pending.  CTRs also
 publish health metrics in the extra-info document.
 
 \subsubsection{Submission Endpoint} \label{sec:design:api}
