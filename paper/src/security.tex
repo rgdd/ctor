@@ -1,158 +1,86 @@
 \section{Security Analysis} \label{sec:security}
-Recall from Section~\ref{sec:adversary} that the adversary's goal can be
-broken down into two separate threats that our design must address:
-	split-views of CT logs within the Tor network, and
-	omission attacks against Tor Browser users.
+We base our security analysis on the phases of CTor, see
+Figure~\ref{fig:overview}, in the context of our adversary model, see
+Section~\ref{sec:adversary}.
 
-\subsection{Split-Views}
-Given that directory authorities fetch STHs from attacker-controlled logs and
-agree upon which ones to use via deterministic rules, the attacker is in full
-control of which STHs go into the Tor consensus.  Once an STH is
-announced, it follows from Tor's threat model that it is fixed because a
-threshold of directory authorities are benign.  As such, CTRs have access to
-the same set of STHs and thus they also get the same (in)consistent view of the
-CT landscape.  Any inconsistent view that makes it into the Tor consensus is
-trivially detected, however, as all STHs are public and can be audited for
-consistency by any interested party.  The attacker should therefore be
-deterred from creating internal split-views within the Tor network:
-	at least one announced auditor would detect it and make the log's
-	misbehavior public.
+\subsection{Phase 0: Consensus} \label{sec:security:phase0}
+Directory authorities fetch STHs from attacker-controlled logs and agree upon
+which ones to use via deterministic rules, so the attacker is in full control of
+which STHs go into the Tor consensus.  Once an STH is announced, it follows from
+Tor's threat model that it is fixed because a threshold of directory authorities
+are benign.  As such, CTRs have access to the same set of STHs and thus they
+also get the same (in)consistent view of the CT landscape. Any inconsistent view
+that makes it into the Tor consensus is trivially detected because all STHs are
+public and can be audited for consistency by any interested party.  The attacker
+should therefore be deterred from creating internal split-views within the Tor
+network: at least one announced auditor would detect it and make the log's
+misbehavior public.
 
-\subsection{Omission Attacks}
-To hide an omission the attacker must either play the lucky-game or intervene
-with an SFO \emph{somewhere} on the path between Tor Browser and an announced
-auditor.  We already discussed attacker risk with regards to both assumptions
-and security parameters, e.g., the fraction of malicious CTRs and
-\texttt{ct-submit-pr}.  In what follows we shift our focus towards the
-intervention timeline in Figure~\ref{fig:sfo-intervention}, analyzing the
-attacker's options with regards to what they \emph{know} and how that knowledge
-may be \emph{used} to keep an omitted SFO outside of the public domain.
+\subsection{Phase 1: Website to Tor Browser} \label{sec:security:phase1}
+The input to phase 1 is the SFO that the attacker wishes to omit as part of
+performing a MitM. Assume that the SFO is selected for submission to a CTR.
+There are two possible cases: either the SFO is larger than
+\texttt{ct-max-sfo-bytes} or it is not. If it is larger, then Tor Browser blocks
+until the SFO is at the CTR and the circuit is closed. Assuming no forensic
+traces in tor or Tor Browser (can we find a reference based on TB/tor design to
+makes us believe it's hard to figure out past circuits?), if the attacker
+compromises Tor Browser afterwards the identity of the CTR that received the SFO
+is unknown. If the SFO is smaller or equal to \texttt{ct-max-sfo-bytes}, then we
+have a race between the time it takes for for Tor Browser to submit the SFO as
+well as close the circuit and the time it takes for the attacker to compromise
+Tor Browser. We consider the distinction between preventing the SFO from being
+sent and revealing the identity of the recipient CTR largely irrelevant; it is
+likely that an attacker given hours or days (depending on MMD and
+attacker-controlled timestamps in the SFO) to crash or compromise a CTR will
+succeed.
 
-\begin{figure}
-	\centering
-	TODO: timeline figure on SFO intervention
-	\caption{%
-		docdoc
-	}
-	\label{fig:sfo-intervention}
-\end{figure}
+Our analysis of the size of SFOs shows that XX. A conservative value for
+\texttt{ct-max-sfo-bytes} of YY bytes would rarely lead to any Tor Browser
+blocking. Clearly, for an attacker, no blocking is preferable so we assume an
+attacker that constructs a SFO of size \texttt{ct-max-sfo-bytes}. This requires
+at least ZZ cells to be transported over the circuit to the CTR before it can be
+closed (when can we close it? Is it possible to push the data and close it
+locally before getting an ack?).
 
-\subsubsection{Tor Browser $\rightarrow$ CTR} \label{sec:security-analysis:tb}
-Recall that an SFO is submitted to a CTR based on a biased coin-flip.  If
-the attacker is (not) aware of the outcome results in four scenarios
-that can be considered:
-\begin{enumerate}
-	\item SFO submitted; the attacker does not know it.
-	\item SFO not submitted; the attacker does not know it.
-	\item SFO submitted; the attacker knows it.
-	\item SFO not submitted; the attacker knows it.
-\end{enumerate}
+\subsection{Phase 2: Storage at CTR} \label{sec:security:phase2}
+In this phase the CTR is temporarily stored at the CTR. The window that that the
+attacker can intervene before an SFO is audited by a CTR is governed by its
+\texttt{audit\_after} timestamp.  The attacker controls the log's MMD and the
+SCT's timestamp, which means that the minimum value of the \texttt{audit\_after}
+timestamp is also controlled.  To maximize the attack window to at least an MMD,
+the attacker should use a newly issued SCT.
 
-The first two outcomes refer to ideal scenarios where the attacker gained no
-additional insight regarding the submission status of an SFO.  In contrast,
-the latter two outcomes refer to an attacker that gained an advantage that may
-be used to intervene with an SFO (our focus).
-
-The third outcome occurs if the attacker controls the sampled CTR or if
-submission information can be inferred from traffic analysis.  Fortunately, none
-of these options are \emph{reliable enough} for a risk-averse attacker;
-	such an attacker controls too much of the network and is therefore not
-	within Tor's threat model.
-If the attacker cannot rely on its network-related capabilities to infer whether
-and where a given SFO is submitted, Tor Browser may be targeted instead.  In
-particular, it might be possible to serve a zero-day exploit while engaging in
-man-in-the-middle activities that takes control of Tor Browser once the SFO in
-question is accepted as valid.  If the attacker's exploit runs reliably after
-transmitting the SFO to a CTR but before the submission circuit is closed,
-the submission status can be confirmed from circuit metadata and the CTR in
-question is identified.
-
-With regards to the attacker's knowledge, the fourth outcome can be viewed as a
-stringent version of the third outcome.  In other words, if network-related
-capabilities are insufficient to reliably attribute an SFO submission to some
-CTR it is also too unreliable to determine the complement event of no submission
-at all.  The attacker may have a zero-day exploit that runs reliably before
-an SFO is submitted to a CTR, in which case the attacker successfully
-intervenes and need not worry any further.
-
-\textbf{Conclusion:}
-it is paramount that the time window that the attacker's exploit must run within
-is minimized.
-%This is the main reason why submission circuits are used at most once and
-%closed immediately thereafter.
-
-\subsubsection{CTR Before Auditing}
-Now we consider the scenario that Tor Browser audited an SFO further and some
-CTR received it successfully, distinguishing between two complementary outcomes:
-\begin{enumerate}
-	\item Attacker knows where an SFO is located.
-	\item Attacker does not know where an SFO is located.
-\end{enumerate}
-
-The window that that the attacker can intervene before an SFO is audited by a
-CTR is governed by its \texttt{audit\_after} timestamp.  The attacker controls
-the log's MMD and the SCT's timestamp, which means that the minimum value of the
-\texttt{audit\_after} timestamp is also controlled.  To maximize the attack
-window to at least an MMD, the attacker should use a newly issued SCT.
-
-The first outcome occurs if the attacker happened to succeed with the third
-outcome in Section~\ref{sec:security-analysis:tb}.
-As the attacker either controls the sampled CTR or were able to identify it,
-the SFO in question can simply be discarded or intervened with by other means.
-For example, it is well within Tor's threat model to DoS a single CTR.  It is
-therefore paramount that the attacker \emph{does not know} where an SFO is
-located, so that the second outcome must be \emph{assumed} even if an SFO is
-not audited.
-
-The second outcome requires the attacker to treat every genuine CTR as if it
-holds a problematic SFO.  While it is possible to DoS some CTRs, we are no
-longer within Tor's threat model if it is possible to DoS all CTRs.  A less
-powerful and thus limited kind of DoS is to pose as a genuine Tor Browser
-client, interacting with CTRs through their open SFO endpoints to \emph{flush}
-them.  A \emph{network-wide flush} is possible (see Section~\ref{sec:todo}), but
-at the same time detectable:
-	the number of circuits in the Tor network would explode because SFOs
-	are submitted separately, and
-	CTRs publish flushing statistics in their extra-info documents.
+Reaching this phase, we assume that the attacker does not know the CTR holding
+the SFO in question. Performing a network-wide DoS of all CTRs is not within
+Tor's threat model. A less powerful attack is to perform a flooding attack to
+flush each CTR, see Section~\ref{todo}. Such an attack is detectable: the number
+of circuits in the Tor network would explode because SFOs are submitted
+separately, and CTRs publish flushing statistics in their extra-info documents.
 While it is nontrivial to attribute flushing activities to an identifiable
 attacker, being able to confirm the \emph{lack of flushing} is an invaluable
 property.
 
-\textbf{Conclusion:}
-it is paramount that the attacker does not know where an SFO is located before
-it is audited, and the best we can do is to detect network-wide flushes.
+\subsection{Phase 3: Auditing} \label{sec:security:phase3}
+During the auditing phase, we assume that the attacker has tagged every CTR with
+an overwhelming (relative to expected load) number of SFOs (see
+Section~\ref{sec:adversary}). Since our auditing Algorithm (see
+Section~\ref{sec:design:ctr:audit}) re-uses the circuit to the CT log for
+performance reasons, this means that it is reasonable to assume that the
+attacker can identify the CTR at the point in time of attempting to audit the
+SFO the attacker wants to omit (on the SFO hitting the attacker-controlled CT
+log API endpoint). The key question becomes if the attacker can prevent the CTR
+from reporting the SFO to the auditor in about \texttt{ct-query-timeout} time.
 
-\subsubsection{CTR While Auditing}
-At this point we can assume that the attacker does not control the CTR in
-question (as any SFO could simply be discarded) and any attempt to flush the
-network is deemed too visible.  Instead, the attacker may wait for an
-SFO to be audited and act thereafter.  In particular, our design makes no
-attempt to prevent tagging attacks, which means that once a target SFO is
-audited the CTR in question can be identified despite using a full Tor circuit.
-This leaves a window that is decided by the \texttt{ct-query-timeout} during
-which the CTR is waiting for a response from the attacker-controlled log and
-before it is submitted to an announced auditor.  As shown in Section~\ref{todo},
-this window should be in the order of seconds and thus it is too narrow for any
-flushing activities.
+The attacker could DoS the identified CTR or attempt to compromise it within
+\texttt{ct-query-timeout} time. (Similar as for TB, can we find a way where we
+can say that we can send data out on an established circuit with only outgoing
+traffic? A DoS would only create overwhelming incoming traffic.)
 
-\textbf{Conclusion:}
-the \texttt{ct-query-timeout} parameter must be minimized so that the attacker
-cannot reliably DoS an arbitrary CTR within the resulting window.
-
-\subsubsection{CTR After Auditing}
+\subsection{Phase 4: Reporting} \label{sec:security:phase4}
 The final opportunity to intervene once the \texttt{ct-query-timeout} triggers
-is to target the announced auditors.  Our design does nothing to enhance
-auditor availability.  As such, we rely on there being a diverse set of
-auditors that are difficult to DoS all at once.  Notably it might be the case
-that the attacker can win some time by making some auditors unavailable and thus
-forcing CTR-to-Auditor resubmissions, but at the same time it is not
-\emph{reliable} since CTRs sample their auditors.
-
-\textbf{Conclusion:}
-auditor availability is likely the weakest point in practise.  The
-announced auditors should therefore employ best practises for DoS prevention.
-
-%%% Local Variables: 
-%%% mode: latex 
-%%% TeX-master: "../main"
-%%% End:          
+is to target the announced auditors.  Our design does nothing to enhance auditor
+availability.  As such, we rely on there being a diverse set of auditors that
+are difficult to DoS all at once.  Notably it might be the case that the
+attacker can win some time by making some auditors unavailable and thus forcing
+CTR-to-Auditor resubmissions, but at the same time it is not \emph{reliable}
+since CTRs sample their auditors.
