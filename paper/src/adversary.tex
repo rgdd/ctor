@@ -71,23 +71,22 @@ the SCT to a client without adding the certificate to the SCT-issuing
 CT log or maintaining multiple versions of that CT log. 
 
 For example, the adversary might possess adequate bandwidth to DoS
-individual CTRs for at least several hours. But whether a sustained
-DoS of all CTRs is feasible for the adversary, it is out of scope
-simply because the attack would be too visible. An attack that
-attempts to overwhelm the storage capacity for SFOs at all CTRs would
-similarly be likely too visible, though see the discussion of flushing
+individual CTRs for at least several hours, but a sustained DoS of all
+CTRs is out of scope because it would exceed Tor's threat model. An
+attack that attempts to overwhelm the storage capacity for SFOs at all
+CTRs would likely too visible, though see the discussion of flushing
 attacks below for details. Likewise an adversary may have access to a
 zero-day that could affect Tor Browser clients or a zero-day for some
-CTRs. But these should be considered expensive, and relatively quickly
-detected and repaired.  So, an adversary will not preemptively spend a
-zero-day that affects only one family of operating systems because
-CTRs run on multiple OSes and which CTR is relevant to a given attack
-cannot be known ahead of time. And a zero-day that effectively allows
-the simultaneous takeover of all Tor relays is out of scope. Likewise
-the adversary may otherwise have the ability to take over or simply
-restart individual CTRs or groups of CTRs, but taking over or
-restarting all CTRs simultaneously or within several hours of each
-other is also out of scope.
+CTRs. But these should be considered expensive, and unlikely to be
+effective against CTRs.  The CTR (running which OS) that is relevant to a
+given attack cannot be known ahead of time. Thus the adversary would
+have to both be able to attack the connecting client and the CTR to
+which it is currently connected. And a zero-day that effectively
+allows the simultaneous takeover of all Tor relays is out of
+scope. Likewise the adversary may otherwise have the ability to take
+over or simply restart individual CTRs or groups of CTRs, but taking
+over or restarting all CTRs simultaneously or within several hours of
+each other is also out of scope.
 
 %\subsection{Attacks}
 %\label{sec:attacks}
