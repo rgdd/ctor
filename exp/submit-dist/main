@@ -1,0 +1,50 @@
+#!/bin/bash
+
+#
+# Usage: sudo ./main 2>&1 | tee main.log
+#
+
+export CTOR_SUBMIT_BYTES=32 # add number of bytes here
+export CTOR_SERVER_IP=0.0.0.0 # add IP here
+export CTOR_SERVER_PORT=1234 # add port here
+
+TIMEOUT=10 # seconds to wait before killing an unresponsive connection
+WAKEUP=5 # seconds to wait after restarting tor
+DATA_DIR=data/$CTOR_SUBMIT_BYTES # path to store timestamped results
+
+function main() {
+	log_info "press ctrl+c to quit"
+	mkdir -p $DATA_DIR
+	while :; do
+		restart_tor && sleep $WAKEUP && log_info "restarted tor"
+		if [[ -z $(torify curl ifconfig.me 2>/dev/null) ]]; then 
+			log_error "bad circuit"
+		fi
+
+		start=$(date "+%s.%N")
+		if [[ $(timeout $TIMEOUT torify ./client) = $CTOR_SUBMIT_BYTES ]]; then
+			stop=$(date "+%s.%N")
+			log_info "measurement succeeded"
+		else
+			stop="-1"
+			log_error "measurement timed out"
+		fi
+		echo $start $stop >> $DATA_DIR/output
+	done
+}
+
+function restart_tor {
+	service tor stop
+	rm /var/lib/tor/state
+	service tor start
+}
+
+function log_info() {
+	echo "[Info] $@" >&2
+}
+
+function log_error() {
+	echo "[Error] $@" >&2
+}
+
+main
