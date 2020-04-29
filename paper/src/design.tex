@@ -41,7 +41,7 @@ so that it entails information regarding
 	security parameters.
 
 \subsubsection{CTR Flag}
-The existing \texttt{know-flags} item determines the different flags that a
+The existing \texttt{known-flags} item determines the different flags that a
 given consensus document might contain.  For example, documented flags include
 \texttt{Authority}, \texttt{Exit}, and \texttt{Running}.  We add another flag
 named \texttt{CTR}, which indicates that a relay should support CT-auditing as
@@ -401,8 +401,14 @@ circuits.  As mentioned in Section~\ref{sec:design:extra-info}, it could be
 valuable to let CTRs publish their failure rates while querying the logs.
 
 An announced auditor may choose to replicate possible evidence of log
-misbehaviour to the other announced auditors prematurely to ensure that
+misbehavior to the other announced auditors prematurely to ensure that
 it is persisted beyond its own durable storage.  At some point, the auditor
 software should generate a complete report that can be forwarded by the
 auditor's operator to the CT-policy mailing list for further community
 investigation.
+
+
+%%% Local Variables: 
+%%% mode: latex 
+%%% TeX-master: "../main"
+%%% End:          
