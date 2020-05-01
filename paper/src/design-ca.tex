@@ -1,5 +1,5 @@
 \section{Design} \label{sec:design}
-Figure~\ref{fig:overview} provides an overview of our design idea.  The starting
+Figure~\ref{fig:design-ca} provides an overview of our design idea.  The starting
 point is that zero or more certificate chains and SCTs are presented
 throughout a website visit (step~1).  We refer to these as SCT Feedback Objects
 (SFOs)~\cite{nordberg}.  Tor Browser accepts an SFO if it adheres to an
@@ -15,19 +15,9 @@ within a timely manner, it is reported to an auditor that investigates the issue
 further (step~4).
 \begin{figure*}
 	\centering
-	\includegraphics[width=0.85\textwidth]{img/setting-ca}
-	\caption{An overview of our design: Tor's consensus is extended by including
-		the latest STH from each relevant CT log (periodically fetched by
-		Directory Authorities) together with global CTor parameters (presented
-		throughout Section~\ref{sec:design}). A website presents a SFO to Tor
-		Browser, and Tor Browser in turn submits this SFO with some probability
-		(consensus parameter) to a randomly selected CTR (phase 1). The CTR
-		temporarily stores the SFO (phase 2). After some random delay (another
-		parameter), the CTR attempts to audit the SFO by challening the issuing
-		CT log using the STH in the consensus (phase 3). Upon failed audit, the
-		SFO is reported to a trusted auditor listed in the consensus (phase 4).
-		All connections are made over dedicated independent circuits.}
-	\label{fig:overview}
+	\includegraphics[width=0.85\textwidth]{img/design-ca}
+	\caption{An overview of our design: TODO. }
+	\label{fig:design-ca}
 \end{figure*}
 
 \subsection{Tor Consensus}
