@@ -1,18 +1,6 @@
-\section{Design} \label{sec:design}
-Figure~\ref{fig:design-ca} provides an overview of our design idea.  The starting
-point is that zero or more certificate chains and SCTs are presented
-throughout a website visit (step~1).  We refer to these as SCT Feedback Objects
-(SFOs)~\cite{nordberg}.  Tor Browser accepts an SFO if it adheres to an
-SCT-centric CT policy similar to Chrome and Safari~%
-\cite{chrome-policy,safari-policy}, but it may also be submitted to a CTR
-in the background using a fresh independent circuit (step~2).  CTR flags are
-assigned by Tor's directory authorities, and among other things, they also
-determine Tor's view of the CT landscape by publishing STHs and announcing
-third-party CT auditors in the Tor consensus.  CTRs store SFOs temporarily
-before challenging the logs to prove inclusion with regards to Tor's published
-STHs (step~3).  Should a log fail to provide a valid inclusion proof for an SFO
-within a timely manner, it is reported to an auditor that investigates the issue
-further (step~4).
+\section{Design} \label{sec:design-ca}
+Design intro, ref Figure~\ref{fig:design-ca}.
+
 \begin{figure*}
 	\centering
 	\includegraphics[width=0.85\textwidth]{img/design-ca}
@@ -20,23 +8,23 @@ further (step~4).
 	\label{fig:design-ca}
 \end{figure*}
 
-\subsection{Tor Consensus}
+\subsection{Tor Consensus} \label{sec:design-ca:consensus}
 Tor's directory authorities produce an hourly consensus document that defines
 how the Tor network is composed.  Our proposal extends Tor's consensus document
 so that it entails information regarding
 	CTRs,
-	recognized CT logs,
-	announced auditors, and
-	security parameters.
+	recognized CT logs, and
+	other necessary parameters that can be tuned.
 
-\subsubsection{CTR Flag}
-The existing \texttt{known-flags} item determines the different flags that a
+\subsubsection{CTR Flag} \label{sec:design-ca:consensus:ctr-flag}
+The existing \texttt{known-flags} item determines the different flags that a 
 given consensus document might contain.  For example, documented flags include
 \texttt{Authority}, \texttt{Exit}, and \texttt{Running}.  We add another flag
 named \texttt{CTR}, which indicates that a relay should support CT-auditing as
-described in Section~\ref{sec:design:ctr}.  A relay qualifies as a CTR if it is
-flagged as \texttt{stable} and \texttt{middle}.  The \texttt{CTR} flag is
-assigned if a majority of directory authorities voted for it.
+described in Sections~\ref{sec:design-ca:phase2}--\ref{sec:design-ca:phase3}.  A
+relay qualifies as a CTR if it is flagged as \texttt{stable} and
+\texttt{middle}.  The \texttt{CTR} flag is assigned if a majority of directory
+authorities voted for it.
 
 % - A CTR should be stable both to permit long-lived circuits to the CT logs and
 % to increase the likelihood of them staying online.
@@ -44,133 +32,80 @@ assigned if a majority of directory authorities voted for it.
 % mainly from resource utilization considerations.  It is also about not making
 % exit relays "more attractive targets" due to also storing SFOs.
 
-\subsubsection{Recognized CT Log}
-The CT landscape is composed of a few dozen logs.  At minimum, the Tor
-consensus must recognize those referred by Tor Browser's CT policy.  At some
-point during the voting timeline, each directory authority
-(i) checks whether there are any CT policy updates, and
-(ii) fetches an STH from each log that is recognized.
-To agree on a single STH per log, choose the most recent one as determined by
-timestamp and resolve ties by appealing to lexicographical order.  A log is
-included in the Tor consensus if a majority of directory authorities voted
-for it by proposing an instance of \texttt{ct-log-info}:
-\begin{description}
-	\item[ct-log-info:] Contains a log ID, an MMD and a base URL as found in
-		Tor Browser's CT policy, as well as an STH following the log's
-		\texttt{get-sth} format~\cite{ct,ct/bis}.
-\end{description}
+\subsubsection{Recognized CT Log} \label{sec:design-ca:consensus:log}
+CTRs only interact with CT logs that are recognized by the Tor consensus.  A log
+is recognized if a majority of directory authorities voted for its inclusion by
+proposing a \texttt{ct-log-info} entry that contains a log ID, a public key, and
+a base URL~\cite{ct,ct/bis}. 
+Following from our basic CTR design, there need not be any overlap between the
+logs that the Tor consensus recognizes when compared to Tor Browser's CT policy.
+There could be overlap, however.  The ideal scenario is that there are many
+independent logs that accept certificate chains for most trust anchors.
 
-There should be no disagreement regarding a log's basic metadata.  However, if
-such an erroneous state occurs, deterministic rules could be used to agree upon
-an MMD and a base URL while investigating the issue further.
+For now, we do not provide any details as to how the Tor consensus captures
+whether two logs are independent or which roots they accept.  Instead,
+Section~\ref{sec:discussion:logs} discusses this and other related
+considerations further.
 
-\subsubsection{Announced Auditor}
-Whenever log misbehavior is suspected, the CTR in question reports it to a
-CT auditor that investigates the issues further.  Tor's directory authorities
-announce CT auditors by proposing a value for the item below, and it is included
-in the Tor consensus if a majority of directory authorities voted for it.
-\begin{description}
-	\item[ct-auditor:] Contains a base URL and a fingerprint that is derived
-		from the auditor's public key info.
-\end{description}
-
-As built upon in Section~\ref{sec:design:auditor}, the base URL determines the
-start of an auditor's submission endpoint.  Moreover, it should be noted that
-we pin the auditor's public key because we are dealing with an attacker that
-forges TLS certificates.  E.g., a SPKI fingerprint could be used~\cite{hpkp}.
-
-\subsubsection{Security Parameters}
-The security of our proposal depends on parameters that Tor's directory
-authorities set.  These parameters are first outlined below briefly, then used
-throughout the remainder of this section and discussed further later on.
-Note that each item occurs exactly once in the Tor consensus:
-it is based on the median value of all votes.
+\subsubsection{Other Parameters} \label{sec:design-ca:consensus:params}
+Tor's directory authorities influence the way in which Tor Browser and CTRs
+behave by voting on other parameters.  For example, the likelihood that
+an SFO is submitted for further auditing is a security parameter that is
+determined by the value of \texttt{ct-submit-pr}.  The value of an item is
+computed as the median of all votes.
 \begin{description}
 	\item[ct-submit-pr:] A floating-point in $[0,1]$ that determines Tor
 		Browser's submission probability, i.e., whether an SFO should be sent to
-		a random CTR for further auditing.  E.g., $0$ disables auditing
+		a random CTR for further auditing.  Zero disables auditing,
 		while $0.10$ implies every 10$^{\mathsf{th}}$ SFO is audited
 		on average.
-	\item[ct-submit-timeout:] A natural number that determines how many ms Tor
-		Browser waits before concluding that a CTR is unresponsive.  As
-		outlined in Section~\ref{sec:design:tb}, a submission timeout results
-		in a resubmission to another CTR that is selected at random.
-	\item[ct-query-timeout:] A natural number that determines how many ms a CTR
-		waits before concluding that a CT log is unresponsive.  As outlined in
-		Section~\ref{sec:design:ctr:audit}, a query timeout triggers an
-		auditor submission.
-	\item[ct-report-timeout:] A natural number that determines how many ms a
-		CTR waits before concluding that an announced auditor is unresponsive.
-	\item[ct-report-count:] The number of announced auditors that a CTR
-		resubmits an SFO to after a report timeout, as well as the number of CT
-		logs that the underlying certificate chain is submitted to for public
-		logging.  Further details are outlined in
-		Section~\ref{sec:design:ctr:audit}.
-	\item[ct-backoff:] A natural number that determines how many ms a CTR
-		may wait between two auditing instances.  As outlined in
-		Section~\ref{sec:design:ctr:audit}, CTRs audit pending SFOs
-		in batches at random time intervals.
 	\item[ct-sfo-max-bytes:] A natural number that determines how many
 		wire-bytes a normal SFO should not exceed.  As outlined in
-		Section~\ref{sec:design:tb}, excessively large SFOs are subject to
-		stricter verification criteria.
+		Section~\ref{sec:design-ca:phase1}, excessively large SFOs are subject
+		to stricter verification criteria.
+	\item[ct-query-timeout:] A natural number that determines how many ms a CTR
+		waits before concluding that a CT log is unresponsive.  As outlined in
+		Section~\ref{sec:design-ca:phase3}, a query timeout triggers a
+		resubmission later on.
+	\item[ct-backoff:] A natural number that determines how many ms a CTR
+		may wait between two auditing instances.  As outlined in
+		Section~\ref{sec:design-ca:phase3}, CTRs audit pending SFOs
+		in batches at random time intervals.
+	\item[ct-delay-dist] docdoc
 \end{description}
 
-\subsection{Tor Browser} \label{sec:design:tb}
-Given a tab $t$ and an incoming SFO $s$:
+
+\subsection{Phase~1---Tor Browser} \label{sec:design-ca:phase1}
+The first phase evolves around Tor Browser and how an incoming SFO is validated
+and probabilistically audited further by a random CTR.  Given an SFO $s$ and
+a tab $t$:
 \begin{enumerate}
 	\item Accept $s$ and stop if it was already validated in $t$.
 	\item Raise a certificate error and stop if the certificate chain of $s$
 		is not rooted in Tor Browser's trust store.
 	\item Raise a certificate transparency error and stop if the SCTs of $s$
 		fail Tor Browser's SCT-centric CT policy.
-	\item Conduct the following steps in the background:
-		\begin{enumerate}
-			\item Signal that $s$ should be accepted as valid if its byte-size
-				is \texttt{ct-max-sfo-bytes} or less.
-			\item Flip a coin based on \texttt{ct-submit-pr} and go to
-				step~\ref{enm:tb:done} if there should be no further auditing.
-			\item\label{enm:tb:submit} Use \texttt{ct-submit-timeout} to set a
-				timer and submit $s$ to a sampled CTR's SFO-endpoint on a
-				pre-built CT-circuit that starts from the client's guard and
-				ends at the CTR: three hops in total.
-				\begin{itemize}
-					\item On a timely acknowledgment: close the submission
-						circuit and go forward to step~\ref{enm:tb:done}.
-					\item On any other outcome: close the submission circuit and
-						repeat step~\ref{enm:tb:submit}.
-				\end{itemize}
-			\item\label{enm:tb:done} Signal that $s$ should be accepted as valid
-				if its byte-size is larger than \texttt{ct-max-sfo-bytes}.
-		\end{enumerate}
-	\item Wait for a signal that $s$ should be accepted as valid, then mark it
-		as validated in $t$ and stop.
+	\item Mark $s$ as validated in $t$ and continue in the background if
+		$\mathsf{len}(s) \le \texttt{ct-max-sfo-bytes}$, else continue in
+		blocking-mode before marking $s$ as validated in~$t$.
+	\item Flip a biased coin based on \texttt{ct-submit-pr} and stop if the
+		outcome indicates no further auditing.
+	\item Submit $s$ to a sampled CTR's SFO-endpoint on a pre-built CT-circuit
+		that starts from the client's guard and ends at the CTR: three hops in
+		total.  The circuit used for submission is closed immediately after
+		use without waiting for any acknowledgment.
 \end{enumerate}
 
-TODO: readd context text
-
-%Similar to Chrome and Safari~\cite{chrome-policy,safari-policy}, we suggest that
-%Tor Browser should use an SCT-centric CT policy.  This means that a certificate
-%chain is accepted as valid if it is accompanied by a threshold of SCTs.  Such a
-%policy would ideally come from Mozilla directly (like many other components),
-%but at the time of writing there is no official CT policy that can be inherited
-%from Firefox.
-%
-%If an SFO passes Tor Browser's CT policy, the value of
-%\texttt{ct-submit-pr} is used to flip a biased coin.  The outcome determines
-%whether further inclusion verification should take place, in which case the SFO
-%is submitted to a sampled CTR over a fresh independent circuit
-%that is \emph{pre-built} from the client's guard relay (three hops in total) 
-%and closed immediately after use.  In other words, Tor Browser should maintain a
-%pool of one-time circuits that are used for CT-auditing purposes only.
-%Should the same SFO be presented multiple times within the same tab, it is only
-%considered for further auditing on a \emph{first-encounter} basis.
-%If a submitted SFO is unacknowledged after some maximum time as decided by
-%\texttt{ct-submit-timeout}, it is resubmitted as if there was no failure to
-%begin with:
-%	use another pre-built circuit to a sampled CTR.
-%This ensures that Tor Browser does not keep submitting to a CTR that is no
-%longer available, while at the same time having limited security impact.
+We avoid unnecessary overhead by only validating SFOs once per tab.  An SFO is
+considered validated if the end-entity certificate is rooted in a trust anchor
+\emph{and} it has enough SCTs as dictated by an SCT-centric CT policy which is
+similar to the other major browser vendors~\cite{chrome-policy,safari-policy}.
+Section~\ref{sec:security} motivates why excessively large SFOs are vetted more
+strictly in blocking-mode, which is in contrast to the normal behavior where an
+SFO is considered for further auditing in the background.  Moreover, note that
+the circuit used to submit an SFO is taken from a pool of pre-built CT-circuits
+that are closed immediately after use, reducing the time that they are around in
+memory.
 
 %
 % - close circuit asap to make it harder for an attacker to figure out which
@@ -179,22 +114,9 @@ TODO: readd context text
 % so within tabs may (i) reduce the chance that the receiving CTR knows exactly
 % which website was visited, and (ii) make sense because with small submission
 % pr (<=1/10) it should be common to submit at most once per tab anyway.
-% - resubmission:
-%   a) new circuit because the exit might be attacker controlled and
-%   intentionally be blocking access to a CTR that is not attacker-controlled
-%   b) new ctr because we don't wanna keep on trying indefinitely if there is
-%   an actual problem with the selected ctr.  At the same time, it will be
-%   difficult for the attacker to rely on Tor Browser never sampling both a
-%   benign exit and ctr (in which case the submission should succeed).
 %
 
-\subsection{CTR} \label{sec:design:ctr}
-A relay that is assigned the CTR flag accepts incoming SFO submissions on a
-dedicated endpoint.  At random time intervals, an auditing process then runs
-which verifies the inclusion status of SFOs that are pending.  CTRs also
-publish health metrics in the extra-info document.
-
-\subsubsection{Submission Endpoint} \label{sec:design:api}
+\subsection{Phase 2---CTR Storage} \label{sec:design-ca:phase2}
 We suggest that CTRs accept SFO submissions on an HTTP endpoint.\footnote{%
 	Tor's HTTP DirServer codebase can be reused as extension point to interact
 	with the tor daemon, i.e., add another listener.
@@ -202,202 +124,93 @@ We suggest that CTRs accept SFO submissions on an HTTP endpoint.\footnote{%
 be reused if an array-length of one is enforced by the CTR~\cite{nordberg}.
 With regards to some circuit, process an incoming SFO $s$ as follows:
 \begin{enumerate}
-	\item\label{enm:ctr-api:well-formed} Close the circuit and stop if $s$
-		contains no SCT that matches at least one log ID in a
-	\texttt{ct-log-info} entry.
-	\item\label{enm:ctr-api:ack} Update $s$ by discarding any
-		unrecognized SCT, % otherwise can exploit for easier flush
-		then acknowledge the reception and close the circuit.
+	\item\label{enm:ctr-api:close} Close the incoming circuit.
+	\item\label{enm:ctr-api:unrecognized} Stop if no CT log in the Tor consensus
+		accepts the underlying certificate chain of $s$.
 	\item\label{enm:ctr-api:cached}
-		Stop if $s$ is cached or pending inclusion verification.
-	\item\label{enm:ctr-api:audit-after} Sample an SCT in $s$, noting down the
-		outcome and a corresponding \texttt{audit\_after} timestamp
-		(Figure~\ref{fig:audit-after}).
-	\item\label{enm:ctr-api:store} Store $s$ and its \texttt{audit\_after}
-		timestamp in a buffer of pending SFOs that is managed by Tor's OOM.
+		Stop if $s$ is cached or pending to be audited.
+	\item\label{enm:ctr-api:audit-after} Compute an \texttt{audit\_after}
+		timestamp $\textrm{t} \gets \mathsf{now()} +
+			\mathsf{random\_delay}(\texttt{ct-delay-dist})$.
+		The former returns the current time and the latter a random delay.
+	\item\label{enm:ctr-api:store}
+		Add $s$ and its \texttt{audit\_after} timestamp to a buffer of
+		pending SFOs that is managed by tor's OOM.
 \end{enumerate}
 
-First we verify that the submitted SFO is well-formed and that it contains at
-least one SCT that corresponds to an STH in the Tor consensus.
-Possibly preceded by an acknowledgment that the SFO will be audited, the
-associated circuit is then closed.  This means that no acknowledgment should be
-treated as an error, and at most one SFO can be submitted on a given circuit.
-New SFOs, i.e., SFOs that are neither \emph{cached} nor waiting to be resolved
-in a \emph{buffer} of pending SFOs, are stored.  We only keep recognized
-SCTs around to ensure that no CTR memory is wasted, and one of these SCTs are
-sampled so that an \texttt{audit\_after} timestamp can be computed.  The
-\texttt{audit\_after} timestamp determines the earliest point in time that an
-SFO will be considered for auditing:
-	a random delay is added to leak less real-time information regarding visited
-		websites to the CT logs, and
-	by auditing after an SCT's MMD elapsed the log \emph{must} have an
-		inclusion proof available or it misbehaves.
+Recall that Tor Browser does not wait for any acknowledgment, and that a
+CT-circuit must not be used more than once.  As such, the first step is to
+close the incoming circuit once an SFO is received.  The received SFO is
+simply discarded if it
+	cannot be audited as proposed in Section~\ref{sec:design-ca:phase3},
+	is already audited as noted by a cache, or
+	is pending to be audited in a buffer of pending SFOs.
+For example, the cache could be a collection of SFO hashes and the buffer
+something similar to how OOM manages DNS.  A new SFO is stored in the CTR's
+buffer alongside an \texttt{audit\_after} timestamp, which specifies the
+earliest point in time that the SFO will be audited.  This behavior, where a
+random delay is added to each SFO, transforms the CTR into a timed mix such that
+less real-time information is leaked to the CT logs in
+Section~\ref{sec:design-ca:phase3}.
 
-If memory becomes a scarce relay resource, e.g., due to flushing, OOM
-should delete SFOs at random~\cite{nordberg}.  The impact of such bulk-deletes
-are discussed in Section~\ref{sec:todo}.
+If memory becomes a scarce relay resource, e.g., due to flooding, OOM
+should delete SFOs at random~\cite{nordberg}.  The threat of flooding is
+discussed further in Section~\ref{sec:security}.
 
-\begin{figure}
-	\centering
-	\pseudocode[linenumbering, syntaxhighlight=auto]{%
-		\textrm{t} \gets \mathsf{now}() \\
-		\pcif \textrm{SCT.timestamp} + \textrm{MMD} >
-				\textrm{t}:\\
-			\pcind\textrm{t} \gets \mathsf{min}(
-				\textrm{SCT.timestamp}, \textrm{t} +
-				\textrm{MMD}
-			)\\
-			\textrm{t} \gets \textrm{t} + \mathsf{random\_delay}()
-	}
-	\caption{%
-		Algorithm that computes an \texttt{audit\_after} timestamp that is
-		bound by the CTR's perception of time and the log's MMD.
-	}
-	\label{fig:audit-after}
-\end{figure}
-
-\subsubsection{Auditing Process} \label{sec:design:ctr:audit}
+\subsection{Phase 3---Auditing} \label{sec:design-ca:phase3}
 CTR auditing is initiated at random time intervals to spread out the load
 imposed by the Tor network on CT logs.  Each auditing instance is composed of
 circuit setup, a core loop of SFO enumeration, and circuit tear-down.
 
 \begin{enumerate}
-	\item\label{enm:backoff} Sample a uniform delay from
+	\item\label{enm:ctr:audit:backoff} Sample a uniform delay from
 			$[0, \texttt{ct-backoff}]$,
 		then schedule a timer and wait until that time elapsed.
-	\item\label{enm:audit-circuit} Establish a new circuit and connect to a
-		randomly selected auditor in the Tor consensus.  Test that the
-		auditor is available by submitting a dummy-SFO using
-		\texttt{ct-report-timeout}.  If not, close the circuit and repeat this
-		step at most \texttt{ct-report-count} times.
-	\item\label{enm:log-circuit} Establish a new circuit and use it for all
-		subsequent log connections.  Connect to the logs when needed.
-	\item\label{enm:audit-loop} Enumerate the set of pending SFOs, referring to
-		the SCTs in Section~\ref{sec:design:api},
-		step~\ref{enm:ctr-api:audit-after}, and their logs' STHs:
+	\item\label{enm:ctr:audit:log-circuit} Establish a new circuit and use it
+		for all subsequent log connections.  Connect to the logs when needed.
+	\item\label{enm:ctr:audit:loop} Enumerate the buffer of pending SFOs:
 		\begin{enumerate}
-			\item\label{enm:audit-loop:wait-sct} Continue if
+			\item\label{enm:ctr:audit:too-soon} Continue if
 				$\textrm{SFO}.\mathsf{audit\_after} > \mathsf{now}()$.
-			\item\label{enm:audit-loop:wait-sth} Continue if
-				$\textrm{SFO}.\mathsf{audit\_after} >
-				\textrm{STH}.\mathsf{timestamp}$.
-			\item\label{enm:audit-loop:challenge}
-				Use \texttt{ct-query-timeout} and
-				$\textrm{STH}.\mathsf{treesize}$ to set a timer and challenge
-				the log to prove inclusion.
+			\item\label{enm:ctr:audit:sample}
+				Sample a CT log uniformly at random that accepts the underlying
+				certificate chain $c \in s$.  Do not consider any dependent CT
+				log if the Tor consensus lists any independent CT log.  A log
+				is independent if it did not issue any SCT in $s$.
+			\item\label{enm:ctr:audit:log} Use \texttt{ct-query-timeout} to set
+				a timer and submit $c$ for public logging to the log's
+				\texttt{add-chain}~\cite{ct} or
+				\texttt{submit-entry}~\cite{ct/bis} endpoint.
 				\begin{itemize}
-					\item\label{enm:audit-loop:challenge:success} On valid
-						proof: cache the SFO in question by storing a hashed
-						representation.
-					\item\label{enm:audit-loop:challenge:fail} On any other
-						outcome: use \texttt{ct-report-timeout} to set a timer
-						and send the entire SFO to the auditor in
-						step~\ref{enm:audit-circuit}.  On any failure, log $s$
-						to torlog and re-report it:
-						\begin{itemize}
-							\item Sample \texttt{ct-report-count}
-								auditors and resubmit $s$ on (new) separated
-								circuits.
-							\item Sample \texttt{ct-report-count} CT logs not
-								referred by $s$ and submit the underlying
-								certificate chain via \texttt{add-chain}~\cite{ct}
-								or \texttt{submit-entry}~\cite{ct/bis}
-								on separated circuits.
-						\end{itemize}
-						Finally, discard the SFO and break the loop.
+					\item\label{enm:ctr:audit:log:success} On valid
+						SCT: cache the SFO, then discard it from the buffer of
+						pending SFOs.
+					\item\label{enm:ctr:audit:log:fail} On any other outcome:
+						break the loop.
 				\end{itemize}
 		\end{enumerate}
-	\item\label{enm:teardown} Close all opened circuits and go back to
-		step~\ref{enm:backoff}.
+	\item\label{enm:ctr:audit:teardown} Close all opened circuits and go back to
+		step~\ref{enm:ctr:audit:backoff}.
 \end{enumerate}
 
-Keeping auditor and log interactions separate is good circuit hygiene in
-general.  For example,  sharing these circuits would allow the attacker to
-identify which exit relay should be DoS:ed to delay an auditor submission.
-In the core loop, we only audit an SFO's sampled SCT if its MMD elapsed
-and there is an STH available in the Tor consensus that captures it.  Note that
-the full SFO is always reported on failure, which ensures that the auditors can
-validate all SCTs further.  If an auditor becomes unavailable, we take several
-actions to increase the likelihood that an SFO and/or its underlying certificate
-chain makes it into the public domain.  Namely, resubmit to several auditors,
-log it locally to torlog, and submit the underlying certificate chain for
-merging into independent CT logs that the attacker may not control.
+As shown above we take an unusual approach towards auditing SFOs.  Rather than
+following up on an SCT's inclusion status, we submit the underlying certificate
+chain to an independent CT log.  As such, the end-entity certificate will make
+it into the public domain if the sampled log is not controlled by the attacker.
+If there is no independent log listed in the Tor consensus, it is still valuable
+to resubmit to a dependent log:
+	it might be the case that the attacker has access to a log's signing key,
+	but not the log's actual infrastructure.
+In other words, a mis-issued certificate would make it into the public domain in
+such a scenario if we resubmit it rather than discarding it due to lack of
+an independent log.
 
-% where sth first after mmd elapsed !  Missing right now
-% - not necessary, let auditor bother with that
-%
-% Remember: audit sampled sct -> less overhead, less info leak to ct logs
-%
+After a certificate chain is submitted for logging, the returned SCT must be
+valid, e.g., correct structure and signed by the log in question.  On any other
+outcome, such as a timeout, the SFO remains in the buffer of pending SFOs while
+the CTR goes into back-off mode.
 
-\subsubsection{Extra-Info Document} \label{sec:design:extra-info}
-The extra-info document tells us something about a Tor relay's internal state of
-affairs.  For example, \texttt{read-history} and \texttt{write-history} list how
-many bytes were consumed throughout different time intervals.  We further
-require that the following metrics be added:
-\begin{description}
-	\item[ct-receive-bytes:] Occurs at most once.  Interval width, followed by a
-		list of received SFO bytes per interval.
-	\item[ct-delete-bytes:] Occurs at most once.  Interval width, followed by a
-		list of deleted SFO bytes per interval.
-\end{description}
+% TODO: should we fixate so that resubmission to the same sampled log?
+% TODO: is it really motivated to "break" now rather than "continue"?
 
-A CTR should generate a new descriptor and extra-info document if the most
-current extra-info document had no deletions while the next one will have at
-least one deletion:
-	this enables \emph{early detection} of flushing-related activities
-	(or suspicion thereof).
-There are other health-related metrics that could be added in the
-extra-info document, such as
-	the number of SFO submissions and deletions,
-	the ratio between SFOs that are younger than an MMD, and
-	per-log failure rates while querying for inclusion.
-The latter, for example, could be used as an indicator that the current
-query-timeout is too optimistic.
-
-\subsection{Announced Auditors} \label{sec:design:auditor}
-An announced auditor is expected to implement the SCT feedback interface of
-Nordberg~\emph{et~al.}~\cite{nordberg}.  If a well-formed SFO is received, the
-auditor in question should endeavor to validate the inclusion status of each SCT
-with regards to the first STH in the Tor consensus that elapsed the log's MMD.
-An announced auditor should also verify that each STH in the Tor consensus is
-in fact consistent by fetching consistency proofs from the logs.
-While not within our threat model, we do encourage the announced auditors to
-verify that STHs in the Tor consensus are consistent with external views of the
-CT landscape.  For example, operate an STH pollination~\cite{nordberg} endpoint
-and fetch STHs actively from many diverse vantage points using Tor, VPN
-services, DoH resolvers, and RIPE Atlas (to mention a few low-cost options).
-
-% TODO: two-component system??
-If the log appears to function correctly except for some evidence that cannot be
-resolved despite multiple attempts that span a given time period, it is
-paramount that the auditor software alerts its operator.  In detail:
-\begin{itemize}
-	\item If the log fails to provide a valid inclusion proof for an SCT with
-		regards to the first applicable STH in the Tor consensus
-		(an MMD violation is suspected).
-	\item If the log fails to provide a valid consistency proof between any two
-		STHs in the Tor consensus
-		(a split-view is suspected within the Tor network).
-	\item If an STH in the Tor consensus is future-dated or backdated more than
-		an MMD (general log misbehavior suspected).
-	\item If a log ignores parts of or the entire Tor network (uptime
-		misbehavior suspected).
-\end{itemize}
-
-An unresponsive log can be suspected by inspecting the report frequency, and
-possibly confirmed by querying the log in question over a diverse set of Tor
-circuits.  As mentioned in Section~\ref{sec:design:extra-info}, it could be
-valuable to let CTRs publish their failure rates while querying the logs.
-
-An announced auditor may choose to replicate possible evidence of log
-misbehavior to the other announced auditors prematurely to ensure that
-it is persisted beyond its own durable storage.  At some point, the auditor
-software should generate a complete report that can be forwarded by the
-auditor's operator to the CT-policy mailing list for further community
-investigation.
-
-
-%%% Local Variables: 
-%%% mode: latex 
-%%% TeX-master: "../main"
-%%% End:          
+% TODO: should we keep any extra-info in the base design?
