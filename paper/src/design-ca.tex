@@ -1,5 +1,18 @@
-\section{Design} \label{sec:design-ca}
-Design intro, ref Figure~\ref{fig:design-ca}.
+\section{Base Design} \label{sec:design-ca}
+First we introduce a minimal design that makes use of the existing CT landscape
+to force certificates into the public domain.  The idea can be viewed as
+three phases:
+	an SFO is presented to Tor Browser which submits it to a random CTR,
+	any submitted SFO is mixed and stored temporarily, and
+	any mixed SFO's certificate chain is then submitted for logging in an
+		independent CT log.
+These phases are depicted in Figure~\ref{fig:design-ca}, and governed by
+parameters that are agreed-upon in the Tor consensus.
+
+Note that our starting point is to chase misbehaving CAs rather than
+misbehaving CT logs.  We assume that some, but not all CT logs, are benign.
+Subject to different trade-offs, this trust assumption can be relaxed later on
+by extending our design in different directions.
 
 \begin{figure*}
 	\centering
@@ -23,8 +36,9 @@ given consensus document might contain.  For example, documented flags include
 named \texttt{CTR}, which indicates that a relay should support CT-auditing as
 described in Sections~\ref{sec:design-ca:phase2}--\ref{sec:design-ca:phase3}.  A
 relay qualifies as a CTR if it is flagged as \texttt{stable} and
-\texttt{middle}.  The \texttt{CTR} flag is assigned if a majority of directory
-authorities voted for it.
+\texttt{middle}, which means that we suggest using resources that are more
+abundant when compared to, e.g., exit bandwidth.  The \texttt{CTR} flag is
+assigned if a majority of directory authorities voted~for~it.
 
 % - A CTR should be stable both to permit long-lived circuits to the CT logs and
 % to increase the likelihood of them staying online.
