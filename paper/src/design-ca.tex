@@ -170,7 +170,7 @@ circuit setup, a core loop of SFO enumeration, and circuit tear-down.
 		for all subsequent log connections.  Connect to the logs when needed.
 	\item\label{enm:ctr:audit:loop} Enumerate the buffer of pending SFOs:
 		\begin{enumerate}
-			\item\label{enm:ctr:audit:too-soon} Continue if
+			\item\label{enm:ctr:audit:too-soon} Continue the loop if
 				$\textrm{SFO}.\mathsf{audit\_after} > \mathsf{now}()$.
 			\item\label{enm:ctr:audit:sample}
 				Sample a CT log uniformly at random that accepts the underlying
