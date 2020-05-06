@@ -1,4 +1,14 @@
 \section{Auditor Extension} \label{sec:auditor}
+Until now we have not verified whether a certificate chain is logged as promised
+by any issued SCT.  Our base design can be extended to follow-up on inclusion
+statuses rather than opting for cross-logging.  In terms of
+the number of necessary changes, this extension is more significant when
+compared to Section~\ref{sec:log}.  However, it does not require any log
+modifications, and it entails additional ecosystem value by providing a
+well-audited view of the CT landscape which is captured by the Tor consensus.
+It is possible to detect internal inconsistency attacks within the Tor
+network and omission attacks.  Trust in some logs is also shifted towards CT
+auditors.
 
 \subsection{Design Sketch}
 \subsection{Security Sketch}
