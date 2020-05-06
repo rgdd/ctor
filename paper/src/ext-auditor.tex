@@ -11,24 +11,33 @@ network and omission attacks.  Trust in some logs is also shifted towards CT
 auditors.
 
 \subsection{Design Sketch}
-\subsection{Security Sketch}
+Figure~\ref{fig:auditor} provides an overview of the extended design.  Tor
+Browser submits presented SFOs probabilistically to CTRs that are selected at
+random, and CTRs mix the submitted SFOs before any auditing takes place.  Here,
+auditing refers to inclusion verification rather than cross-logging.  The moment
+before an SFO is audited, it is shared with a watchdog-CTR that is reused during
+an entire auditing instance.  Unless an SFO is acknowledged as verified within a
+timely manner by the log-challenging CTR, it is submitted by the watchdog to a
+CT auditor.  Phase~1 remains unchanged, phase~2 needs minor changes, and phase~3
+major changes.  Flushing statistics are also required in the extra-info
+document, as well as additional parameters in the Tor consensus.  A final
+prerequisite is that there are CT auditors available.
 
-%
-% Tor consensus
+\begin{figure*}
+    \centering
+    \includegraphics[width=0.85\textwidth]{img/design-auditor}
+    \caption{todo}
+	\label{fig:auditor}
+\end{figure*}
+
+\subsubsection{Tor Consensus}
 % - At minimum, same logs as Tor Browser's CT policy
 % - Need STH+MMD in ct-log-info, not log's public key
 % - Need auditors' public keys pinned
 % - Need watchdog timeout
 % - Need auditor timeout
-%
 
-%
-% Phase 1---Tor Browser
-% - No changes
-%
-
-%
-% Phase 2---Storage
+\subsubsection{Phase~2: Storage}
 % - Small differences
 %   --> discard unrecognized SCTs based on ct-log-info entries (change step 2).
 %   Note entirely sure if this makes that much of a difference tho with regards
@@ -36,6 +45,9 @@ auditors.
 %   But it makes the next steps easy, as we only have recognized SCTs around.
 %   --> sample one SCT, note down the outcome (add step 3.5)
 %   --> compute audit after timestamp based on MMD (change step 4)
+
+\subsubsection{Phase~3: Auditing}
+
 
 %
 % Phase 3---Auditing
@@ -59,6 +71,11 @@ auditors.
 %   details we should go with here for the resubmission(s)
 %
 
+\subsubsection{Auditor}
+% Readd what we had before
+
+\subsection{Security Sketch}
+
 %
 % Extra-info document
 % - Need flushing statistics
@@ -71,11 +88,3 @@ auditors.
 % - Bit more bandwidth due to watchdog.  The overhead, when compared to log a
 % log extension, is sending an SCT hash and receiving a proof (2-3KiB).
 %
-
-
-\begin{figure*}
-    \centering
-    \includegraphics[width=0.85\textwidth]{img/design-auditor}
-    \caption{todo}
-    \label{fig:design-auditor}
-\end{figure*}
