@@ -48,21 +48,16 @@ auditor submission times-out if \texttt{ct-auditor-timeout} elapses.  These
 items are determined similar to the \texttt{ct-query-timeout} in
 Section~\ref{sec:base:consensus:params}.
 
-%Finally, we need two additional timeout values: \texttt{ct-watchdog-timeout}
-%specifies the maximum time specifies when a watchdog should timeout, and
-%\texttt{ct-auditor-timeout} that specify the 
-
 \subsubsection{Phase~2: Storage}
-% - Small differences
-%   --> discard unrecognized SCTs based on ct-log-info entries (change step 2).
-%   Note entirely sure if this makes that much of a difference tho with regards
-%   to flushing, as the attacker can stuff their submissions large anyway...
-%   But it makes the next steps easy, as we only have recognized SCTs around.
-%   --> sample one SCT, note down the outcome (add step 3.5)
-%   --> compute audit after timestamp based on MMD (change step 4)
+A CTR cannot verify an SCT from an unrecognized log.
+Step~\ref{enm:ctr-api:unrecognized} should therefore be updated so that
+unrecognized SCTs are discarded, stopping if no SCTs remain in the resulting
+SFO.  If an SFO is neither cached nor pending, sample an SCT and note down the
+outcome and a corresponding \texttt{audit\_after} timestamp using
+Equation~\ref{eq:audit-after}.  The combination of SFO, sampled SCT outcome, and
+\texttt{audit\_after} timestamp is stored in the pending buffer.
 
 \subsubsection{Phase~3: Auditing}
-
 
 %
 % Phase 3---Auditing
