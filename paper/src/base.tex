@@ -3,16 +3,15 @@ First we introduce a minimal design that makes use of the existing CT landscape
 to force certificates into the public domain.  The idea can be viewed as
 three phases:
 	an SFO is presented to Tor Browser which submits it to a random CTR,
-	any submitted SFO is mixed and stored temporarily, and
-	any mixed SFO's certificate chain is then submitted for logging in an
-		independent CT log.
-These phases are depicted in Figure~\ref{fig:design-ca}, and governed by
+	a submitted SFO is mixed and stored temporarily, and then
+	a mixed SFO's certificate chain is submitted for logging in an independent
+		CT log.
+These phases are depicted further in Figure~\ref{fig:design-ca}, and governed by
 parameters that are agreed-upon in the Tor consensus.
 
 Note that our starting point is to chase misbehaving CAs rather than
-misbehaving CT logs.  We assume that some, but not all CT logs, are benign.
-Subject to different trade-offs, this trust assumption can be relaxed later on
-by extending our design in different directions.
+misbehaving CT logs.  We assume that some, but not all CT logs, are benign
+(see Section~\ref{sec:adversary}).
 
 \begin{figure*}
 	\centering
@@ -22,8 +21,7 @@ by extending our design in different directions.
 \end{figure*}
 
 \subsection{Tor Consensus} \label{sec:base:consensus}
-Tor's directory authorities produce an hourly consensus document that defines
-how the Tor network is composed.  Our proposal extends Tor's consensus document
+Our proposal extends Tor's consensus document
 so that it entails information regarding
 	CTRs,
 	recognized CT logs, and
@@ -31,20 +29,13 @@ so that it entails information regarding
 
 \subsubsection{CTR Flag} \label{sec:base:consensus:ctr-flag}
 The existing \texttt{known-flags} item determines the different flags that a 
-given consensus document might contain.  For example, documented flags include
-\texttt{Authority}, \texttt{Exit}, and \texttt{Running}.  We add another flag
-named \texttt{CTR}, which indicates that a relay should support CT-auditing as
-described in Sections~\ref{sec:base:phase2}--\ref{sec:base:phase3}.  A
-relay qualifies as a CTR if it is flagged as \texttt{stable} and
-\texttt{middle}, which means that we suggest using resources that are more
-abundant when compared to, e.g., exit bandwidth.  The \texttt{CTR} flag is
-assigned if a majority of directory authorities voted~for~it.
-
-% - A CTR should be stable both to permit long-lived circuits to the CT logs and
-% to increase the likelihood of them staying online.
-% - The criteria of being a middle relay, as opposed to an exit relay, follows
-% mainly from resource utilization considerations.  It is also about not making
-% exit relays "more attractive targets" due to also storing SFOs.
+given consensus document might contain.  We add another flag named \texttt{CTR},
+which indicates that a relay should support CT-auditing as described in
+Sections~\ref{sec:base:phase2}--\ref{sec:base:phase3}.  A relay qualifies as a
+CTR if it is flagged as \texttt{stable} and \texttt{middle}, which means that we
+suggest using resources that are more abundant when compared to, for example,
+exit bandwidth.  A Tor relay is assigned the \texttt{CTR} flag if a majority of
+directory authorities voted~for~it.
 
 \subsubsection{Recognized CT Log} \label{sec:base:consensus:log}
 CTRs only interact with CT logs that are recognized by the Tor consensus.  A log
@@ -57,13 +48,13 @@ There could be overlap, however.  The ideal scenario is that there are many
 independent logs that accept certificate chains for most trust anchors.
 
 For now, we do not provide any details as to how the Tor consensus captures
-whether two logs are independent or which roots they accept.  Instead,
+whether two logs are independent or which trust anchors they accept.
 Section~\ref{sec:discussion:logs} discusses this and other related
 considerations further.
 
 \subsubsection{Other Parameters} \label{sec:base:consensus:params}
-Tor's directory authorities influence the way in which Tor Browser and CTRs
-behave by voting on other parameters.  For example, the likelihood that
+Directory authorities influence the way in which Tor Browser and CTRs behave by
+voting on other necessary parameters.  For example, the likelihood that
 an SFO is submitted for further auditing is a security parameter that is
 determined by the value of \texttt{ct-submit-pr}.  The value of an item is
 computed as the median of all votes.
@@ -114,7 +105,7 @@ We avoid unnecessary overhead by only validating SFOs once per tab.  An SFO is
 considered validated if the end-entity certificate is rooted in a trust anchor
 \emph{and} it has enough SCTs as dictated by an SCT-centric CT policy which is
 similar to the other major browser vendors~\cite{chrome-policy,safari-policy}.
-Section~\ref{sec:security} motivates why excessively large SFOs are vetted more
+Section~\ref{sec:analysis} motivates why excessively large SFOs are vetted more
 strictly in blocking-mode, which is in contrast to the normal behavior where an
 SFO is considered for further auditing in the background.  Moreover, note that
 the circuit used to submit an SFO is taken from a pool of pre-built CT-circuits
@@ -142,7 +133,7 @@ With regards to some circuit, process an incoming SFO $s$ as follows:
 	\item\label{enm:ctr-api:unrecognized} Stop if no CT log in the Tor consensus
 		accepts the underlying certificate chain of $s$.
 	\item\label{enm:ctr-api:cached}
-		Stop if $s$ is cached or pending to be audited.
+		Stop if $s$ is cached or pending to be audited already.
 	\item\label{enm:ctr-api:audit-after} Compute an \texttt{audit\_after}
 		timestamp $\textrm{t} \gets \mathsf{now()} +
 			\mathsf{random\_delay}(\texttt{ct-delay-dist})$.
@@ -169,7 +160,7 @@ Section~\ref{sec:base:phase3}.
 
 If memory becomes a scarce relay resource, e.g., due to flooding, OOM
 should delete SFOs at random~\cite{nordberg}.  The threat of flooding is
-discussed further in Section~\ref{sec:security}.
+discussed further in Section~\ref{sec:analysis}.
 
 \subsection{Phase 3---Auditing} \label{sec:base:phase3}
 CTR auditing is initiated at random time intervals to spread out the load
@@ -187,10 +178,10 @@ circuit setup, a core loop of SFO enumeration, and circuit tear-down.
 			\item\label{enm:ctr:audit:too-soon} Continue the loop if
 				$\textrm{SFO}.\mathsf{audit\_after} > \mathsf{now}()$.
 			\item\label{enm:ctr:audit:sample}
-				Sample a CT log uniformly at random that accepts the underlying
-				certificate chain $c \in s$.  Do not consider any dependent CT
-				log if the Tor consensus lists any independent CT log.  A log
-				is independent if it did not issue any SCT in $s$.
+				Sample a log uniformly at random that accepts the underlying
+				certificate chain $c \in s$.  Do not consider any log that the
+				SCTs of $s$ refer if the Tor consensus lists any independent
+				log.
 			\item\label{enm:ctr:audit:log} Use \texttt{ct-query-timeout} to set
 				a timer and submit $c$ for public logging to the log's
 				\texttt{add-chain}~\cite{ct} or
@@ -208,11 +199,11 @@ circuit setup, a core loop of SFO enumeration, and circuit tear-down.
 \end{enumerate}
 
 As shown above we take an unusual approach towards auditing SFOs.  Rather than
-following up on an SCT's inclusion status, we submit the underlying certificate
-chain to an independent CT log.  As such, the end-entity certificate will make
-it into the public domain if the sampled log is not controlled by the attacker.
-If there is no independent log listed in the Tor consensus, it is still valuable
-to resubmit to a dependent log:
+following up on an SCT's inclusion status, we cross-log the underlying
+certificate chain to an independent CT log.  As such, the end-entity certificate
+will make it into the public domain if the sampled log is not controlled by the
+attacker.  If there is no independent log listed in the Tor consensus, it is
+still valuable to resubmit to a dependent log:
 	it might be the case that the attacker has access to a log's signing key,
 	but not the log's actual infrastructure.
 In other words, a mis-issued certificate would make it into the public domain in
@@ -226,5 +217,3 @@ the CTR goes into back-off mode.
 
 % TODO: should we fixate so that resubmission to the same sampled log?
 % TODO: is it really motivated to "break" now rather than "continue"?
-
-% TODO: should we keep any extra-info in the base design?
