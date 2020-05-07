@@ -108,20 +108,42 @@ sufficient for CTRs to verify the inclusion status of a single SCT:
 	if log misbehavior is suspected the full SFO is submitted to CT auditors
 		that can follow-up on all SCTs.
 
-\subsubsection{Auditor}
-% Readd what we had before
+\subsubsection{Auditor} \label{sec:ext-auditor:auditor}
+An announced auditor is expected to accept SFOs at a dedicated endpoint,
+endeavoring to validate the inclusion status of each SCT with regards to the
+first STH in the Tor consensus that elapsed the log's MMD.  If a log appears to
+function correctly except for some evidence that cannot be
+resolved despite multiple attempts that span a given time period, it is
+paramount that the auditor software alerts its operator who can investigate
+the issue further before submitting a full report to the CT-policy mailing list.
+Cases of misbehavior in detail:
+\begin{itemize}
+	\item If the log fails to provide a valid inclusion proof for an SCT with
+		regards to the first applicable STH in the Tor consensus
+		(certificate omission).
+	\item If the log fails to provide a valid consistency proof between two
+		STHs in the Tor consensus
+		(split-view).
+	\item If a published STH is future-dated or backdated more than an MMD
+		(general log misbehavior).
+	\item If a log ignores some CTRs (uptime misbehavior).
+\end{itemize}
+
+An unresponsive log can be suspected by observing the report frequency, and
+possibly confirmed by querying the log in question over a diverse set of Tor
+circuits.  Among other \emph{good to have} extra-info that go beyond received
+and deleted SFO-bytes, it would be valuable to publish CTR failure rates while
+challenging the logs.
+
+While not within our threat model, we do encourage the announced auditors to
+verify that STHs in the Tor consensus are consistent with external views of the
+CT landscape.  For example, operate an STH pollination~\cite{nordberg} endpoint
+and fetch STHs actively from many diverse vantage points using Tor, VPN
+services, DoH resolvers, and RIPE Atlas (to mention a few low-cost options).
 
 \subsection{Security Sketch} \label{sec:ext-auditor:analysis}
-
-%
-% Extra-info document
-% - Need flushing statistics
-%
-
-%
 % MISC notes
 % - Network-wide flush, detectable but hard to attribute
 % - Requires new reliable auditor software
 % - Bit more bandwidth due to watchdog.  The overhead, when compared to log a
 % log extension, is sending an SCT hash and receiving a proof (2-3KiB).
-%
