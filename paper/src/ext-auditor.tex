@@ -31,11 +31,26 @@ prerequisite is that there are CT auditors available.
 \end{figure*}
 
 \subsubsection{Tor Consensus}
-% - At minimum, same logs as Tor Browser's CT policy
-% - Need STH+MMD in ct-log-info, not log's public key
-% - Need auditors' public keys pinned
-% - Need watchdog timeout
-% - Need auditor timeout
+Tor's consensus should capture a fixed view of the CT landscape by publishing
+STHs from all recognized logs.  A log is recognized if a majority of directory
+authorities proposed a \texttt{ct-log-info} item, which contains a log's ID,
+public key, base URL, MMD, and most recent STH.  Note that each directory
+authority proposes its own STH, and agrees to use the most recent STH as
+determined by timestamp.  Since CTRs verify inclusion statuses of SCTs
+that Tor Browser accepts, the CT logs recognized by Tor Browser must be in
+the consensus.
+
+Tor's directory authorities also majority-vote on \texttt{ct-auditor} items,
+which pin base URLs and public keys of CT auditors that watchdogs contact in
+case that any log misbehavior is suspected.  A watchdog triggers if the
+\texttt{ct-watchdog-timeout} elapses without acknowledgment.  The following
+auditor submission times-out if \texttt{ct-auditor-timeout} elapses.  These
+items are determined similar to the \texttt{ct-query-timeout} in
+Section~\ref{sec:base:consensus:params}.
+
+%Finally, we need two additional timeout values: \texttt{ct-watchdog-timeout}
+%specifies the maximum time specifies when a watchdog should timeout, and
+%\texttt{ct-auditor-timeout} that specify the 
 
 \subsubsection{Phase~2: Storage}
 % - Small differences
