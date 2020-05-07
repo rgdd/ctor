@@ -15,13 +15,14 @@ Figure~\ref{fig:auditor} provides an overview of the extended design.  Tor
 Browser submits presented SFOs probabilistically to CTRs that are selected at
 random, and CTRs mix the submitted SFOs before any auditing takes place.  Here,
 auditing refers to inclusion verification rather than cross-logging.  The moment
-before an SFO is audited, it is shared with a watchdog-CTR that is reused during
-an entire auditing instance.  Unless an SFO is acknowledged as verified within a
-timely manner by the log-challenging CTR, it is submitted by the watchdog to a
-CT auditor.  Phase~1 remains unchanged, phase~2 needs minor changes, and phase~3
-major changes.  Flushing statistics are also required in the extra-info
-document, as well as additional parameters in the Tor consensus.  A final
-prerequisite is that there are CT auditors available.
+before an SFO is audited, it is shared with a CTR that takes on the role of a
+\emph{watchdog}.  Unless the auditing CTR receives a timely inclusion proof and
+acknowledges it to its watchdog, the SFO in question is reported to a CT
+auditor.  Phase~1 remains unchanged, minor changes are needed in phase~2, and
+major changes are required in phase~3 as well as the Tor consensus.  The
+extra-info document also includes two additional metrics that are related to
+flooding (Section~\ref{sec:log}).  Another prerequisite is existence of
+CT auditors.
 
 \begin{figure*}
     \centering
@@ -38,7 +39,7 @@ public key, base URL, MMD, and most recent STH.  Note that each directory
 authority proposes its own STH, and agrees to use the most recent STH as
 determined by timestamp.  Since CTRs verify inclusion statuses of SCTs
 that Tor Browser accepts, the CT logs recognized by Tor Browser must be in
-the consensus.
+Tor's consensus.
 
 Tor's directory authorities also majority-vote on \texttt{ct-auditor} items,
 which pin base URLs and public keys of CT auditors that watchdogs contact in
@@ -50,16 +51,20 @@ Section~\ref{sec:base:consensus:params}.
 
 \subsubsection{Phase~2: Storage}
 A CTR cannot verify an SCT from an unrecognized log.
-Step~\ref{enm:ctr-api:unrecognized} should therefore be updated so that
-unrecognized SCTs are discarded, stopping if no SCTs remain in the resulting
-SFO.  If an SFO is neither cached nor pending, sample an SCT and note down the
-outcome and a corresponding \texttt{audit\_after} timestamp using
-Equation~\ref{eq:audit-after}.  The combination of SFO, sampled SCT outcome, and
-\texttt{audit\_after} timestamp is stored in the pending buffer.
+Step~\ref{enm:ctr-api:unrecognized} in Section~\ref{sec:base:phase2} should
+therefore be updated so that unrecognized SCTs are discarded, stopping if no
+SCT remains in the resulting SFO.  If an SFO is neither cached nor pending,
+sample an SCT and note down the outcome and a corresponding
+\texttt{audit\_after} timestamp using Equation~\ref{eq:audit-after}.  The
+combination of SFO, sampled SCT outcome, and \texttt{audit\_after} timestamp is
+stored in the pending buffer.  We already explained in Section~\ref{sec:log}
+why it is important to take the log's MMD into account while computing
+\texttt{audit\_after} timestamps.  The justification of sampling an SCT is
+provided next in Section~\ref{sec:auditor:auditing}.
 
-\subsubsection{Phase~3: Auditing}
+\subsubsection{Phase~3: Auditing} \label{sec:auditor:auditing}
 The detailed auditing steps change to a large extent.  As such, we give a
-detailed description from scratch.
+detailed description from scratch instead.
 
 \begin{enumerate}
 	\item\label{enm:ctr:audit:backoff} Sample a uniform delay from
@@ -92,23 +97,24 @@ detailed description from scratch.
 \end{enumerate}
 
 Each auditing instance uses a single watchdog, which takes on the responsibility
-of reporting suspected log misbehavior on any other outcome that valid inclusion
+of reporting suspected log misbehavior on any other outcome than valid inclusion
 proof.  It is motivated to use a watchdog because the attacker learns which
 CTR audits an SFO, and could likely take actions to intervene while the CTR
 waits for \texttt{ct-submit-timeout} to trigger (see
 Section~\ref{sec:ext-auditor:analysis}).  A watchdog's behavior is to listen for
-SFO submissions on a dedicated endpoint, and submit them to a random CT auditor
-that is pinned in the Tor consensus if no timely acknowledgment is received.  If
-an auditor is unavailable as indicated by further timeouts, resubmit later on.
+SFO submissions on a dedicated endpoint, and submit them to random CT auditors
+that are pinned in the Tor consensus if no timely acknowledgments are received.
+If an auditor is unavailable as indicated by timeouts, resubmit later on.
 
-An SFO's sampled SCT is not audited before the log's MMD elapsed \emph{and}
-there is an STH in the Tor consensus that captured it.  Note that it is
+Note that an SFO's sampled SCT is not audited before the log's MMD elapsed
+\emph{and} there is an STH in the Tor consensus that captures it.  It is
 sufficient for CTRs to verify the inclusion status of a single SCT:
-	the attacker has to omit logging of all SCTs regardless, and
-	if log misbehavior is suspected the full SFO is submitted to CT auditors
-		that can follow-up on all SCTs.
+	a rational attacker is the issuer of all SCTs, and
+	does not intend to hold its promises of merging in \emph{any} CT log.
+As such, we merely need to suspect omissions and then let CT auditors inspect
+all SCTs in the reported SFOs.
 
-\subsubsection{Auditor} \label{sec:ext-auditor:auditor}
+\subsubsection{Phase~3: Auditor} \label{sec:ext-auditor:auditor}
 An announced auditor is expected to accept SFOs at a dedicated endpoint,
 endeavoring to validate the inclusion status of each SCT with regards to the
 first STH in the Tor consensus that elapsed the log's MMD.  If a log appears to
@@ -129,17 +135,18 @@ Cases of misbehavior in detail:
 	\item If a log ignores some CTRs (uptime misbehavior).
 \end{itemize}
 
-An unresponsive log can be suspected by observing the report frequency, and
-possibly confirmed by querying the log in question over a diverse set of Tor
-circuits.  Among other \emph{good to have} extra-info that go beyond received
-and deleted SFO-bytes, it would be valuable to publish CTR failure rates while
-challenging the logs.
+An unresponsive log can be suspected by observing the watchdog report frequency,
+and possibly confirmed by querying the log in question from different vantage
+points.  Among other extra-info metrics that go beyond received and deleted
+SFO-bytes, it could be valuable to publish the extent to which CTR-to-log
+interactions fail.
 
 While not within our threat model, we do encourage the announced auditors to
 verify that STHs in the Tor consensus are consistent with external views of the
 CT landscape.  For example, operate an STH pollination~\cite{nordberg} endpoint
 and fetch STHs actively from many diverse vantage points using Tor, VPN
 services, DoH resolvers, and RIPE Atlas (to mention a few low-cost options).
+This goes back to the point of general ecosystem value.
 
 \subsection{Security Sketch} \label{sec:ext-auditor:analysis}
 % MISC notes
