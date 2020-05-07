@@ -6,8 +6,12 @@ uptime. Caching of already resolved SFOs at CTRs reduce leak to CT logs and
 auditors.
 
 \subsection{Design}
-Mention that it would be valuable if SCTs could be ``cross-logged'', i.e.,
-submit SFO rather than certificate chain to a CT log.
+A CTR should be stable both to permit long-lived circuits to the CT logs and
+to increase the likelihood of them staying online.
+
+The criteria of being a middle relay, as opposed to an exit relay, follows
+mainly from resource utilization considerations.  It is also about not making
+exit relays ``more attractive targets'' due to also storing SFOs.
 
 \subsection{Extension: Signal to CTRs}
 On suspicion of network-wide attack, network health / auditors / DAs could
