@@ -199,7 +199,7 @@ circuit setup, a core loop of SFO enumeration, and circuit tear-down.
 \end{enumerate}
 
 As shown above we take an unusual approach towards auditing SFOs.  Rather than
-following up on an SCT's inclusion status, we cross-log the underlying
+following up on an SCT's inclusion status, we submit the underlying
 certificate chain to an independent CT log.  As such, the end-entity certificate
 will make it into the public domain if the sampled log is not controlled by the
 attacker.  If there is no independent log listed in the Tor consensus, it is
