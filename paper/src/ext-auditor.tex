@@ -10,7 +10,7 @@ It is possible to detect internal inconsistency attacks within the Tor
 network and omission attacks.  Trust in some logs is also shifted towards CT
 auditors.
 
-\subsection{Design Sketch}
+\subsection{Design Sketch} \label{sec:auditor:design}
 Figure~\ref{fig:auditor} provides an overview of the extended design.  Tor
 Browser submits presented SFOs probabilistically to CTRs that are selected at
 random, and CTRs mix the submitted SFOs before any auditing takes place.  Here,
@@ -31,7 +31,7 @@ CT auditors.
 	\label{fig:auditor}
 \end{figure*}
 
-\subsubsection{Tor Consensus}
+\subsubsection{Tor Consensus} \label{sec:auditor:design:consensus}
 Tor's consensus should capture a fixed view of the CT landscape by publishing
 STHs from all recognized logs.  A log is recognized if a majority of directory
 authorities proposed a \texttt{ct-log-info} item, which contains a log's ID,
@@ -49,7 +49,7 @@ auditor submission times-out if \texttt{ct-auditor-timeout} elapses.  These
 items are determined similar to the \texttt{ct-query-timeout} in
 Section~\ref{sec:base:consensus:params}.
 
-\subsubsection{Phase~2: Storage}
+\subsubsection{Phase~2: Storage} \label{sec:auditor:design:phase2}
 A CTR cannot verify an SCT from an unrecognized log.
 Step~\ref{enm:ctr-api:unrecognized} in Section~\ref{sec:base:phase2} should
 therefore be updated so that unrecognized SCTs are discarded, stopping if no
@@ -60,9 +60,9 @@ combination of SFO, sampled SCT outcome, and \texttt{audit\_after} timestamp is
 stored in the pending buffer.  We already explained in Section~\ref{sec:log}
 why it is important to take the log's MMD into account while computing
 \texttt{audit\_after} timestamps.  The justification of sampling an SCT is
-provided next in Section~\ref{sec:auditor:auditing}.
+provided next in Section~\ref{sec:auditor:design:phase3}.
 
-\subsubsection{Phase~3: Auditing} \label{sec:auditor:auditing}
+\subsubsection{Phase~3: Auditing} \label{sec:auditor:design:auditing}
 The detailed auditing steps change to a large extent.  As such, we give a
 detailed description from scratch instead.
 
@@ -114,7 +114,7 @@ sufficient for CTRs to verify the inclusion status of a single SCT:
 As such, we merely need to suspect omissions and then let CT auditors inspect
 all SCTs in the reported SFOs.
 
-\subsubsection{Phase~3: Auditor} \label{sec:ext-auditor:auditor}
+\subsubsection{Phase~3: Auditor} \label{sec:auditor:design:auditor}
 An announced auditor is expected to accept SFOs at a dedicated endpoint,
 endeavoring to validate the inclusion status of each SCT with regards to the
 first STH in the Tor consensus that elapsed the log's MMD.  If a log appears to
@@ -148,7 +148,7 @@ and fetch STHs actively from many diverse vantage points using Tor, VPN
 services, DoH resolvers, and RIPE Atlas (to mention a few low-cost options).
 This goes back to the point of general ecosystem value.
 
-\subsection{Security Sketch} \label{sec:ext-auditor:analysis}
+\subsection{Security Analysis} \label{sec:auditor:design:analysis}
 % MISC notes
 % - Network-wide flush, detectable but hard to attribute
 % - Requires new reliable auditor software
