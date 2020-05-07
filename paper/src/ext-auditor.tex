@@ -58,33 +58,60 @@ Equation~\ref{eq:audit-after}.  The combination of SFO, sampled SCT outcome, and
 \texttt{audit\_after} timestamp is stored in the pending buffer.
 
 \subsubsection{Phase~3: Auditing}
+The detailed auditing steps change to a large extent.  As such, we give a
+detailed description from scratch.
 
-%
-% Phase 3---Auditing
-% - Major differences
-%   --> establish connection to a random watchdog (add step 1.75)
-%   --> step 3 needs a complete rewrite from (b) and forward
-%
-% Step 3
-% b) continue if SFO.audit_after > STH.timestamp
-% c) Submit SFO to watchdog
-% d) Use ct-query-timeout and STH.treesize to set a timer and challenge the log
-% to prove inclusion.
-% - On valid proof: send ACK to watchdog, cache SFO, discard SFO from buffer
-% - On any other outcome: discard SFO and break the loop
-%
-% Behavior of watchdog:
-% - Listen for submissions on a dedicated endpoint
-% - If a submitted SFO is not ACKed within the watchdog timeout
-%   --> submit it to an announced auditor.
-%   --> resubmit later on if auditor(s) unavailable; not entirely sure which
-%   details we should go with here for the resubmission(s)
-%
+\begin{enumerate}
+	\item\label{enm:ctr:audit:backoff} Sample a uniform delay from
+			$[0, \texttt{ct-backoff}]$,
+		then schedule a timer and wait until that time elapsed.
+	\item\label{enm:ctr:audit:log-circuit} Establish a new circuit and use it
+		for all subsequent log connections.  Connect to the logs when needed.
+	\item\label{enm:ctr:audit:watchdog-circuit} Establish a new three-hop
+		circuit that ends at a randomly selected watchdog, i.e., another CTR.
+	\item\label{enm:ctr:audit:loop} Enumerate the buffer of pending SFOs with
+		regards to the sampled SCT and its associated STH:
+		\begin{enumerate}
+			\item\label{enm:ctr:audit:too-soon} Continue the loop if
+				$\textrm{SFO}.\mathsf{audit\_after} > \mathsf{now}()$.
+			\item\label{enm:ctr:audit:too-soon2} Continue the loop if
+				$\textrm{STH}.\mathsf{timestamp} > \mathsf{now}()$.
+			\item\label{enm:ctr:audit:watchdog} Submit $s$ to the
+				watchdog selected in step~\ref{enm:ctr:audit:watchdog-circuit}.
+			\item\label{enm:ctr:audit:challenge} Use \texttt{ct-query-timeout}
+				and $\textrm{STH}.\mathsf{treesize}$ to set a timer and
+				challenge the log to prove inclusion.
+				\begin{itemize}
+					\item On valid proof: send an acknowledgment to the
+						watchdog, then cache $s$ and discard it.
+					\item On any other outcome: discard $s$ and break.
+				\end{itemize}
+		\end{enumerate}
+	\item\label{enm:ctr:audit:teardown} Close all opened circuits and go back to
+		step~\ref{enm:ctr:audit:backoff}.
+\end{enumerate}
+
+Each auditing instance uses a single watchdog, which takes on the responsibility
+of reporting suspected log misbehavior on any other outcome that valid inclusion
+proof.  It is motivated to use a watchdog because the attacker learns which
+CTR audits an SFO, and could likely take actions to intervene while the CTR
+waits for \texttt{ct-submit-timeout} to trigger (see
+Section~\ref{sec:ext-auditor:analysis}).  A watchdog's behavior is to listen for
+SFO submissions on a dedicated endpoint, and submit them to a random CT auditor
+that is pinned in the Tor consensus if no timely acknowledgment is received.  If
+an auditor is unavailable as indicated by further timeouts, resubmit later on.
+
+An SFO's sampled SCT is not audited before the log's MMD elapsed \emph{and}
+there is an STH in the Tor consensus that captured it.  Note that it is
+sufficient for CTRs to verify the inclusion status of a single SCT:
+	the attacker has to omit logging of all SCTs regardless, and
+	if log misbehavior is suspected the full SFO is submitted to CT auditors
+		that can follow-up on all SCTs.
 
 \subsubsection{Auditor}
 % Readd what we had before
 
-\subsection{Security Sketch}
+\subsection{Security Sketch} \label{sec:ext-auditor:analysis}
 
 %
 % Extra-info document
