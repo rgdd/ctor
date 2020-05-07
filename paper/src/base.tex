@@ -21,7 +21,7 @@ by extending our design in different directions.
 	\label{fig:design-ca}
 \end{figure*}
 
-\subsection{Tor Consensus} \label{sec:design-ca:consensus}
+\subsection{Tor Consensus} \label{sec:base:consensus}
 Tor's directory authorities produce an hourly consensus document that defines
 how the Tor network is composed.  Our proposal extends Tor's consensus document
 so that it entails information regarding
@@ -29,12 +29,12 @@ so that it entails information regarding
 	recognized CT logs, and
 	other necessary parameters that can be tuned.
 
-\subsubsection{CTR Flag} \label{sec:design-ca:consensus:ctr-flag}
+\subsubsection{CTR Flag} \label{sec:base:consensus:ctr-flag}
 The existing \texttt{known-flags} item determines the different flags that a 
 given consensus document might contain.  For example, documented flags include
 \texttt{Authority}, \texttt{Exit}, and \texttt{Running}.  We add another flag
 named \texttt{CTR}, which indicates that a relay should support CT-auditing as
-described in Sections~\ref{sec:design-ca:phase2}--\ref{sec:design-ca:phase3}.  A
+described in Sections~\ref{sec:base:phase2}--\ref{sec:base:phase3}.  A
 relay qualifies as a CTR if it is flagged as \texttt{stable} and
 \texttt{middle}, which means that we suggest using resources that are more
 abundant when compared to, e.g., exit bandwidth.  The \texttt{CTR} flag is
@@ -46,7 +46,7 @@ assigned if a majority of directory authorities voted~for~it.
 % mainly from resource utilization considerations.  It is also about not making
 % exit relays "more attractive targets" due to also storing SFOs.
 
-\subsubsection{Recognized CT Log} \label{sec:design-ca:consensus:log}
+\subsubsection{Recognized CT Log} \label{sec:base:consensus:log}
 CTRs only interact with CT logs that are recognized by the Tor consensus.  A log
 is recognized if a majority of directory authorities voted for its inclusion by
 proposing a \texttt{ct-log-info} entry that contains a log ID, a public key, and
@@ -61,7 +61,7 @@ whether two logs are independent or which roots they accept.  Instead,
 Section~\ref{sec:discussion:logs} discusses this and other related
 considerations further.
 
-\subsubsection{Other Parameters} \label{sec:design-ca:consensus:params}
+\subsubsection{Other Parameters} \label{sec:base:consensus:params}
 Tor's directory authorities influence the way in which Tor Browser and CTRs
 behave by voting on other parameters.  For example, the likelihood that
 an SFO is submitted for further auditing is a security parameter that is
@@ -75,21 +75,21 @@ computed as the median of all votes.
 		on average.
 	\item[ct-sfo-max-bytes:] A natural number that determines how many
 		wire-bytes a normal SFO should not exceed.  As outlined in
-		Section~\ref{sec:design-ca:phase1}, excessively large SFOs are subject
+		Section~\ref{sec:base:phase1}, excessively large SFOs are subject
 		to stricter verification criteria.
 	\item[ct-query-timeout:] A natural number that determines how many ms a CTR
 		waits before concluding that a CT log is unresponsive.  As outlined in
-		Section~\ref{sec:design-ca:phase3}, a query timeout triggers a
+		Section~\ref{sec:base:phase3}, a query timeout triggers a
 		resubmission later on.
 	\item[ct-backoff:] A natural number that determines how many ms a CTR
 		may wait between two auditing instances.  As outlined in
-		Section~\ref{sec:design-ca:phase3}, CTRs audit pending SFOs
+		Section~\ref{sec:base:phase3}, CTRs audit pending SFOs
 		in batches at random time intervals.
 	\item[ct-delay-dist] docdoc
 \end{description}
 
 
-\subsection{Phase~1---Tor Browser} \label{sec:design-ca:phase1}
+\subsection{Phase~1---Tor Browser} \label{sec:base:phase1}
 The first phase evolves around Tor Browser and how an incoming SFO is validated
 and probabilistically audited further by a random CTR.  Given an SFO $s$ and
 a tab $t$:
@@ -130,7 +130,7 @@ memory.
 % pr (<=1/10) it should be common to submit at most once per tab anyway.
 %
 
-\subsection{Phase 2---CTR Storage} \label{sec:design-ca:phase2}
+\subsection{Phase 2---CTR Storage} \label{sec:base:phase2}
 We suggest that CTRs accept SFO submissions on an HTTP endpoint.\footnote{%
 	Tor's HTTP DirServer codebase can be reused as extension point to interact
 	with the tor daemon, i.e., add another listener.
@@ -156,7 +156,7 @@ Recall that Tor Browser does not wait for any acknowledgment, and that a
 CT-circuit must not be used more than once.  As such, the first step is to
 close the incoming circuit once an SFO is received.  The received SFO is
 simply discarded if it
-	cannot be audited as proposed in Section~\ref{sec:design-ca:phase3},
+	cannot be audited as proposed in Section~\ref{sec:base:phase3},
 	is already audited as noted by a cache, or
 	is pending to be audited in a buffer of pending SFOs.
 For example, the cache could be a collection of SFO hashes and the buffer
@@ -165,13 +165,13 @@ buffer alongside an \texttt{audit\_after} timestamp, which specifies the
 earliest point in time that the SFO will be audited.  This behavior, where a
 random delay is added to each SFO, transforms the CTR into a timed mix such that
 less real-time information is leaked to the CT logs in
-Section~\ref{sec:design-ca:phase3}.
+Section~\ref{sec:base:phase3}.
 
 If memory becomes a scarce relay resource, e.g., due to flooding, OOM
 should delete SFOs at random~\cite{nordberg}.  The threat of flooding is
 discussed further in Section~\ref{sec:security}.
 
-\subsection{Phase 3---Auditing} \label{sec:design-ca:phase3}
+\subsection{Phase 3---Auditing} \label{sec:base:phase3}
 CTR auditing is initiated at random time intervals to spread out the load
 imposed by the Tor network on CT logs.  Each auditing instance is composed of
 circuit setup, a core loop of SFO enumeration, and circuit tear-down.
