@@ -46,7 +46,7 @@ withstand attacker intervention.  At best, we argue that the attacker has a
 modest chance of decreasing the probability of detection beyond what could
 already be done without any intervention, i.e., by controlling more of the Tor
 network or the CT landscape.  Neither of these options are applicable to the
-extend that it would shut down auditing entirely though:
+extent that it would shut down auditing entirely though:
 	such a powerful attacker would be outside of Tor's threat model or
 	violate our premise that independent CT logs exist.
 Note that the value of \texttt{ct-submit-pr} is not under adversarial control,
@@ -60,4 +60,15 @@ submission probability should then be in the order of $\frac{1}{10}$.  Clearly,
 the risk of exposure increases if the attacker conducts many man-in-the-middle
 attacks.
 
-\subsection{Phase Intervention}
+\subsection{Intervention}
+A risk-averse attacker needs reliable means to ensure that an SFO is not
+disclosed to public scrutiny.  The starting-point of our phase-based analysis is
+that Tor Browser submitted an SFO to a CTR that intends to relay it to an
+independent CT log.  We discuss how the attacker may (not) intervene for each
+phase separately.
+
+\subsubsection{Phase~1: Tor Browser Submission}
+
+\subsubsection{Phase~2: CTR Mixing}
+
+\subsubsection{Phase~3: CTR Auditing}
