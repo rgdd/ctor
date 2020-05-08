@@ -1,6 +1,10 @@
 \section{Log Extension} \label{sec:log}
 Now we shift our focus towards detecting some types of log misbehavior, namely,
-omission attacks.  The design idea is an
+omission attacks.\footnote{%
+	TODO: we might need to clarify that, at some level, we are also dealing with
+	omission attacks in the base design.  But what we are trying to detect is
+	different here and in the base design.
+} The design idea is an
 extension of our base design.  A prerequisite is that the CT log landscape
 is modified to support \emph{SCT cross-logging}.  Cross-logging refers to the
 idea of logging signed statements in other logs to intertwine
@@ -30,8 +34,8 @@ in the extra-info document which are related to flooding.
 
 Starting backwards with phase~3, CT logs need an endpoint that accepts SCTs in
 addition to certificate chains.  We refer to this endpoint as
-\texttt{submit-sfo}, and CTRs use it instead of \texttt{add-chain} or
-\texttt{submit-entry}.  The submitted SCTs are of particular interest,
+\texttt{add-sfo}, and CTRs use it instead of \texttt{add-chain} or
+\texttt{submit-entry}.  The added SCTs are of particular interest,
 considering that they contain timestamps that reveal whether the issuing CT logs
 violated their MMD promises by not incorporating a certificate chain on time.
 Notably anyone can inspect the cross-logged SFOs, including existing CT
@@ -44,27 +48,33 @@ To increase the probability of catastrophic impact for the attacker by detecting
 omissions, it is paramount that there are no \emph{early signals} that
 allow the CT logs in question to reactively merge certificate chains before
 any MMD is violated.  Therefore, \texttt{audit\_after} timestamps should be
-computed as follows in phase~2 with regards to the SCT and MMD that yields the
-largest max-value:
+computed as in Figure~\ref{fig:audit-after} with regards to the SCT and MMD that
+yields the largest value (phase~2).
 
-\begin{equation} \label{eq:audit-after}
-	\begin{aligned}
-		t \gets& \mathsf{random\_delay}(\texttt{ct-delay-dist})\;+ \\
-		&\mathsf{max}(
-			\mathsf{now}(),
-			\textrm{SCT}.\mathsf{timestamp}+\mathsf{MMD}
-		).
-	\end{aligned}
-\end{equation}
+\begin{figure}
+	\centering
+	TODO: make pseudocode pretty
+	\pseudocode[linenumbering, syntaxhighlight=auto]{%
+		\pcif \textrm{SCT.timestamp} + \textrm{MMD} <
+				\mathsf{now}():\\
+			\pcind\textrm{t} \gets \mathsf{now}() +
+				\mathsf{random\_delay}(\texttt{ct-delay-dist}) \\
+		\pcelse\\
+			\pcind \textrm{t} \gets \mathsf{now}() +
+				\mathsf{MMD} +
+				\mathsf{random\_delay}(\texttt{ct-delay-dist})
+	}
+	\caption{%
+		Algorithm that computes an \texttt{audit\_after} timestamp $t$.
+	}
+	\label{fig:audit-after}
+\end{figure}
 
-Assuming no future-dated SCTs which follow from the mandated TLS client behavior
-in RFC~6962~\cite{ct}, the \texttt{audit\_after} timestamp in
-Equation~\ref{eq:audit-after} assures that a cross-logged SFO entails proof
-of certificate omission.  As discussed next, the possibility of larger
-\texttt{audit\_after} timestamps introduces the threat of network-wide flushes.
-To facilitate detection, CTRs should publish received and deleted SFO-bytes in
-the extra-info document.  This can be compared to existing and similar
-extra-info metrics, such as a Tor relay's \texttt{read-history}.
+As discussed next, the possibility of larger \texttt{audit\_after} timestamps
+introduces the threat of network-wide flushes.  To facilitate detection, CTRs
+should publish received and deleted SFO-bytes in the extra-info document.  This
+can be compared to existing extra-info metrics, such as a Tor relay's
+\texttt{read-history}.
 
 \subsection{Security Analysis}
 % MISC notes
