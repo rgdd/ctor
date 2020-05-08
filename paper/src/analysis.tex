@@ -68,6 +68,36 @@ independent CT log.  We discuss how the attacker may (not) intervene for each
 phase separately.
 
 \subsubsection{Phase~1: Tor Browser Submission}
+Suppose that an SFO is selected for submission to a CTR.  There are two possible
+cases to consider, namely, the SFO is larger than \texttt{ct-max-sfo-bytes} or
+it is not.  If the SFO is larger, Tor Browser blocks until the SFO is submitted
+and the circuit is closed.  Assuming that there are no forensic traces in tor
+and Tor Browser, the selected CTR's identity cannot be revealed afterwards by
+compromising Tor Browser (i.e., as a result of loading and running served
+resources).  It should be noted that it is paramount that the attacker
+\emph{does not know} which CTR stores evidence of CA and CT log misbehavior:
+	it is well within Tor's threat model to DoS a single relay.
+
+TODO: reference based on TB/tor design to makes us believe it is hard to figure
+out past circuits?
+
+If the SFO is smaller or equal to \texttt{ct-max-sfo-bytes}, then there is a
+race between (i) the time it takes for Tor Browser to submit the SFO and close
+the circuit against (ii) the time it takes for the attacker to compromise Tor
+Browser and identify the CTR in question based on circuit metadata.  Trying to
+win this race, rather than being in the blocking-mode above, is more
+advantageous as it enables intervention.  Therefore, we assume that
+the attacker would maximize the time it takes to perform (i) by sending an
+SFO that is \texttt{ct-max-sfo-bytes}.
+
+The time and work involved to submit \texttt{ct-max-sfo-bytes} over a circuit
+which is closed as soon as possible is analyzed in Section~\ref{sec:todo}.
+Clearly, we cannot guarantee that there is no attacker that has a zero-day
+exploit that loads, runs, and escalates privileges within \emph{any} non-zero
+time window.
+
+TODO: wrap up with how we minimized attack surface (one-time circuits, close
+asap w/o acknowledgments) without adding latency during normal browsing.
 
 \subsubsection{Phase~2: CTR Mixing}
 
