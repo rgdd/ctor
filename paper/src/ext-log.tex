@@ -26,14 +26,14 @@ in the extra-info document which are related to flooding.
 \begin{figure*}
     \centering
     \includegraphics[width=0.85\textwidth]{img/design-log}
-	\caption{TODO: Tobias, s/submit-entry/submit-sfo}
+	\caption{TODO: docdoc}
     \label{fig:ext-log}
 \end{figure*}
 
 Starting backwards with phase~3, CT logs need an endpoint that accepts SCTs in
 addition to certificate chains.  We refer to this endpoint as
-\texttt{submit-sfo}, and CTRs use it instead of \texttt{add-chain} or
-\texttt{submit-entry}.  The submitted SCTs are of particular interest,
+\texttt{add-sfo}, and CTRs use it instead of \texttt{add-chain} or
+\texttt{submit-entry}.  The added SCTs are of particular interest,
 considering that they contain timestamps that reveal whether the issuing CT logs
 violated their MMD promises by not incorporating a certificate chain on time.
 Notably anyone can inspect the cross-logged SFOs, including existing CT
