@@ -55,7 +55,7 @@ Step~\ref{enm:ctr-api:unrecognized} in Section~\ref{sec:base:phase2} should
 therefore be updated so that unrecognized SCTs are discarded, stopping if no
 SCT remains in the resulting SFO.  If an SFO is neither cached nor pending,
 sample an SCT and note down the outcome and a corresponding
-\texttt{audit\_after} timestamp using Equation~\ref{eq:audit-after}.  The
+\texttt{audit\_after} timestamp using Figure~\ref{fig:audit-after}.  The
 combination of SFO, sampled SCT outcome, and \texttt{audit\_after} timestamp is
 stored in the pending buffer.  We already explained in Section~\ref{sec:log}
 why it is important to take the log's MMD into account while computing
