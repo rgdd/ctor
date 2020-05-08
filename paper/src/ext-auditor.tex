@@ -80,7 +80,8 @@ detailed description from scratch instead.
 			\item\label{enm:ctr:audit:too-soon} Continue the loop if
 				$\textrm{SFO}.\mathsf{audit\_after} > \mathsf{now}()$.
 			\item\label{enm:ctr:audit:too-soon2} Continue the loop if
-				$\textrm{STH}.\mathsf{timestamp} > \mathsf{now}()$.
+				$\textrm{SFO}.\mathsf{audit\_after} >
+					\textrm{STH}.\mathsf{timestamp}$.
 			\item\label{enm:ctr:audit:watchdog} Submit $s$ to the
 				watchdog selected in step~\ref{enm:ctr:audit:watchdog-circuit}.
 			\item\label{enm:ctr:audit:challenge} Use \texttt{ct-query-timeout}
