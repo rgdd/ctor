@@ -83,7 +83,7 @@ computed as the median of all votes.
 \subsection{Phase~1---Tor Browser} \label{sec:base:phase1}
 The first phase evolves around Tor Browser and how an incoming SFO is validated
 and probabilistically audited further by a random CTR.  Given an SFO $s$ and
-a tab $t$:
+a web browser tab $t$:
 \begin{enumerate}
 	\item Accept $s$ and stop if it was already validated in $t$.
 	\item Raise a certificate error and stop if the certificate chain of $s$
@@ -181,7 +181,11 @@ circuit setup, a core loop of SFO enumeration, and circuit tear-down.
 				Sample a log uniformly at random that accepts the underlying
 				certificate chain $c \in s$.  Do not consider any log that the
 				SCTs of $s$ refer if the Tor consensus lists any independent
-				log.
+				log.\footnote{%
+					TODO: needs to be expressed better.  The point is that we
+					want to prioritize adding the certificate chain to an
+					independent log that the attacker does not control.
+				}
 			\item\label{enm:ctr:audit:log} Use \texttt{ct-query-timeout} to set
 				a timer and submit $c$ for public logging to the log's
 				\texttt{add-chain}~\cite{ct} or

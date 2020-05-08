@@ -1,6 +1,10 @@
 \section{Log Extension} \label{sec:log}
 Now we shift our focus towards detecting some types of log misbehavior, namely,
-omission attacks.  The design idea is an
+omission attacks.\footnote{%
+	TODO: we might need to clarify that, at some level, we are also dealing with
+	omission attacks in the base design.  But what we are trying to detect is
+	different here and in the base design.
+} The design idea is an
 extension of our base design.  A prerequisite is that the CT log landscape
 is modified to support \emph{SCT cross-logging}.  Cross-logging refers to the
 idea of logging signed statements in other logs to intertwine
