@@ -16,7 +16,11 @@ misbehaving CT logs.  We assume that some, but not all CT logs, are benign
 \begin{figure*}
 	\centering
 	\includegraphics[width=0.85\textwidth]{img/design-ca}
-	\caption{TODO: Tobias, s/submit-entry/add-chain is clearer}
+	\caption{The base design of CTor divided into three pahses. A website
+	presents a SFO to Tor Browser, and Tor Browser in turn with some probability
+	submits the SFO to a random CTR (phase 1). A CTR stores the SFO a period of
+	time (phase 2). The CTR adds the certificate in the SFO to a random
+	independent CT log (phase 3).}
 	\label{fig:design-ca}
 \end{figure*}
 
