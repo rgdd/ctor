@@ -1,26 +1,28 @@
 \section{Design} \label{sec:base}
-First we introduce a minimal design that makes use of the existing CT landscape
-to force certificates into the public domain.  The idea can be viewed as
-three phases:
-	an SFO is presented to Tor Browser which submits it to a random CTR,
-	a submitted SFO is mixed and stored temporarily, and then
-	a mixed SFO's certificate chain is submitted for logging in an independent
-		CT log.
-These phases are depicted further in Figure~\ref{fig:design-ca}, and governed by
-parameters that are agreed-upon in the Tor consensus.
-
-Note that our starting point is to chase misbehaving CAs rather than
-misbehaving CT logs.  We assume that some, but not all CT logs, are benign
-(see Section~\ref{sec:adversary}).
+First we introduce a base design that is extended later on.  Our aim is to hold
+CAs accountable in a setting where some, but not all, CT logs are dishonest.  In
+other words, the starting-point is to catch misbehaving CAs by adding resilience
+against misbehaving CT logs.  The basic idea is shown in
+Figure~\ref{fig:design-ca} as three distinct phases:
+	a \emph{submission phase} where SFOs are presented to Tor Browser
+		and submitted probabilistically to CTRs,
+	a \emph{storage phase} where the submitted SFOs are stored for some time to
+		obfuscate real-time browsing patterns, and
+	an \emph{auditing phase} where the stored SFOs are audited further by adding
+		the underlying certificate chains to independent CT logs.
+The exact behavior of these phases are governed by parameters set in the Tor
+consensus.
 
 \begin{figure*}
 	\centering
 	\includegraphics[width=0.85\textwidth]{img/design-ca}
-	\caption{The base design of CTor divided into three pahses. A website
-	presents a SFO to Tor Browser, and Tor Browser in turn with some probability
-	submits the SFO to a random CTR (phase 1). A CTR stores the SFO a period of
-	time (phase 2). The CTR adds the certificate in the SFO to a random
-	independent CT log (phase 3).}
+	\caption{%
+		The base design of CTor divided into three phases. A website presents an
+		SFO to Tor Browser, and Tor Browser in turn with some probability
+		submits the SFO to a random CTR (phase 1). A CTR stores the SFO a period
+		of time (phase 2). The CTR adds the certificate in the SFO to a random
+		independent CT log (phase 3).
+	}
 	\label{fig:design-ca}
 \end{figure*}
 
@@ -59,30 +61,33 @@ considerations further.
 \subsubsection{Other Parameters} \label{sec:base:consensus:params}
 Directory authorities influence the way in which Tor Browser and CTRs behave by
 voting on other necessary parameters.  For example, the likelihood that
-an SFO is submitted for further auditing is a security parameter that is
-determined by the value of \texttt{ct-submit-pr}.  The value of an item is
-computed as the median of all votes.
+an SFO is submitted to a CTR is a security parameter that is determined by the
+value of \texttt{ct-submit-pr}.  Below, the value of an item is computed as the
+median of all votes.
 \begin{description}
 	\item[ct-submit-pr:] A floating-point in $[0,1]$ that determines Tor
-		Browser's submission probability, i.e., whether an SFO should be sent to
-		a random CTR for further auditing.  Zero disables auditing,
-		while $0.10$ implies every 10$^{\mathsf{th}}$ SFO is audited
-		on average.
+		Browser's submission probability.  For example, $0$ disables submission
+		while $0.10$ means that every 10$^{\mathsf{th}}$ SFO is sent to a
+		random CTR on average.
 	\item[ct-sfo-max-bytes:] A natural number that determines how many
 		wire-bytes a normal SFO should not exceed.  As outlined in
 		Section~\ref{sec:base:phase1}, excessively large SFOs are subject
 		to stricter verification criteria.
-	\item[ct-query-timeout:] A natural number that determines how many ms a CTR
-		waits before concluding that a CT log is unresponsive.  As outlined in
-		Section~\ref{sec:base:phase3}, a query timeout triggers a
-		resubmission later on.
-	\item[ct-backoff:] A natural number that determines how many ms a CTR
-		may wait between two auditing instances.  As outlined in
-		Section~\ref{sec:base:phase3}, CTRs audit pending SFOs
-		in batches at random time intervals.
-	\item[ct-delay-dist] docdoc
+	\item[ct-log-timeout:] A natural number that determines how long a CTR
+		waits before concluding that a CT log is unresponsive, e.g., 10~seconds.
+		As outlined in Section~\ref{sec:base:phase3}, timeouts trigger implicit
+		resubmissions.
+	\item[ct-delay-dist] A distribution that determines how long a CTR should
+		wait at minimum before auditing a submitted SFO.  As outlined in
+		Section~\ref{sec:base:phase2}, random noise is added to obfuscate
+		real-time browsing patterns, e.g., in the order of a few minutes to an
+		hour.
+	\item[ct-backoff-dist:]
+		A distribution that determines how long a CTR should wait between two
+		auditing instances, e.g., a few minutes on average.  As outlined in
+		Section~\ref{sec:base:phase3}, CTRs audit pending SFOs in batches at
+		random time intervals to spread out log overhead.
 \end{description}
-
 
 \subsection{Phase~1---Tor Browser} \label{sec:base:phase1}
 The first phase evolves around Tor Browser and how an incoming SFO is validated
