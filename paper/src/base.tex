@@ -90,18 +90,23 @@ median of all votes.
 \end{description}
 
 \subsection{Phase~1---Tor Browser} \label{sec:base:phase1}
-The first phase evolves around Tor Browser and how an incoming SFO is validated
-and probabilistically audited further by a random CTR.  Given an SFO $s$ and
-a web browser tab $t$:
+The first phase evolves around Tor Browser and how an SFO is validated in the
+TLS handshake.  We rely on Tor Browser's trust store to check certificate
+chains, an assumed SCT-centric CT policy similar to Chrome~\cite{chrome-policy}
+and Safari~\cite{safari-policy} to avoid breakage, and \texttt{ct-max-sfo-bytes}
+as well as \texttt{ct-submit-pr} to determine whether and how there should be
+any follow-up auditing that goes beyond SCT signature verification.  Given an
+incoming SFO $s$:
+
 \begin{enumerate}
-	\item Accept $s$ and stop if it was already validated in $t$.
 	\item Raise a certificate error and stop if the certificate chain of $s$
 		is not rooted in Tor Browser's trust store.
 	\item Raise a certificate transparency error and stop if the SCTs of $s$
 		fail Tor Browser's SCT-centric CT policy.
-	\item Mark $s$ as validated in $t$ and continue in the background if
-		$\mathsf{len}(s) \le \texttt{ct-max-sfo-bytes}$, else continue in
-		blocking-mode before marking $s$ as validated in~$t$.
+	\item Accept $s$ and conduct the remaining steps in the background if
+		$\mathsf{len}(s) \le \texttt{ct-max-sfo-bytes}$, i.e., without blocking
+		the TLS handshake.  Else, wait until the remaining steps are completed
+		before accepting $s$.
 	\item Flip a biased coin based on \texttt{ct-submit-pr} and stop if the
 		outcome indicates no further auditing.
 	\item Submit $s$ to a sampled CTR's SFO-endpoint on a pre-built CT-circuit
@@ -110,16 +115,13 @@ a web browser tab $t$:
 		use without waiting for any acknowledgment.
 \end{enumerate}
 
-We avoid unnecessary overhead by only validating SFOs once per tab.  An SFO is
-considered validated if the end-entity certificate is rooted in a trust anchor
-\emph{and} it has enough SCTs as dictated by an SCT-centric CT policy which is
-similar to the other major browser vendors~\cite{chrome-policy,safari-policy}.
-Section~\ref{sec:analysis} motivates why excessively large SFOs are vetted more
-strictly in blocking-mode, which is in contrast to the normal behavior where an
-SFO is considered for further auditing in the background.  Moreover, note that
-the circuit used to submit an SFO is taken from a pool of pre-built CT-circuits
-that are closed immediately after use, reducing the time that they are around in
-memory.
+In other words, an SFO is accepted as valid if the end-entity certificate is
+rooted in a trust anchor \emph{and} it has enough SCTs as dictated by an
+SCT-centric CT policy.  The decision and possible submission of an SFO to a
+random CTR should never block the TLS handshake under normal circumstances,
+whereas \emph{excessively large} SFOs do due to high security risks.  See
+Section~\ref{sec:analysis:pr:phase1}, which also motivates why it is paramount
+that submission circuits are pre-built and closed as soon as possible.
 
 %
 % - close circuit asap to make it harder for an attacker to figure out which
