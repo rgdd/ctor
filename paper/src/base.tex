@@ -131,46 +131,43 @@ that submission circuits are pre-built and closed as soon as possible.
 % pr (<=1/10) it should be common to submit at most once per tab anyway.
 %
 
-\subsection{Phase 2---CTR Storage} \label{sec:base:phase2}
+\subsection{Phase 2---Storage} \label{sec:base:phase2}
 We suggest that CTRs accept SFO submissions on an HTTP endpoint.\footnote{%
 	Tor's HTTP DirServer codebase can be reused as extension point to interact
 	with the tor daemon, i.e., add another listener.
 } For example, Nordberg~\emph{et~al.} defined an SCT feedback interface that can
 be reused if an array-length of one is enforced by the CTR~\cite{nordberg}.
-With regards to some circuit, process an incoming SFO $s$ as follows:
+With regards to some CT circuit, process an incoming SFO $s$ as follows:
 \begin{enumerate}
-	\item\label{enm:ctr-api:close} Close the incoming circuit.
-	\item\label{enm:ctr-api:unrecognized} Stop if no CT log in the Tor consensus
-		accepts the underlying certificate chain of $s$.
-	\item\label{enm:ctr-api:cached}
+	\item\label{enm:storage:close} Close the current circuit to enforce one-time
+		usage.
+	\item\label{enm:storage:unrecognized} Stop if no CT log in the Tor consensus
+		accepts the trust anchor of the underlying certificate chain in $s$.
+	\item\label{enm:storage:cached}
 		Stop if $s$ is cached or pending to be audited already.
-	\item\label{enm:ctr-api:audit-after} Compute an \texttt{audit\_after}
+	\item\label{enm:storage:fix-log} Sample an independent CT log $l$ that
+		issued no SCT in $s$.  If there are no independent CT logs listed in the
+		Tor consensus, sample a dependent CT log instead.
+	\item\label{enm:storage:audit-after} Compute an \texttt{audit\_after}
 		timestamp $\textrm{t} \gets \mathsf{now()} +
-			\mathsf{random\_delay}(\texttt{ct-delay-dist})$.
+			\mathsf{random}(\texttt{ct-delay-dist})$.
 		The former returns the current time and the latter a random delay.
-	\item\label{enm:ctr-api:store}
-		Add $s$ and its \texttt{audit\_after} timestamp to a buffer of
-		pending SFOs that is managed by tor's OOM.
+	\item\label{enm:storage:store} Add $(l,t,s)$ to a buffer of pending SFOs.
 \end{enumerate}
 
-Recall that Tor Browser does not wait for any acknowledgment, and that a
-CT-circuit must not be used more than once.  As such, the first step is to
-close the incoming circuit once an SFO is received.  The received SFO is
-simply discarded if it
-	cannot be audited as proposed in Section~\ref{sec:base:phase3},
-	is already audited as noted by a cache, or
-	is pending to be audited in a buffer of pending SFOs.
-For example, the cache could be a collection of SFO hashes and the buffer
-something similar to how OOM manages DNS.  A new SFO is stored in the CTR's
-buffer alongside an \texttt{audit\_after} timestamp, which specifies the
-earliest point in time that the SFO will be audited.  This behavior, where a
-random delay is added to each SFO, transforms the CTR into a timed mix such that
-less real-time information is leaked to the CT logs in
-Section~\ref{sec:base:phase3}.
-
-If memory becomes a scarce relay resource, e.g., due to flooding, OOM
-should delete SFOs at random~\cite{nordberg}.  The threat of flooding is
-discussed further in Section~\ref{sec:analysis}.
+An SFO that
+	(i) cannot be audited with regards to a CT log that the Tor consensus
+		recognizes,
+	(ii) is already audited as indicated by a \emph{cache}, or
+	(iii) is pending to be audited in a \emph{buffer} of pending SFOs,
+is discarded.  In contrast, a new SFO is stored in the CTR's buffer
+alongside an \texttt{audit\_after} timestamp and a sampled CT log.  The
+\texttt{audit\_after} timestamp specifies the earliest point in time that an SFO
+will be audited in phase~3, which adds random noise that obfuscate real-time
+browsing patterns in the Tor network.  Auditing is also fixed at this stage with
+regards to some CT log, notably including resubmissions.  If memory become a
+scarce resource, e.g., due to flooding, delete pending SFOs at
+random~\cite{nordberg}.
 
 \subsection{Phase 3---Auditing} \label{sec:base:phase3}
 CTR auditing is initiated at random time intervals to spread out the load
