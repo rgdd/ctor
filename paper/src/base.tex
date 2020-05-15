@@ -36,12 +36,12 @@ so that it entails information regarding
 \subsubsection{CTR Flag} \label{sec:base:consensus:ctr-flag}
 The existing \texttt{known-flags} item determines the different flags that a 
 given consensus document might contain.  We add another flag named \texttt{CTR},
-which indicates that a relay should support CT-auditing as described in
+which indicates that a Tor relay should support CT-auditing as described in
 Sections~\ref{sec:base:phase2}--\ref{sec:base:phase3}.  A relay qualifies as a
-CTR if it is flagged as \texttt{stable} and \texttt{middle}, which means that we
-suggest using resources that are more abundant when compared to, for example,
-exit bandwidth.  A Tor relay is assigned the \texttt{CTR} flag if a majority of
-directory authorities voted~for~it.
+CTR if it is flagged as \texttt{stable} and \texttt{middle}.  As such, we
+suggest using resources that are more abundant when compared to, e.g., exit
+bandwidth.  A relay is assigned the \texttt{CTR} flag if a majority of directory
+authorities voted for it.
 
 \subsubsection{Recognized CT Log} \label{sec:base:consensus:log}
 CTRs only interact with CT logs that are recognized by the Tor consensus.  A log
@@ -66,7 +66,7 @@ value of \texttt{ct-submit-pr}.  Below, the value of an item is computed as the
 median of all votes.
 \begin{description}
 	\item[ct-submit-pr:] A floating-point in $[0,1]$ that determines Tor
-		Browser's submission probability.  For example, $0$ disables submission
+		Browser's submission probability.  For example, $0$ disables submissions
 		while $0.10$ means that every 10$^{\mathsf{th}}$ SFO is sent to a
 		random CTR on average.
 	\item[ct-sfo-max-bytes:] A natural number that determines how many
@@ -77,11 +77,10 @@ median of all votes.
 		waits before concluding that a CT log is unresponsive, e.g., 10~seconds.
 		As outlined in Section~\ref{sec:base:phase3}, timeouts trigger implicit
 		resubmissions.
-	\item[ct-delay-dist] A distribution that determines how long a CTR should
+	\item[ct-delay-dist:] A distribution that determines how long a CTR should
 		wait at minimum before auditing a submitted SFO.  As outlined in
 		Section~\ref{sec:base:phase2}, random noise is added to obfuscate
-		real-time browsing patterns, e.g., in the order of a few minutes to an
-		hour.
+		real-time browsing patterns, e.g., in the order minutes to an hour.
 	\item[ct-backoff-dist:]
 		A distribution that determines how long a CTR should wait between two
 		auditing instances, e.g., a few minutes on average.  As outlined in
