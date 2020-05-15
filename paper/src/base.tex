@@ -170,61 +170,55 @@ scarce resource, e.g., due to flooding, delete pending SFOs at
 random~\cite{nordberg}.
 
 \subsection{Phase 3---Auditing} \label{sec:base:phase3}
-CTR auditing is initiated at random time intervals to spread out the load
-imposed by the Tor network on CT logs.  Each auditing instance is composed of
-circuit setup, a core loop of SFO enumeration, and circuit tear-down.
-
+Each CTR maintains a single Tor circuit that is used to interact with CT logs
+that have \texttt{ct-log-info} items.  At random time intervals, separate
+auditing instances are initiated for each of these logs.  Given a known CT log~%
+$l$:
 \begin{enumerate}
-	\item\label{enm:ctr:audit:backoff} Sample a uniform delay from
-			$[0, \texttt{ct-backoff}]$,
-		then schedule a timer and wait until that time elapsed.
-	\item\label{enm:ctr:audit:log-circuit} Establish a new circuit and use it
-		for all subsequent log connections.  Connect to the logs when needed.
-	\item\label{enm:ctr:audit:loop} Enumerate the buffer of pending SFOs:
+	\item\label{enm:auditing:backoff} Sample a delay $d \gets
+		\mathsf{random}(\texttt{ct-backoff-dist})$.
+	\item\label{enm:auditing:sleep} Schedule a timer, waiting until $d$
+		time units elapsed.
+	\item\label{enm:auditing:loop} For each pending buffer entry $(l',s,t)$:
 		\begin{enumerate}
-			\item\label{enm:ctr:audit:too-soon} Continue the loop if
-				$\textrm{SFO}.\mathsf{audit\_after} > \mathsf{now}()$.
-			\item\label{enm:ctr:audit:sample}
-				Sample a log uniformly at random that accepts the underlying
-				certificate chain $c \in s$.  Do not consider any log that the
-				SCTs of $s$ refer if the Tor consensus lists any independent
-				log.\footnote{%
-					TODO: needs to be expressed better.  The point is that we
-					want to prioritize adding the certificate chain to an
-					independent log that the attacker does not control.
-				}
-			\item\label{enm:ctr:audit:log} Use \texttt{ct-query-timeout} to set
-				a timer and submit $c$ for public logging to the log's
-				\texttt{add-chain}~\cite{ct} or
-				\texttt{submit-entry}~\cite{ct/bis} endpoint.
+			\item\label{enm:auditing:log-check} Continue the loop if $l\ne l'$.
+			\item\label{enm:auditing:timestamp-check} Continue the loop if
+				$t > \mathsf{now}()$.
+			\item\label{enm:auditing:add-chain} Use \texttt{ct-log-timeout} to
+				set a timer and add the certificate chain in $s$ to $l$ using
+				the public \texttt{add-chain}~\cite{ct} or
+				\texttt{submit-entry}~\cite{ct/bis} endpoints.
 				\begin{itemize}
-					\item\label{enm:ctr:audit:log:success} On valid
+					\item\label{enm:auditing:add-chain:success} On valid
 						SCT: cache the SFO, then discard it from the buffer of
 						pending SFOs.
-					\item\label{enm:ctr:audit:log:fail} On any other outcome:
-						break the loop.
+					\item\label{enm:auditing:add-chain:fail} On any other
+						outcome: break the loop.
 				\end{itemize}
 		\end{enumerate}
-	\item\label{enm:ctr:audit:teardown} Close all opened circuits and go back to
-		step~\ref{enm:ctr:audit:backoff}.
+	\item\label{enm:auditing:restart} Go back to
+		step~\ref{enm:auditing:backoff}.
 \end{enumerate}
 
 As shown above we take an unusual approach towards auditing SFOs.  Rather than
-following up on an SCT's inclusion status, we submit the underlying
-certificate chain to an independent CT log.  As such, the end-entity certificate
-will make it into the public domain if the sampled log is not controlled by the
-attacker.  If there is no independent log listed in the Tor consensus, it is
-still valuable to resubmit to a dependent log:
-	it might be the case that the attacker has access to a log's signing key,
-	but not the log's actual infrastructure.
-In other words, a mis-issued certificate would make it into the public domain in
-such a scenario if we resubmit it rather than discarding it due to lack of
-an independent log.
+following up on an SFO's inclusion status, the underlying certificate chain is
+\emph{added} to a random CT log
+	(see Section~\ref{sec:base:phase3}, step~\ref{enm:storage:fix-log}).
+As such, the end-entity certificate is disclosed to public scrutiny and the
+issuing CA will be held accountable if the log in question is honest.  A request
+to add the certificate chain is considered successful if a valid SCT is returned
+within a timely manner.  On any other outcome, such as invalid SCT signature or
+timeout, the SFO remains in the buffer as the loop breaks and the CTR backs-off
+in hope that the log is available next auditing instance.
 
-After a certificate chain is submitted for logging, the returned SCT must be
-valid, e.g., correct structure and signed by the log in question.  On any other
-outcome, such as a timeout, the SFO remains in the buffer of pending SFOs while
-the CTR goes into back-off mode.
+Note that the auditing instances of different CT logs are separated.  This
+assures that the unavailability of one CT log does not halt auditing of
+unrelated buffer entries.
 
-% TODO: should we fixate so that resubmission to the same sampled log?
-% TODO: is it really motivated to "break" now rather than "continue"?
+%If there is no independent log listed in the Tor consensus, it is
+%still valuable to resubmit to a dependent log:
+%	it might be the case that the attacker has access to a log's signing key,
+%	but not the log's actual infrastructure.
+%In other words, a mis-issued certificate would make it into the public domain
+%in such a scenario if we resubmit it rather than discarding it due to lack of
+%an independent log.
