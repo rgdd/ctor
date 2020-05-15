@@ -104,9 +104,8 @@ incoming SFO $s$:
 	\item Raise a certificate transparency error and stop if the SCTs of $s$
 		fail Tor Browser's SCT-centric CT policy.
 	\item Accept $s$ and conduct the remaining steps in the background if
-		$\mathsf{len}(s) \le \texttt{ct-max-sfo-bytes}$, i.e., without blocking
-		the TLS handshake.  Else, wait until the remaining steps are completed
-		before accepting $s$.
+		$\mathsf{len}(s) \le \texttt{ct-max-sfo-bytes}$, otherwise complete
+		all steps and then accept~$s$ as valid.
 	\item Flip a biased coin based on \texttt{ct-submit-pr} and stop if the
 		outcome indicates no further auditing.
 	\item Submit $s$ to a sampled CTR's SFO-endpoint on a pre-built CT-circuit
