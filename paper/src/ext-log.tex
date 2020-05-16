@@ -46,23 +46,6 @@ any MMD is violated.  Therefore, \texttt{audit\_after} timestamps should be
 computed as in Figure~\ref{fig:audit-after} with regards to the SCT and MMD that
 yields the largest value (phase~2).
 
-\begin{figure}
-	\centering
-	\pseudocode[linenumbering, syntaxhighlight=auto]{%
-		\textrm{t} \gets \mathsf{now}() +
-			\mathsf{MMD} +
-			\mathsf{random}(\texttt{ct-delay-dist}) \\
-		\pcif \textrm{SCT.timestamp} + \textrm{MMD} <
-				\mathsf{now}():\\
-			\pcind\textrm{t} \gets \mathsf{now}() +
-				\mathsf{random}(\texttt{ct-delay-dist})
-	}
-	\caption{%
-		Algorithm that computes an \texttt{audit\_after} timestamp $t$.
-	}
-	\label{fig:audit-after}
-\end{figure}
-
 %
 % TODO:
 % Think we need either 2*MMD as the log must produce an STH every MMD.  Or,
