@@ -208,7 +208,7 @@ issuing CA will be held accountable if the log in question is honest.  A request
 to add the certificate chain is considered successful if a valid SCT is returned
 within a timely manner.  On any other outcome, such as invalid SCT signature or
 timeout, the SFO remains in the buffer as the loop breaks and the CTR backs-off
-in hope that the log is available next auditing instance.
+in hope that the log becomes available again after wake-up.
 
 Note that the auditing instances of different CT logs are separated.  This
 assures that the unavailability of one CT log does not halt auditing of
