@@ -11,17 +11,15 @@ attacker:
 		network-wide actions against Tor.  This is likely hard to attribute to
 		the actual attacker, but nevertheless it draws much unwanted attention.
 	\item[Significant:] the attack resulted in public cryptographic evidence
-		proving CA misbehavior.
+		that proves CA misbehavior.
 	\item[Catastrophic:] the attack resulted in public cryptographic evidence
-		proving CA and log misbehavior.
+		that proves CT log misbehavior.
 \end{description}
 
 We want to minimize the existence of successful attacks where it cannot be
 established if and how they were carried out.  As argued subsequently, our
 base design achieves a significant impact level within our threat model.  The
-extended designs in Sections~\ref{sec:log}--\ref{sec:auditor} aim higher, but by
-making the catastrophic impact level possible, minor impact scenarios follow due
-to Tor's threat model.
+extended designs in Sections~\ref{sec:auditor}--\ref{sec:log} aim higher.
 
 \subsection{Probability of Being Detected} \label{sec:analysis:pr}
 \subsubsection{Phase~1: Submission} \label{sec:analysis:pr:phase1}
