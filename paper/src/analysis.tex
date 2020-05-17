@@ -61,8 +61,9 @@ an SFO that is \texttt{ct-max-sfo-bytes}.  Section~\ref{sec:todo} analyzes the
 timing and work involved while submitting \texttt{ct-max-sfo-bytes} over a CT
 circuit that is closed immediately after use.
 
-TODO: wrap-up with how our design reduced the attack surface, and why
-\texttt{ct-submit-pr} is the dominant factor with regards to detection in
+TODO: wrap-up with how our design reduced the attack surface, i.e., motivate
+\texttt{ct-max-sfo-bytes} and pre-built one-time CT circuits.  Explain
+why \texttt{ct-submit-pr} is the dominant factor with regards to detection in
 phase~1.
 
 \subsubsection{Phase~2: Storage} \label{sec:analysis:pr:phase2}
@@ -97,6 +98,9 @@ The attacker is aware of all CT logs that are independent, however.  This
 introduces the threat of targeting the CT landscape's availability, which has
 the adverse effect of increasing the window during which CTRs store SFOs
 due to resubmissions.
+
+TODO: note that resubmission is fixed with regards to a log and why this is
+important
 
 TODO: wrap-up
 
