@@ -39,17 +39,17 @@ namely, the mis-issued SFO is either larger than \texttt{ct-max-sfo-bytes} or it
 is not.
 
 If the SFO is larger than \texttt{ct-max-sfo-bytes}, Tor Browser blocks until
-the SFO is submitted and its CT circuit is closed.  As such, it is
-impossible to serve a Tor Browser exploit reactively over the man-in-the-middled
-connection that shuts-down the submission procedure before it occurs.  Assuming
-that there are no forensic traces in tor and Tor Browser,\footnote{%
-	TODO: is there any \emph{reference} based on TB/tor design that makes us
-	believe that it is hard to figure out past circuits?
-} the sampled CTR identity also cannot be revealed afterwards by compromising
-Tor Browser.  The attacker may know that the SFO is being stored by \emph{some
-CTR} based on timing, however, i.e., blocking-behavior is measurable and
-stands out.  Note that the attacker must not learn a CTR's identity:
-	it is well within our threat model to DoS a single Tor relay.
+the SFO is submitted and its CT circuit is closed.  As such, it is impossible to
+serve a Tor Browser exploit reactively over the man-in-the-middled connection
+that shuts-down the submission procedure before it occurs.  Assuming that
+forensic traces in tor and Tor Browser are unreliable\footnote{On marking a
+circuit as closed in tor, tor immediately schedules the associated data
+structures to be freed as soon as possible.}, the sampled CTR identity also
+cannot ber reliably revealed afterwards by compromising Tor Browser.  The
+attacker may know that the SFO is being stored by \emph{some CTR} based on
+timing, however, i.e., blocking-behavior is measurable and stands out. Note that
+the attacker must not learn a CTR's identity: it is well within our threat model
+to DoS a single Tor relay.
 
 If the SFO is smaller or equal to \texttt{ct-max-sfo-bytes}, then there is a
 race between (i) the time it takes for Tor Browser to submit the SFO and close
