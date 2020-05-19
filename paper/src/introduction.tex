@@ -1,8 +1,80 @@
+%
+% Sketch for introduction: Tor -> anonymity -> deanonymization -> client
+% exploitation -> popping endpoints for delivery or mitm -> our focus mitm ->
+% TLS and CT -> CT+Tor = CTor -> contributions + outline. 
+%
+% Make sure contribution also highlights added value of widely audited CT log
+% view to larger Internet ecosystem.
+%
 \section{Introduction} \label{sec:introduction}
+%
+% 1
+% - Web turned encrypted last couple of years
+% - HTTPS, TLS, CAs
+% - Current mindset -> encrypt as default
+%
+Metrics reported by Google and Mozilla reveal that encryption on the web
+skyrocketed the past couple of years: at least 85\% of all web pages load using
+secure HTTP~\cite{google-metrics,mozilla-metrics}.  Secure HTTP, also known as
+HTTPS, refers to the use of Transport Layer Security (TLS).  For example, as
+part of the TLS handshake web browsers require that a valid certificate chain
+is presented that binds the web server's identity to a public key which is used
+to bootstrap an encrypted channel.  A certificate chain is considered valid if
+it is digitally signed by a trusted Certificate Authority (CA).  It used to be
+costly to obtain a certificate chain in the past, but Let's Encrypt
+significantly reduced the barrier towards HTTPS everywhere by providing free
+and automated certificate issuance since its launch as a non-profit CA in
+2015~\cite{le}.
+The current mindset of encryption as default is evident by other ongoing
+initiatives too, such as
+	modern web browsers moving from positive to negative security
+		indicators~\cite{chrome-ui,firefox-ui} and
+	the rapid deployment of TLS~1.3~\cite{rapid-tls13}.
 
-Sketch for introduction: Tor -> anonymity -> deanonymization -> client
-exploitation -> popping endpoints for delivery or mitm -> our focus mitm -> TLS
-and CT -> CT+Tor = CTor -> contributions + outline. 
+%
+% 2
+% - Anonymity
+% - Tor Browser to browse the normal web
+% - Tor network
+% - Threat of deanonymization + some literature on this
+%
+While HTTPS everywhere raises the bar to inspect and tamper with generated
+network traffic, it does not obfuscate who is talking to whom.  A user that
+needs anonymity while browsing the web can fortunately use Tor Browser, which
+is designed to make surveillance and censorship difficult by encrypting the
+user's HTTP(S) traffic three times as it traverse independent relays in the Tor
+network~\cite{tor}.  Tor cannot provide anonymity against...
+TODO: elaborate on Tor, threat model, how attacker may deanonymize.
 
-Make sure contribution also highlights added value of widely audited CT log view
-to larger Internet ecosystem.
+%
+% 3
+% - We consider a different angle towards deanomization
+% a) MitM, simply check who logs in to what
+% b) Browser exploits, but it is hard to target an anonymous user.  So, such
+% an exploit would have to be served over a MitM:ed connection.
+% - Thus, the focus of our work is MitM against Tor Browser users
+%
+We consider another angle that could deanonymize Tor Browser users.
+An attacker may man-in-the-middle a user's HTTPS connection from somewhere
+between an exit relay and a targeted web server.  If the user logs in to any
+service, it trivially links the user's identity and the visited website.
+Secondly, the attacker may serve an unknown Tor Browser exploit that loads over
+a hijacked HTTPS connection, deanonymizing the user's identity when run.
+The premise of both attack scenarios is to man-in-the-middle an HTTPS
+connection, which requires a TLS certificate that Tor Browser accepts.  As
+such, we focus on certificate verification in Tor Browser.
+
+%
+% 4
+% - Independent of the threat of deanonymizaion, ref stuff
+% - CT one of the main approaches that is deployed
+% - Brief intro, status quo w/ Chrome and Safari
+Preventing certificate mis-issuance, or, alternatively, detecting and remedying
+it, is of independent interest regardless of its impact on anonymity in Tor
+Browser.  A wide variety of improvements and replacements to the CA ecosystem
+were therefore proposed already, but few are deployed at scale in practise.
+TODO: overview, CT.
+
+\subsection{Overview of CTor}
+
+\subsection{Contribution and Structure}
