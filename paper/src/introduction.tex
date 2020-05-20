@@ -71,9 +71,20 @@ such, we focus on certificate verification in Tor Browser.
 % - Brief intro, status quo w/ Chrome and Safari
 Preventing certificate mis-issuance, or, alternatively, detecting and remedying
 it, is of independent interest regardless of its impact on anonymity in Tor
-Browser.  A wide variety of improvements and replacements to the CA ecosystem
-were therefore proposed already, but few are deployed at scale in practise.
-TODO: overview, CT.
+Browser.  This interest stem from long known limitations in the CA ecosystem,
+which among other issues suffers from weakest-link security:
+	web browsers trust hundreds of CAs, and thus it is suffices to compromise
+	a single CA to get a certificate mis-issued in the name of a target
+	domain~\cite{ca-ecosystem,https-sok}.
+Certificate Transparency (CT) is one of few proposals that help remedy the
+threat of certificate mis-issuance in practise~\cite{ct/a,ct,ct/bis}.  The idea
+is to disclose certificate chains to public scrutiny in cryptographically
+verifiable log servers, which allows anyone to inspect and detect the set of
+(mis)issued certificates without trusting the resulting CT ecosystem blindly.
+Google's Chrome and and Apple's Safari enforce CT partially by requiring
+digitally signed \emph{promises} of public certificate logging in CT
+logs~\cite{chrome-policy,safari-policy}.  Unless it is verified that these
+promises of public logging are held, all CT logs must be trusted.
 
 \subsection{Overview of CTor}
 
