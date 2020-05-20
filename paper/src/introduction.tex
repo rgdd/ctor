@@ -54,6 +54,8 @@ TODO: elaborate on Tor, threat model, how attacker may deanonymize.
 % an exploit would have to be served over a MitM:ed connection.
 % - Thus, the focus of our work is MitM against Tor Browser users
 %
+% Note: "easy" to MitM in Tor, i.e., run an exit relay
+%
 We consider another angle that could deanonymize Tor Browser users.
 An attacker may man-in-the-middle a user's HTTPS connection from somewhere
 between an exit relay and a targeted web server.  If the user logs in to any
@@ -63,8 +65,8 @@ a hijacked HTTPS connection, deanonymizing the user's identity when run.
 The premise of both attack scenarios is to man-in-the-middle an HTTPS
 connection, which requires a TLS certificate that Tor Browser accepts.  As
 such, we focus on certificate verification in Tor Browser.  Note that it is
-easy to be in a physical position to man-in-the-middle Tor Browser traffic as
-it enters the web:
+easy to be in a physical position to man-in-the-middle Tor traffic as it enters
+the regular Internet:
 	exit relays intercepted HTTP(S) traffic in the past~\cite{spoiled-onions}.
 
 %
