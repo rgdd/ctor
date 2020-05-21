@@ -135,3 +135,36 @@ place on CT log operators, from close to full trust as-is today to only trusting
 that some operators are honest.
 
 \subsection{Contribution and Structure}
+Section~\ref{sec:background} provides necessary background on CT and Tor. Our
+adversary model is specified in detail in Section~\ref{sec:adversary}, taking
+into account the threat models of both Tor and CT. We also present two
+categories of attacks that are central to our setting: flooding and tagging
+attacks.
+
+Section~\ref{sec:base} presents the base design of CTor that enables TB to
+probabilistically provide evidence to CT logs that it has been presented with a
+fraudulent certificate. This greatly impacts risk-averse attackers, since part
+of its fraudulent behavior has been made transparent through the CT ecosystem:
+the issuing CA may get revoked from the trust store of browsers, the domain name
+in question (as part of the certificate) is made public, and awareness of the
+event may draw unwanted attention. Our security analysis, in
+Section~\ref{sec:analysis}, shows that one of the best bets for an attacker may
+be to attack the entire Tor network: an act that in itself will draw much
+attention.
+
+Two extensions to the base CTor design are presented in
+Sections~\ref{sec:auditor} and \ref{sec:log}. Both extensions aim to make
+transparent the accompanying fraudulent proofs issued by CT logs to convince TB
+to accept a fraudulent certificate. The deployment of either design would
+greatly contribute to the open issue of how to reduce trust in CT log operators
+currently caused by the lack of an appropriate gossiping mechanism~\cite{FIXME}.
+In particular, the auditor-based design (Section~\ref{sec:auditor}) would result
+in a probabilistically-audited cryptographically-verifiable view on the entire
+CT log ecosystem available from Tor's consensus. This view could be used as the
+basis for trust by other browsers, greatly improving the security posture of the
+entire web.
+
+% FIXME: beef out once we're set on content
+Section~\ref{sec:trade-offs} presents trade-offs in parameter selection for
+CTor, followed by a wider discussion of CTor in Section~\ref{sec:discussion} and
+conclusions in Section~\ref{sec:conclusion}.
