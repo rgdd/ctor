@@ -1,7 +1,69 @@
 \section{Background} \label{sec:background}
 
 \subsection{Certificate Transparency} \label{sec:background:ct}
-% introduce certificate _chain_ here, intro only talked about certificates
+The idea to transparency log TLS certificates emerged at Google in response to
+a lack of proposals that could be deployed without drastic ecosystem changes
+and/or significant downsides~\cite{ct/a}.  In reality, CT is about logging
+certificate \emph{chains}:
+	a domain owner's certificate is signed by an intermediate CA, whose
+	certificate is in turned signed by a root CA that acts as a trust
+	anchor~\cite{ca-ecosystem}.
+The resulting certificate chain is composed of the domain owner's leaf
+certificate, the intermediate CA certificate, and the root CA certificate.
+Trust anchors are shipped in software, such as web browser and operating
+systems.
+
+\subsubsection{Cryptographic Foundation}
+The operator of a CT log maintains a tamper-evident append-only Merkle
+tree~\cite{ct,ct/bis}.  At any time, a Signed Tree Head (STH) can be produced
+which fixes the log's structure and content.  Important attributes of an STH
+include
+	the tree head (a cryptographic hash),
+	the tree size (a number of entries), and
+	the current time.
+Given two tree sizes, a log can produce a \emph{consistency proof} that proves
+the newer tree head entails everything that the older tree head does.  As such,
+anyone can verify that the log is append-only without downloading all entries
+and recomputing the tree head.  Membership of an entry can also be proven
+by producing an \emph{inclusion proof} for an STH.  These proof techniques are
+formally verified~\cite{secure-logging-and-ct}.
+
+Upon a valid request, a log must add an entry and produce a new STH that covers
+it within a time known as the Maximum Merge Delay (MMD), e.g., 24~hours.  This
+policy aspect can be verified because in response, a Signed Certificate
+Timestamp (SCT) is returned.  An SCT is a signed promise that an entry will
+appear in the log within an MMD.  A log that violates its MMD is said to perform
+an \emph{omission attack}.  It can be detected by challenging the log to prove
+inclusion.  A log that forks, presenting one append-only version
+to some entities and another to others is said to perform a \emph{split-view
+attack}.  Split-views can be detected by STH
+gossip~\cite{chuat,dahlberg,nordberg,syta}.
+
+\subsubsection{Standardization}
+The standardized CT protocol defines public HTTP(S) endpoints that allow anyone
+to check the log's accepted trust anchors and added certificates, as well as
+obtaining the most recent STH and fetching proofs~\cite{ct,ct/bis}.  For
+example, the \texttt{add-chain} endpoint returns an SCT if the added
+certificate chain ends in a trust anchor returned by the \texttt{get-roots}
+endpoint.  CAs mostly add certificate chains because Google's Chrome and
+Apple's Safari require at least two SCTs for an otherwise valid certificate
+chain to be accepted~\cite{chrome-policy,safari-policy}.  The log's
+\texttt{add-chain} endpoint is open for anyone, however.  We use it in
+Section~\ref{sec:base}.
+
+\subsubsection{Status Quo}
+The CT ecosystem provides little or no value unless someone verifies that the
+logs play by the rules.  At minimum, there should be no omission and split-view
+attacks:
+	it would undermine detection of mis-issued certificates.
+Web browsers specify further policy requirements, such as uptime and trust
+anchor constraints~\cite{chrome-policy,safari-policy}.  A party that follows-up
+on inclusion and consistency proofs \emph{audits} the logs.  While 
+wide-spread existence of client-side auditing is a premise for CT logs to be
+untrusted, none of the CT-enforcing web browsers engage in such activities yet.
+CT also assumes that domain owners monitor the logs for mis-issuance by
+downloading added certificate chains.  Third-party monitors
+exist~\cite{ct-monitors}.
 
 \subsection{Tor} \label{sec:background:tor}
 % consensus, relays and their roles, Tor's threat model, Tor Browser's key
