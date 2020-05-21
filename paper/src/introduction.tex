@@ -2,7 +2,7 @@
 Metrics reported by Google and Mozilla reveal that encryption on the web
 skyrocketed the past couple of years: at least 85\% of all web pages load using
 Transport Layer Security (TLS) as part of
-HTTPS~\cite{google-metrics,mozilla-metrics}. A HTTPS connection is initiated by
+HTTPS~\cite{google-metrics,mozilla-metrics}. An HTTPS connection is initiated by
 a TLS handshake where the client web browser requires that the web server
 presents a valid certificate to authenticate the identity of the server (e.g.,
 to make sure that the client who wants to visit \url{mozilla.org} really is
@@ -28,7 +28,7 @@ issuance of a fraudulent certificate for \url{google.com} by DigiNotar in
 major browser vendors have mandated that certificates issued by CAs must be
 included into trusted Certificate Transparency (CT) logs for browsers to trust
 them~\cite{ct/a,ct,ct/bis}. The idea behind CT is that by making all issued
-certificates transparent miss-issued certificates can be detected \emph{after}
+certificates transparent mis-issued certificates can be detected \emph{after}
 issuance and appropriate actions taken to keep the wider web safe (e.g.,
 revocation of certificates, suspected compromises investigated, or trust in
 misbehaving CAs removed from browsers). Browsers that wish to benefit from CT
