@@ -1,4 +1,17 @@
 \section{Design} \label{sec:base}
+Unfortunately, this design is not as straightforward as completing
+Mozilla's partial implementation in Firefox, enabling it in TB and having TB
+directly query CT logs. Real-time interaction with CT logs by TB with little to
+no caching leads to CT log operators (e.g., Google and Cloudflare that are major
+operators) getting an unacceptably centralized degree of insight into TB usage
+across the entire network. Adding caching or delays to TB is non-trivial due to
+TB's security and privacy design goals~\cite{FIXME}. In particular, the
+\emph{state separation},
+\emph{cross-origin identifier unlinkability} and \emph{long-term unlinkability}
+goals rule out a large number of designs in which TB caches or delays
+interacting with CT logs on its own. Instead, we use relays in the Tor network
+to cache and interact with CT logs.
+
 First we introduce a base design that is extended later on.  Our aim is to hold
 CAs accountable in a setting where some, but not all, CT logs are dishonest.  In
 other words, the starting-point is to catch misbehaving CAs by adding resilience

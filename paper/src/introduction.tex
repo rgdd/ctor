@@ -36,8 +36,9 @@ augment the validation done by the browser during the TLS handshake to also
 require cryptographic proof from the server that the presented certificate has
 been included into CT logs trusted by the browser. Notable browsers with
 mandatory CT support by default are Google Chrome and Apple's Safari
-\cite{chrome-policy,safari-policy}, while Mozilla's Firefox lacks support by
-default.
+\cite{chrome-policy,safari-policy}. Unfortunately, Mozilla's Firefox lacks
+support but has a partially complete implementation.
+% TODO: do we want to source/rephrase this?
 
 Firefox is the basis for Tor Browser (TB) from the Tor Project~\cite{tor}. TB
 enables anyone to browse the web anonymously by relaying traffic between browser
@@ -72,49 +73,65 @@ a TB exploit may not even be needed to deanonymize the user; e.g., if the user
 logs in an account at the service associated with its identity that the attacker
 can now observe.
 
-\subsection{Overview of CTor}
-We propose a design that enforces CT incrementally in Tor Browser: CTor.  The
-three increments are as follows:
-\begin{enumerate}
-	\item \textbf{Basic CT policy:}
-		Tor Browser enforces a basic CT policy that requires promises of public
-		CT logging.
-	\item \textbf{Resilience towards misbehaving CT logs:}
-		Tor Browser is part of a Tor-wide auditing process that adds certificate
-		chains in independent CT logs.
-	\item \textbf{Detection of misbehaving CT logs:}
-		Tor Browser is part of a Tor-wide auditing process that exposes evidence
-		of CT logs that misbehaved.
-\end{enumerate}
+\subsection{Introducing CTor}
+In this paper, we propose an incremental design which we refer to as CTor. CTor
+brings CT to Tor by modifying both how TB and relays in the Tor network work.
+The goal is to make impersonation and man-in-the-middle attacks on HTTPS
+connections \emph{detectable after the fact} when they are carried out by a
+powerful attacker that:
+\begin{itemize}
+	\item can acquire a forged certificate from a trusted CA,
+	\item with the necessary cryptographic proofs from CT logs so that TB
+	accepts the certificate as valid, and
+	\item has the capability to fully gain control of TB shortly after the
+	establishment of the HTTPS connection.
+\end{itemize}
 
-Following Google's suit to minimize CT breakage~\cite{does-ct-break-the-web},
-the first step is a leap in the right direction which detects mis-issued TLS
-certificates that are presented to Tor Browser users \emph{if all CT logs are
-honest}.  This is the same flawed assumption that the CA ecosystem relies on,
-and we already observed several instances of CT logs that misbehaved~%
-	\cite{izenpe-disqualified,venafi-disqualified,gdca1-omission}.
-Most recently, a compromised CT log signing key was reported for the first
-time~\cite{digicert-log-compromised}.
+Our base CTor design uses the CT log ecosystem against the attacker to ensure a
+non-zero (tweakable) probability of detection of the forged certificate. This is
+done by probabilistically adding the certificate to \emph{other CT logs} than
+those directly inferable as under attacker control (due to the accompanying
+proofs). TB uses modified relays to cache and interact with CT logs for the sake
+of privacy, ensuring that CT log operators (such as Google and Cloudflare) do
+not get a real-time feed of all browsing activities from TB (beyond what their
+privileged position on the Internet already provides them~\cite{TorDNS}). 
+% FIXME: some other source would be good above, have to mention DNS to make
+% current one make sense
 
-To add \emph{resilience} against CT logs that misbehave, we propose a Tor-wide
-auditing process.  It is composed of a submission phase, a storage phase, and
-an auditing phase:
-	Tor Browser submits a presented certificate chain probabilistically to
-		a random Tor relay,
-	which in turn stores it temporarily before adding it to an independent CT
-		log that have yet to promise any public logging.
-As such, a certificate chain is likely to make it into the public domain
-\emph{if some independent CT logs are benign}.  Section~\ref{sec:todo} motivates
-why Tor's threat model makes it difficult to perform CT auditing straight-up
-from Tor Browser.  Therefore, Tor relays are part of the process.
+Beyond the base CTor design we present two extensions. Both extensions have in
+common that their goal is to make transparent the forged cryptographic proofs
+from attacker-controlled CT logs used to get TB to accept malicious HTTPS
+connections. Such a proof would likely immediately disqualify each offending CT
+log and thus come and great cost to the attacker in terms of lost capability.
+Even a small probability of detection may entail unacceptable risk at such a
+high cost. Note that we have already observed several instances of CT logs that
+misbehaved~\cite{izenpe-disqualified,venafi-disqualified,gdca1-omission}. Most
+recently, a compromised CT log signing key was reported for the first
+time~\cite{digicert-log-compromised}. 
 
-The basic design can be extended at the cost of different deployment trade-offs
-and trust assumptions, such that it is possible to \emph{detect CT logs that
-misbehaved} by omitting a certificate chain from the public.  We propose two
-orthogonal extensions.  First, a proposal that shifts trust from CT logs to CT
-auditors that are easier to diversify due to different operational
-requirements.  Second, a trivial extension of the base design that requires
-small, but significant, changes to the CT landscape in the form of an
-additional CT log endpoint.
+The key change in the first extension is that relays now challenge CT logs to
+cryptographically prove the correctness of their prior proofs presented to TB
+instead of simply sharing the certificates (the subject of the proofs) with
+other CT logs. In case an offending CT log fails to timely provide such a proof,
+the querying relay ensures that the proof arrives at a trusted auditor. While
+this adds both more complexity and operational challenges to Tor (of both
+auditors and storage at relays), it completely removes all trust in the CT
+ecosystem. Another benefit is that as a consequence of CTor's design, Tor would
+provide a probabilistically-audited cryptographically-verifiable view on the
+entire CT log ecosystem. This significantly addresses one of the main open
+issues with the currently deployed CT ecosystem: the lack of a sufficiently
+secure gossiping mechanism that makes it possible to place zero-trust in the log
+operators.
+
+The second extension involves only a minor tweak to the base CTor design.
+Unfortunately, this tweak is primarily not to Tor but to the API of CT logs.
+While similar changes have been discussed earlier in the context of gossiping in
+CT, it is a significant deployment issue. The small tweak is that CT logs
+provide an API for receiving cryptographic proofs made by other CT logs wrt.
+certificate inclusion. This would then mean that relays would add proofs
+observed by clients using TB to other CT logs in addition to the certificate.
+This would also significantly reduce the trust assumptions the wider web has to
+place on CT log operators, from close to full trust as-is today to only trusting
+that some operators are honest.
 
 \subsection{Contribution and Structure}
