@@ -1,8 +1,139 @@
+%
+% Sketch for introduction: Tor -> anonymity -> deanonymization -> client
+% exploitation -> popping endpoints for delivery or mitm -> our focus mitm ->
+% TLS and CT -> CT+Tor = CTor -> contributions + outline. 
+%
+% Make sure contribution also highlights added value of widely audited CT log
+% view to larger Internet ecosystem.
+%
 \section{Introduction} \label{sec:introduction}
+%
+% 1
+% - Web turned encrypted last couple of years
+% - HTTPS, TLS, CAs
+% - Current mindset -> encrypt as default
+%
+Metrics reported by Google and Mozilla reveal that encryption on the web
+skyrocketed the past couple of years: at least 85\% of all web pages load using
+secure HTTP~\cite{google-metrics,mozilla-metrics}.  Secure HTTP, also known as
+HTTPS, refers to the use of Transport Layer Security (TLS).  For example, as
+part of the TLS handshake web browsers require that a valid certificate chain
+is presented that binds the web server's identity to a public key which is used
+to bootstrap an encrypted channel.  A certificate chain is considered valid if
+it is digitally signed by a trusted Certificate Authority (CA).  It used to be
+costly to obtain a certificate chain in the past, but Let's Encrypt
+significantly reduced the barrier towards HTTPS everywhere by providing free
+and automated certificate issuance since its launch as a non-profit CA in
+2015~\cite{le}.
+The current mindset of encryption as default is evident by other ongoing
+initiatives too, such as
+	modern web browsers moving from positive to negative security
+		indicators~\cite{chrome-ui,firefox-ui} and
+	the rapid deployment of TLS~1.3~\cite{rapid-tls13}.
 
-Sketch for introduction: Tor -> anonymity -> deanonymization -> client
-exploitation -> popping endpoints for delivery or mitm -> our focus mitm -> TLS
-and CT -> CT+Tor = CTor -> contributions + outline. 
+%
+% 2
+% - Anonymity
+% - Tor Browser to browse the normal web
+% - Tor network
+% - Threat of deanonymization + some literature on this
+%
+While HTTPS everywhere raises the bar to inspect and tamper with generated
+network traffic, it does not obfuscate who is talking to whom.  A user that
+needs anonymity while browsing the web can fortunately use Tor Browser, which
+is designed to make surveillance and censorship difficult by encrypting the
+user's HTTP(S) traffic three times as it traverse independent relays in the Tor
+network~\cite{tor}.  Tor cannot provide anonymity against...
+TODO: elaborate on Tor, threat model, how attacker may deanonymize.
 
-Make sure contribution also highlights added value of widely audited CT log view
-to larger Internet ecosystem.
+%
+% 3
+% - We consider a different angle towards deanomization
+% a) MitM, simply check who logs in to what
+% b) Browser exploits, but it is hard to target an anonymous user.  So, such
+% an exploit would have to be served over a MitM:ed connection.
+% - Thus, the focus of our work is MitM against Tor Browser users
+%
+% Note: "easy" to MitM in Tor, i.e., run an exit relay
+%
+We consider another angle that could deanonymize Tor Browser users.
+An attacker may man-in-the-middle a user's HTTPS connection from somewhere
+between an exit relay and a targeted web server.  If the user logs in to any
+service, it trivially links the user's identity and the visited website.
+Secondly, the attacker may serve an unknown Tor Browser exploit that loads over
+a hijacked HTTPS connection, deanonymizing the user's identity when run.
+The premise of both attack scenarios is to man-in-the-middle an HTTPS
+connection, which requires a TLS certificate that Tor Browser accepts.  As
+such, we focus on certificate verification in Tor Browser.  Note that it is
+easy to be in a physical position to man-in-the-middle Tor traffic as it enters
+the regular Internet:
+	exit relays intercepted HTTP(S) traffic in the past~\cite{spoiled-onions}.
+
+%
+% 4
+% - Independent of the threat of deanonymizaion, ref stuff
+% - CT one of the main approaches that is deployed
+% - Brief intro, status quo w/ Chrome and Safari
+Preventing certificate mis-issuance, or, alternatively, detecting and remedying
+it, is of independent interest regardless of its impact on anonymity in Tor
+Browser.  This interest stem from long known limitations in the CA ecosystem,
+which among other issues suffer from weakest-link security:
+	web browsers trust hundreds of CAs, and thus it is suffices to compromise
+	a single CA to get a certificate mis-issued in the name of a target
+	domain~\cite{ca-ecosystem,https-sok}.
+Certificate Transparency (CT) is one of few proposals that help remedy the
+threat of certificate mis-issuance in practise~\cite{ct/a,ct,ct/bis}.  The idea
+is to disclose certificate chains to public scrutiny in cryptographically
+verifiable log servers, which allow anyone to inspect and detect the set of
+(mis)issued certificates without trusting the resulting CT ecosystem blindly.
+Google's Chrome and Apple's Safari enforce CT partially by requiring
+digitally signed \emph{promises} of public certificate logging in CT
+logs~\cite{chrome-policy,safari-policy}.  Unless it is verified that these
+promises of public logging are honored, CT logs must be trusted.
+
+\subsection{Overview of CTor}
+We propose a design that enforces CT incrementally in Tor Browser: CTor.  The
+three increments are as follows:
+\begin{enumerate}
+	\item \textbf{Basic CT policy:}
+		Tor Browser enforces a basic CT policy that requires promises of public
+		CT logging.
+	\item \textbf{Resilience towards misbehaving CT logs:}
+		Tor Browser is part of a Tor-wide auditing process that adds certificate
+		chains in independent CT logs.
+	\item \textbf{Detection of misbehaving CT logs:}
+		Tor Browser is part of a Tor-wide auditing process that exposes evidence
+		of CT logs that misbehaved.
+\end{enumerate}
+
+Following Google's suit to minimize CT breakage~\cite{does-ct-break-the-web},
+the first step is a leap in the right direction which detects mis-issued TLS
+certificates that are presented to Tor Browser users \emph{if all CT logs are
+honest}.  This is the same flawed assumption that the CA ecosystem relies on,
+and we already observed several instances of CT logs that misbehaved~%
+	\cite{izenpe-disqualified,venafi-disqualified,gdca1-omission}.
+Most recently, a compromised CT log signing key was reported for the first
+time~\cite{digicert-log-compromised}.
+
+To add \emph{resilience} against CT logs that misbehave, we propose a Tor-wide
+auditing process.  It is composed of a submission phase, a storage phase, and
+an auditing phase:
+	Tor Browser submits a presented certificate chain probabilistically to
+		a random Tor relay,
+	which in turn stores it temporarily before adding it to an independent CT
+		log that have yet to promise any public logging.
+As such, a certificate chain is likely to make it into the public domain
+\emph{if some independent CT logs are benign}.  Section~\ref{sec:todo} motivates
+why Tor's threat model makes it difficult to perform CT auditing straight-up
+from Tor Browser.  Therefore, Tor relays are part of the process.
+
+The basic design can be extended at the cost of different deployment trade-offs
+and trust assumptions, such that it is possible to \emph{detect CT logs that
+misbehaved} by omitting a certificate chain from the public.  We propose two
+orthogonal extensions.  First, a proposal that shifts trust from CT logs to CT
+auditors that are easier to diversify due to different operational
+requirements.  Second, a trivial extension of the base design that requires
+small, but significant, changes to the CT landscape in the form of an
+additional CT log endpoint.
+
+\subsection{Contribution and Structure}

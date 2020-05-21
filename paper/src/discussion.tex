@@ -5,6 +5,10 @@ At least mention privacy leaks to auditor. For example, related to CT logs
 uptime. Caching of already resolved SFOs at CTRs reduce leak to CT logs and
 auditors.
 
+Push popular SFO hashes via TB
+
+Tab-based caching (maybe not @privacy though)
+
 \subsection{Design}
 A CTR should be stable both to permit long-lived circuits to the CT logs and
 to increase the likelihood of them staying online.
@@ -31,7 +35,9 @@ not able to decrypt on its own to reduce risk of legal pressure on CTR
 operators.
 
 \subsection{CT Logs} \label{sec:discussion:logs}
-Current landscape, log independence, accepted roots, available software
+Current landscape, log independence, accepted roots~\cite{ct-root-landscape}
+
+(Non)available software.
 
 \subsection{Incremental Deployment}
 If $\texttt{ct-submit-pr} \gets 0$ and $\texttt{ct-max-sfo-bytes} \gets

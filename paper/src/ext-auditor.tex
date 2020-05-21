@@ -1,28 +1,26 @@
 \section{Auditor Extension} \label{sec:auditor}
-Until now we have not verified whether a certificate chain is logged as promised
-by any issued SCT.  Our base design can be extended to follow-up on inclusion
-statuses rather than opting for cross-logging.  In terms of
-the number of necessary changes, this extension is more significant when
-compared to Section~\ref{sec:log}.  However, it does not require any log
-modifications, and it entails additional ecosystem value by providing a
-well-audited view of the CT landscape which is captured by the Tor consensus.
-It is possible to detect internal inconsistency attacks within the Tor
-network and omission attacks.  Trust in some logs is also shifted towards CT
-auditors.
+Until now we have not \emph{verified} whether the certificate chain of an SFO is
+publicly logged as promised by the issued SCTs.  As such, it is unlikely that a
+misbehaving CT log will be detected.
+Our base design can be extended to follow-up
+on an SFO's inclusion status rather than adding the underlying certificate chain
+to another CT log.  This has the benefit of relaxing our initial trust
+assumption, namely that some CT logs are honest, as well as making it possible
+to disclose those CT logs that are dishonest.  The downside is added
+complexity, which introduces additional threats that must be considered.
 
 \subsection{Design Sketch} \label{sec:auditor:design}
 Figure~\ref{fig:auditor} provides an overview of the extended design.  Tor
 Browser submits presented SFOs probabilistically to CTRs that are selected at
-random, and CTRs mix the submitted SFOs before any auditing takes place.  Here,
-auditing refers to inclusion verification rather than cross-logging.  The moment
-before an SFO is audited, it is shared with a CTR that takes on the role of a
-\emph{watchdog}.  Unless the auditing CTR receives a timely inclusion proof and
-acknowledges it to its watchdog, the SFO in question is reported to a CT
-auditor.  Phase~1 remains unchanged, minor changes are needed in phase~2, and
-major changes are required in phase~3 as well as the Tor consensus.  The
-extra-info document also includes two additional metrics that are related to
-flooding (Section~\ref{sec:log}).  Another prerequisite is existence of
-CT auditors.
+random, and CTRs store the submitted SFOs before any auditing takes place.
+Here, auditing refers to inclusion verification rather than adding certificate
+chains.  The moment before auditing, the SFO in question is shared with a CTR
+that acts as a \emph{watchdog}.  Unless the auditing CTR receives a timely
+inclusion proof and acknowledges it to its watchdog, the (now suspicious) SFO is
+reported to a CT auditor.  Phase~1 remains unchanged, some changes are needed
+in phase~2, and major changes are required in phase~3 as well as the Tor
+consensus.  The extra-info document also includes two new metrics that are
+related to flooding.  Another prerequisite is the existence of CT auditors.
 
 \begin{figure*}
     \centering
@@ -39,7 +37,7 @@ CT auditors.
 
 \subsubsection{Tor Consensus} \label{sec:auditor:design:consensus}
 Tor's consensus should capture a fixed view of the CT landscape by publishing
-STHs from all recognized logs.  A log is recognized if a majority of directory
+STHs from all recognized logs.  A CT log is recognized if a majority of directory
 authorities proposed a \texttt{ct-log-info} item, which contains a log's ID,
 public key, base URL, MMD, and most recent STH.  Note that each directory
 authority proposes its own STH, and agrees to use the most recent STH as
@@ -49,79 +47,128 @@ Tor's consensus.
 
 Tor's directory authorities also majority-vote on \texttt{ct-auditor} items,
 which pin base URLs and public keys of CT auditors that watchdogs contact in
-case that any log misbehavior is suspected.  A watchdog triggers if the
-\texttt{ct-watchdog-timeout} elapses without acknowledgment.  The following
-auditor submission times-out if \texttt{ct-auditor-timeout} elapses.  These
-items are determined similar to the \texttt{ct-query-timeout} in
-Section~\ref{sec:base:consensus:params}.
+case that any log misbehavior is suspected.  A watchdog triggers if the time
+specified by \texttt{ct-watchdog-timeout} elapses without receiving any
+acknowledgment.  The following auditor submission is governed by a
+\texttt{ct-auditor-timeout}, which, if triggered, results in a resubmission
+later on.
 
-\subsubsection{Phase~2: Storage} \label{sec:auditor:design:phase2}
-A CTR cannot verify an SCT from an unrecognized log.
-Step~\ref{enm:ctr-api:unrecognized} in Section~\ref{sec:base:phase2} should
-therefore be updated so that unrecognized SCTs are discarded, stopping if no
-SCT remains in the resulting SFO.  If an SFO is neither cached nor pending,
-sample an SCT and note down the outcome and a corresponding
-\texttt{audit\_after} timestamp using Figure~\ref{fig:audit-after}.  The
-combination of SFO, sampled SCT outcome, and \texttt{audit\_after} timestamp is
-stored in the pending buffer.  We already explained in Section~\ref{sec:log}
-why it is important to take the log's MMD into account while computing
-\texttt{audit\_after} timestamps.  The justification of sampling an SCT is
-provided next in Section~\ref{sec:auditor:design:phase3}.
-
-\subsubsection{Phase~3: Auditing} \label{sec:auditor:design:auditing}
-The detailed auditing steps change to a large extent.  As such, we give a
-detailed description from scratch instead.
-
+\subsubsection{Phase~2---Storage} \label{sec:auditor:design:phase2}
+Other than updating the criteria of what it means that an SFO can be audited
+in phase~3, the computation of $l$ and $t$ changes for a buffer's entry.  With
+regards to some CT circuit, process an incoming SFO $s$ as follows:
 \begin{enumerate}
-	\item\label{enm:ctr:audit:backoff} Sample a uniform delay from
-			$[0, \texttt{ct-backoff}]$,
-		then schedule a timer and wait until that time elapsed.
-	\item\label{enm:ctr:audit:log-circuit} Establish a new circuit and use it
-		for all subsequent log connections.  Connect to the logs when needed.
-	\item\label{enm:ctr:audit:watchdog-circuit} Establish a new three-hop
-		circuit that ends at a randomly selected watchdog, i.e., another CTR.
-	\item\label{enm:ctr:audit:loop} Enumerate the buffer of pending SFOs with
-		regards to the sampled SCT and its associated STH:
+	\item\label{enm:ext:storage:close} Close the current circuit to enforce
+		one-time usage.
+	\item\label{enm:ext:storage:unrecognized} Discard unrecognized SCTs in $s$
+		whose logs have no corresponding \texttt{ct-log-info} items listed in
+		the Tor consensus.  Stop if there are no remaining SCTs in~$s$.
+	\item\label{enm:ext:storage:cached}
+		Stop if $s$ is cached or pending to be audited already.
+	\item\label{enm:ext:storage:fix-log} Sample a CT log $l$ that issued a
+		remaining SCT in~$s$.
+	\item\label{enm:storage:audit-after} Compute an \texttt{audit\_after}
+		time~$t$, see Figure~\ref{fig:audit-after}.
+	\item\label{enm:storage:store} Add $(l,t,s)$ to a buffer of pending SFOs.
+\end{enumerate}
+
+Recall from Section~\ref{sec:background:ct} that an inclusion proof is fetched
+with regards to an STH.  As such, we discard SCTs that cannot be verified due to
+lack of \texttt{ct-log-info} items in the Tor consensus.  The sampled CT log $l$
+now refers to an entity that issued an SCT in the submitted SFO, and it will be
+challenged to prove inclusion in phase~3 sometime after the
+\texttt{audit\_after} timestamp $t$ elapsed.  Figure~\ref{fig:audit-after} shows
+that $t$ takes the log's MMD into account.  This is one of two parts that
+prevent \emph{early signals} to the issuing CT logs that an SFO is being
+audited.  For example, if an SFO is audited before the MMD elapsed, the issuing
+CT log could simply merge the underlying certificate chain to avoid an MMD
+violation.  This would not yield any improvement with regards to the base
+design.
+
+\begin{figure}
+	\centering
+	\pseudocode[linenumbering, syntaxhighlight=auto]{%
+		\textrm{t} \gets \mathsf{now}() +
+			\mathsf{MMD} +
+			\mathsf{random}(\texttt{ct-delay-dist}) \\
+		\pcif \textrm{SCT.timestamp} + \textrm{MMD} <
+				\mathsf{now}():\\
+			\pcind\textrm{t} \gets \mathsf{now}() +
+				\mathsf{random}(\texttt{ct-delay-dist})
+	}
+	\caption{%
+		Algorithm that computes an \texttt{audit\_after} timestamp $t$.
+	}
+	\label{fig:audit-after}
+\end{figure}
+
+\subsubsection{Phase~3---Auditing} \label{sec:auditor:design:phase3}
+In addition to maintaining a single Tor circuit that is used to interact with
+CT logs that have \texttt{ct-log-items}, a distinct Tor circuit is maintained
+and rotated that ends at a random watchdog CTR.  Given a known CT log
+$l$:
+\begin{enumerate}
+	\item\label{enm:ext:auditing:backoff} Sample a delay $d \gets
+		\mathsf{random}(\texttt{ct-backoff-dist})$.
+	\item\label{enm:ext:auditing:sleep} Schedule a timer, waiting until $d$
+		time units elapsed.
+	\item\label{enm:auditing:loop} For each pending buffer entry $(l',s,t)$:
 		\begin{enumerate}
-			\item\label{enm:ctr:audit:too-soon} Continue the loop if
-				$\textrm{SFO}.\mathsf{audit\_after} > \mathsf{now}()$.
-			\item\label{enm:ctr:audit:too-soon2} Continue the loop if
-				$\textrm{SFO}.\mathsf{audit\_after} >
-					\textrm{STH}.\mathsf{timestamp}$.
-			\item\label{enm:ctr:audit:watchdog} Submit $s$ to the
-				watchdog selected in step~\ref{enm:ctr:audit:watchdog-circuit}.
-			\item\label{enm:ctr:audit:challenge} Use \texttt{ct-query-timeout}
+			\item\label{enm:ext:auditing:log-check}
+				Continue the loop if $l\ne l'$.
+			\item\label{enm:ext:auditing:timestamp-check} Continue the loop if
+				$t > \mathsf{now}()$.
+			\item\label{enm:ext:auditing:sth-check} Continue the loop if $t >
+				\textrm{STH}.\mathsf{timestamp}$.
+			\item\label{enm:ext:auditing:watchdog} Share $s$ with the current
+				watchdog.
+			\item\label{enm:ext:auditing:challenge} Use \texttt{ct-log-timeout}
 				and $\textrm{STH}.\mathsf{treesize}$ to set a timer and
 				challenge the log to prove inclusion.
 				\begin{itemize}
-					\item On valid proof: send an acknowledgment to the
-						watchdog, then cache $s$ and discard it.
-					\item On any other outcome: discard $s$ and break.
+					\item\label{enm:ext:auditing:challenge:success} On valid
+						proof: send an acknowledgment to the watchdog, then
+						cache $s$ and discard it.
+					\item\label{enm:ext:auditing:challenge:fail} On any other
+						outcome: discard $s$ and break.
 				\end{itemize}
 		\end{enumerate}
-	\item\label{enm:ctr:audit:teardown} Close all opened circuits and go back to
-		step~\ref{enm:ctr:audit:backoff}.
+	\item\label{enm:ext:auditing:restart} Go back to
+		step~\ref{enm:ext:auditing:backoff}.
 \end{enumerate}
 
-Each auditing instance uses a single watchdog, which takes on the responsibility
-of reporting suspected log misbehavior on any other outcome than valid inclusion
-proof.  It is motivated to use a watchdog because the attacker learns which
-CTR audits an SFO, and could likely take actions to intervene while the CTR
-waits for \texttt{ct-submit-timeout} to trigger (see
-Section~\ref{sec:ext-auditor:analysis}).  A watchdog's behavior is to listen for
-SFO submissions on a dedicated endpoint, and submit them to random CT auditors
-that are pinned in the Tor consensus if no timely acknowledgments are received.
-If an auditor is unavailable as indicated by timeouts, resubmit later on.
+An SFO is not audited for inclusion until the log's MMD elapsed \emph{and} there
+is an STH in the Tor consensus that captures it.  As such, a CT log that intends
+to omit a certificate chain despite promising to merge it within its MMD will
+not get an early signal that a CTR will audit it.
+Before auditing, the SFO in question is shared with a watchdog that takes on
+the responsibility of reporting suspicious SFOs to the pinned CT auditors.
+An SFO is considered suspicious if it is not acknowledged by the log-challenging
+CTR as verified within the time specified by \texttt{ct-watchdog-timeout}.  As
+argued in Section~\ref{sec:auditor:analysis:phase3}, it is motivated to use a
+watchdog:
+	the attacker learns which CTR holds the problematic SFO at the time of
+		auditing, and
+	during the \texttt{ct-log-timeout} actions could then be taken to ensure
+		that the SFO does not reach a CT auditor.
+A watchdog that receives a suspicious SFO reports it to a random CT auditor,
+and resubmits it later on if the \texttt{ct-auditor-timeout} happens to trigger.
 
-Note that an SFO's sampled SCT is not audited before the log's MMD elapsed
-\emph{and} there is an STH in the Tor consensus that captures it.  It is
-sufficient for CTRs to verify the inclusion status of a single SCT:
-	a rational attacker is the issuer of all SCTs, and
-	does not intend to hold its promises of merging in \emph{any} CT log.
-As such, we merely need to suspect omissions and then let CT auditors inspect
-all SCTs in the reported SFOs.
+\subsubsection{Extra-Info Document} \label{sec:auditor:extra-info}
+Following from the \texttt{audit\_after} timestamp algorithm in
+Figure~\ref{fig:audit-after}, an SFO may be stored throughout an entire MMD.
+This results in a relatively large time window during which the attacker can
+attempt to flood all CTRs in hope that they delete the omitted SFO at random
+before it is audited.  We discuss the threat of flooding further in
+Section~\ref{sec:auditor:analysis:phase2}, noting that it can be detected if
+CTRs publish two new metrics in the extra-info document:
+	\texttt{ct-receive-bytes} and
+	\texttt{ct-delete-bytes}.
+These metrics indicate how many SFO bytes were received and deleted throughout
+different time intervals, which is similar to other extra-info metrics such
+as \texttt{read-history}.
 
-\subsubsection{Phase~3: Auditor} \label{sec:auditor:design:auditor}
+\subsubsection{CT Auditor} \label{sec:auditor:auditor}
 An announced auditor is expected to accept SFOs at a dedicated endpoint,
 endeavoring to validate the inclusion status of each SCT with regards to the
 first STH in the Tor consensus that elapsed the log's MMD.  If a log appears to
@@ -129,7 +176,7 @@ function correctly except for some evidence that cannot be
 resolved despite multiple attempts that span a given time period, it is
 paramount that the auditor software alerts its operator who can investigate
 the issue further before submitting a full report to the CT-policy mailing list.
-Cases of misbehavior in detail:
+Cases of misbehavior, in detail:
 \begin{itemize}
 	\item If the log fails to provide a valid inclusion proof for an SCT with
 		regards to the first applicable STH in the Tor consensus
@@ -148,16 +195,23 @@ points.  Among other extra-info metrics that go beyond received and deleted
 SFO-bytes, it could be valuable to publish the extent to which CTR-to-log
 interactions fail.
 
-While not within our threat model, we do encourage the announced auditors to
-verify that STHs in the Tor consensus are consistent with external views of the
-CT landscape.  For example, operate an STH pollination~\cite{nordberg} endpoint
-and fetch STHs actively from many diverse vantage points using Tor, VPN
-services, DoH resolvers, and RIPE Atlas (to mention a few low-cost options).
-This goes back to the point of general ecosystem value.
+%While not within our threat model, we do encourage the announced auditors to
+%verify that STHs in the Tor consensus are consistent with external views of the
+%CT landscape.  For example, operate an STH pollination~\cite{nordberg} endpoint
+%and fetch STHs actively from many diverse vantage points using Tor, VPN
+%services, DoH resolvers, and RIPE Atlas (to mention a few low-cost options).
+%This goes back to the point of general ecosystem value.
+% => this is now a "forward point"
 
-\subsection{Security Analysis} \label{sec:auditor:design:analysis}
+\subsection{Security Analysis} \label{sec:auditor:analysis}
+\subsubsection{Phase~2---Storage} \label{sec:auditor:analysis:phase2}
+\subsubsection{Phase~3---Auditing} \label{sec:auditor:analysis:phase3}
 % MISC notes
 % - Network-wide flush, detectable but hard to attribute
 % - Requires new reliable auditor software
 % - Bit more bandwidth due to watchdog.  The overhead, when compared to log a
 % log extension, is sending an SCT hash and receiving a proof (2-3KiB).
+% - A rational attacker is the issuer of all SCTs in the omitted SFO, so it is
+% sufficient to verify inclusion with regards to one SCT and then leave it to
+% the auditors to bust all involved CT logs.
+
