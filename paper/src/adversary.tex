@@ -44,11 +44,11 @@ be blocked from accessing the current consensus STH\@.
 
 We use elements of the public Tor network in our design and thus
 consider attacks only on Tor Browser clients, but it would be
-straighforward to check certificates and SCTs received by other
+straightforward to check certificates and SCTs received by other
 clients by creating an API to submit these via our design. For
 purposes of this paper, we do not consider an attacker that attempts
 to offers one consistent version of a CT log via Tor and a different
-(consitent) version not via Tor.  Our design uses CT-auditing Tor
+(consistent) version not via Tor.  Our design uses CT-auditing Tor
 relays (CTRs) to periodically query CT logs for inclusion of
 certificates for which SCTs have been issued during client
 handshakes. The adversary obviously can issue fraudulent certificates
@@ -62,7 +62,7 @@ bandwidth, etc.
 
 Such a powerful adversary could be expected to succeed some of the
 time.  But, a CA caught issuing fraudulent certificates or a CT log
-caught failing to add certficates for issued SCTs will no longer be
+caught failing to add certificates for issued SCTs will no longer be
 included as trusted by browsers or network infrastructure. We thus
 assume that our adversary is risk-averse.  In particular, above a
 relatively low threshold probability of attack detection, the
@@ -74,7 +74,7 @@ For example, the adversary might possess adequate bandwidth to DoS
 individual CTRs for at least several hours, but a sustained DoS of all
 CTRs is out of scope because it would exceed Tor's threat model. An
 attack that attempts to overwhelm the storage capacity for SFOs at all
-CTRs would likely too visible, though see the discussion of flushing
+CTRs would likely be too visible, though see the discussion of flushing
 attacks below for details. Likewise an adversary may have access to a
 zero-day that could affect Tor Browser clients or a zero-day for some
 CTRs. But these should be considered expensive, and unlikely to be
