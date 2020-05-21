@@ -1,130 +1,65 @@
-\section{Adversary Model}
-\label{sec:adversary}
+\section{Threat Model} \label{sec:adversary}
+%
+% Attacker capabilities
+%
+We consider an attacker that controls
+	a CA,
+	enough CT logs to pass Tor Browser's SCT-centric CT policy, 
+	some Tor clients, and
+	a moderate fraction of Tor relays.
+For example, it is possible to
+	issues certificates and SCTs,
+	dishonor promises of public logging,
+	present split-views at will,
+	intercept and delay traffic from exit relays as well as controlled CT logs,
+		and
+	observe some Tor traffic.
+A subset of CTor entities can be subject to temporary Denial-of-Service (DoS),
+but not everyone at once and all the time.  In other words, we stay within the
+threat model of Tor and Tor Browser~\cite{tor,tor-browser}.  It is further
+assumed that the attacker knows all Tor relay configurations, e.g., available
+memory and torlog's logging setup.
 
-The primary goal of our adversary is to undetectably engage in
-misbehavior at TLS certificate authorities (CAs) and Certificate
-Transparency (CT) logs so that clients are deceived about which
-certificates are both valid and included in CT logs.  The two versions
-of the primary adversary goal are \emph{omission}, to not add a
-certificate to a CT log after promising to include it, and
-\emph{inconsistency}, to include two different certificates for a
-single domain in the same CT log by creating split versions of the
-log, one for each certificate.
+%
+% Attacker goal and mindset
+%
+Given that we are in the business of enforcing CT, the attacker needs to hide
+mis-issued TLS certificates and SCTs from entities that audit the CT landscape.
+As described in Section~\ref{sec:background:ct}, this can either be achieved by
+omission or inconsistency.  Our intended attacker is clearly powerful and may
+successfully issue a certificate chain and associated SCTs without detection
+some of the time, but, a CA caught in mis-issuance or a CT log that violated an
+MMD promise will no longer be regarded as trusted.  Therefore, we assume a
+\emph{risk-averse} attacker that above a relatively low probability of detection
+would be deterred from engaging in such activities.
 
-An omission attack causes a browser to accept a TLS certificate
-fraudulently issued by a misbehaving CA\@. Undetectability stems from
-doing so without creating the standard records in the Certificate
-Transparency system that could implicate this fraudulent CA behavior
-to anyone who checked.  In particular, this means the browser will
-receive a signed certificate timestamp (SCT) for the certificate,
-which is effectively a promise by a CT log to add that certificate to
-the log within a specified time. (CT logs are append-only, designed so
-that any deletion will be publicly visible.) The log will, however,
-not include the certificate. Thus, any monitor checking up on
-certificates issued for the target website will not find in the log
-evidence of the fraudulent certificate.
+%
+% - Our goal: detect TB HTTPS MitM
+% - Why: it is a reasonable prerequisite to conduct attacks against TB users
+%
+We want to minimize the existence of successful man-in-the-middle attacks
+against Tor Browser where it cannot be established if
+and how they were carried out.  The property of \emph{detection} is inherited
+from CT's threat model, which aims to remedy certificate mis-issuance
+\emph{after the fact}; not prevent it~\cite{ct/a}.  We
+focus on HTTPS traffic that Tor Browser generated because Tor is used to browse
+the normal (encrypted) web~\cite{mani}.  Note that it is generally
+\emph{difficult} to target a specific Tor Browser user due to Tor's anonymity,
+circuit isolation, and HTTPS everywhere.  However, targeting a subset of all
+users that visit a website is an eminent threat:
+	simply intercept traffic from an exit relay~\cite{spoiled-onions}.
+Once network traffic can be intercepted, it is trivial to serve an exploit to a
+subset of Tor Browser users and much easier to target an identifiable user.
+Such zero-day exploits are considered within our threat model because \emph{user
+exploitation} is the primary reason to conduct an attack against Tor Browser.
 
-An adversary might use an inconsistency attack to hide the issuance of
-a fraudulent certificate.  In principle, an inconsistency attack might
-involve no misbehavior on the part of any CA, however. For example, a
-site owner might validly obtain multiple certificates for its site from
-a single CA\@. A malicious CT log could hide this even while including
-each certificate in a different version of its log. We will assume 
-the adversary owns a CA, rather than explore whether any practical
-attacks could result from a weaker adversary that does not. 
-
-We assume a powerful adversary, one that controls a CA, one or more CT
-logs, some Tor clients and a moderate fraction of Tor network
-relays. The adversary remains within the threat model of Tor and 
-Tor Browser, however. The adversary cannot alter consensus values
-produced and authenticated from the directory authorities, including
-the current signed tree head (STH) for any CT log in Tor's trust store.
-Domain owners and others able to connect to the Tor network cannot
-be blocked from accessing the current consensus STH\@.
-
-We use elements of the public Tor network in our design and thus
-consider attacks only on Tor Browser clients, but it would be
-straighforward to check certificates and SCTs received by other
-clients by creating an API to submit these via our design. For
-purposes of this paper, we do not consider an attacker that attempts
-to offers one consistent version of a CT log via Tor and a different
-(consitent) version not via Tor.  Our design uses CT-auditing Tor
-relays (CTRs) to periodically query CT logs for inclusion of
-certificates for which SCTs have been issued during client
-handshakes. The adversary obviously can issue fraudulent certificates
-and SCTs. The attacks below describe how the adversary can identify
-within seconds the relay responsible for a query to a malicious log,
-and can hamper or prevent an identified CTR from reporting to
-third-party CT auditors.
-The adversary is expected to know the configuration and resources of
-all CTRs: their memory and processing capacities, maximum sustained
-bandwidth, etc. 
-
-Such a powerful adversary could be expected to succeed some of the
-time.  But, a CA caught issuing fraudulent certificates or a CT log
-caught failing to add certficates for issued SCTs will no longer be
-included as trusted by browsers or network infrastructure. We thus
-assume that our adversary is risk-averse.  In particular, above a
-relatively low threshold probability of attack detection, the
-adversary would prefer to avoid detection than to succeed in sending
-the SCT to a client without adding the certificate to the SCT-issuing
-CT log or maintaining multiple versions of that CT log. 
-
-For example, the adversary might possess adequate bandwidth to DoS
-individual CTRs for at least several hours, but a sustained DoS of all
-CTRs is out of scope because it would exceed Tor's threat model. An
-attack that attempts to overwhelm the storage capacity for SFOs at all
-CTRs would likely too visible, though see the discussion of flushing
-attacks below for details. Likewise an adversary may have access to a
-zero-day that could affect Tor Browser clients or a zero-day for some
-CTRs. But these should be considered expensive, and unlikely to be
-effective against CTRs.  The CTR (running which OS) that is relevant to a
-given attack cannot be known ahead of time. Thus the adversary would
-have to both be able to attack the connecting client and the CTR to
-which it is currently connected. And a zero-day that effectively
-allows the simultaneous takeover of all Tor relays is out of
-scope. Likewise the adversary may otherwise have the ability to take
-over or simply restart individual CTRs or groups of CTRs, but taking
-over or restarting all CTRs simultaneously or within several hours of
-each other is also out of scope.
-
-%\subsection{Attacks}
-%\label{sec:attacks}
-
-Even if communication between a CTR and a CT log is
-via Tor, by timing correlation of traffic exiting and entering the CTR
-with queries to and responses from an adversary-controlled CT log, an
-adversary might identify the CTR responsible for sending a log
-query. Tagging the CTR, however, so that the log can recognize queries
-the CTR sends is generally more certain and requires less effort.
-
-\noindent {\bf Tagging:} Since the adversary controls Tor clients and
-relays, it can regularly send many different SFOs to different
-CTRs. This means that, whatever the interval at which a CTR might
-request audit to a CT log, some adversary SCTs will have exceeded
-maximum merge delay (MMD) during each interval.  Thus, any SFOs a CTR
-sends to a CT log reflecting SCTs received that are now past the
-maximum merge delay (MMD) will include some SCTs that are unique to
-that CTR\@. (In this paper, we are not describing any of the designs
-we have considered that bounce some SCTs to other CTRs before querying
-logs. And avoiding tags by sending just one SCT per query connection
-will incur too much overhead.)
-
-\noindent {\bf Flooding:} The adversary might also attempt to
-eliminate the offending SCT from the CTR by flushing out its cache of
-all SCTs that are awaiting audit\@. (Or if flushing is not permitted,
-blocking, filling its cache so that the CTR will not accept new ones
-until the next audit.) 
-The adversary is not so powerful that it can observe all traffic to/from
-\emph{every} CTR, whether via owned adjacent Tor relays or local
-monitoring of the underlying network.  Thus, before any log has been
-queried, which SFO has been sent by an honest client to which honest
-CTR may not be known. To have an adequate guarantee of success, the
-adversary must thus flush or block all the CTRs in the network.
-
-
-
-%%% Local Variables: 
-%%% mode: latex 
-%%% TeX-master: "../main"
-%%% End:          
+%
+% Defer introducing threats that follow from design details
+%
+We identify additional threats that follow from our adversary model and
+design throughout the paper.  For example, the attacker may attempt to
+\emph{flood} a Tor relay's submission endpoint to the extend that some
+submission must be deleted, i.e., by posing as a Tor Browser user.  If enough
+submissions are deleted, the attacker builds up confidence that stored evidence
+of CA and CT log misbehavior will not be audited in phase~3
+(Section~\ref{sec:todo}).
