@@ -59,18 +59,19 @@ combination with the certificate in question to reconstruct the tree head in the
 log's original STH.
 
 \subsubsection{Status Quo}
-The CT ecosystem provides little or no value unless someone verifies that the
-logs play by the rules.  At minimum, there should be no omission and split-view
+The CT ecosystem provides a limited value unless it is verified that the logs
+play by the rules.  While browser vendors have a large say in policy aspects
+such as a log's uptime requirements and accepted trust anchors, it is evident
+that the most fundamental forms of cheating are omission and split-view
 attacks:
-	it would undermine detection of mis-issued certificates.
-Web browsers specify further policy requirements, such as uptime and trust
-anchor constraints~\cite{chrome-policy,safari-policy}.  A party that follows-up
-on inclusion and consistency proofs \emph{audits} the logs.  While 
-wide-spread existence of client-side auditing is a premise for CT logs to be
-untrusted, none of the CT-enforcing web browsers engage in such activities yet.
-CT also assumes that domain owners monitor the logs for mis-issuance by
-downloading added certificate chains.  Third-party monitors
-exist~\cite{ct-monitors}.
+	it would undermine detection of mis-issued TLS certificates.
+A party that follows-up on inclusion and consistency proofs is said to
+\emph{audit} the logs.  Wide-spread client-side auditing is a premise for CT
+logs to be untrusted, but none of the web browsers that enforce CT
+engage in such activities yet.  For example, it is difficult due privacy
+concerns~\cite{ct-with-privacy}.  CT also assumes that domain owners
+\emph{monitor} the logs for mis-issuance by inspecting the added
+certificates~\cite{lwm,ct-monitors}.
 
 \subsection{Tor} \label{sec:background:tor}
 Consensus, relays and their roles, Tor's threat model, Tor Browser's key
