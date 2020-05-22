@@ -1,7 +1,7 @@
 \section{Background} \label{sec:background}
 
 \subsection{Certificate Transparency} \label{sec:background:ct}
-The idea to transparency log TLS certificates emerged at Google in response to
+The idea to transparently log TLS certificates emerged at Google in response to
 a lack of proposals that could be deployed without drastic ecosystem changes
 and/or significant downsides~\cite{ct/a}.  In reality, CT is about logging
 certificate \emph{chains}:
@@ -10,7 +10,7 @@ certificate \emph{chains}:
 	anchor~\cite{ca-ecosystem}.
 The resulting certificate chain is composed of the domain owner's leaf
 certificate, the intermediate CA certificate, and the root CA certificate.
-Trust anchors are shipped in software, such as web browser and operating
+Trust anchors are shipped in software, such as web browsers and operating
 systems.
 
 \subsubsection{Cryptographic Foundation}
@@ -25,7 +25,7 @@ Given two tree sizes, a log can produce a \emph{consistency proof} that proves
 the newer tree head entails everything that the older tree head does.  As such,
 anyone can verify that the log is append-only without downloading all entries
 and recomputing the tree head.  Membership of an entry can also be proven
-by producing an \emph{inclusion proof} for an STH.  These proof techniques are
+by producing an \emph{inclusion proof} for an STH\@.  These proof techniques are
 formally verified~\cite{secure-logging-and-ct}.
 
 Upon a valid request, a log must add an entry and produce a new STH that covers
@@ -76,3 +76,8 @@ certificates~\cite{lwm,ct-monitors}.
 \subsection{Tor} \label{sec:background:tor}
 Consensus, relays and their roles, Tor's threat model, Tor Browser's key
 design goals (disk avoidance and no shared state)
+
+%%% Local Variables: 
+%%% mode: latex 
+%%% TeX-master: "../main"
+%%% End:          
