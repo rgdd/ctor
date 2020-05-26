@@ -1,3 +1,46 @@
-\section{Related Work} \label{sec:related}
-
 %Paul: mixing?
+% cite does-ct-break-the-web somewhere as motivation of TB's SCT CT policy
+\section{Related Work} \label{sec:related}
+Google's Chrome and Apple's Safari enforce CT by mandating that every TLS
+certificate must be accompanied by two independent
+SCTs~\cite{chrome-policy,safari-policy}.  We proposed that Tor Browser should
+follow suit, but, unlike any other web browser that enforces CT, CTor provides
+\emph{concrete next steps} that relax the centralized trust which is otherwise
+and evidently misplaced in CT logs~\cite{%
+	izenpe-disqualified,%
+	venafi-disqualified,%
+	gdca1-omission,%
+	digicert-log-compromised%
+}.
+
+%%%
+% Privacy preserving inclusion proofs
+%%%
+Laurie proposed that inclusion proofs could be fetched over DNS to avoid
+additional privacy leaks, i.e., a user's browsing patterns are already exposed
+to the DNS resolver but not the logs in the CT landscape~\cite{ct-over-dns}.
+CT/bis provides the option of serving stapled inclusion proofs as part of the
+TLS handshake in an extension, an OCSP response, or the certificate
+itself~\cite{ct/bis}.
+Lueks and Goldberg proposed that a separate database of inclusion proofs could
+be maintained that supports information-theoretic PIR~\cite{lueks-and-goldberg}.
+Kales~\emph{et~al.} improved scalability by reducing the size of each entry
+in the PIR database at the cost of transforming logs into multi-tier Merkle
+trees, and additionally, showed how the upper tier could be expressed as
+a two-server computational PIR database to ensure that any inclusion proof can
+be computed privately on-the-fly~\cite{kales}.
+Nordberg~\emph{et~al.} avoid inclusion proof fetching by hanging on to presented
+SFOs, handing them back to the same origin at a later time~\cite{nordberg}.
+
+In contrast, CTor assumes a stateless web browser that protects the user's
+privacy by submitting each SFO on an independent Tor circuit to a CTR, which in
+turn adds random noise before there is any log interaction to speak of.  The
+added noise is unlike CT-over-DNS, which otherwise shares some similarities
+with regards to client-wide caching.  On the premise that the database servers
+do not collude, PIR provides superior privacy properties.  Such a trust
+assumption is similar to today's SCT-centric CT policies, which CTor improves
+upon by adding \emph{resilience} as a base and \emph{detection} as extension.
+
+TODO: related work on STHs
+
+TODO: related work for Tor Browser
