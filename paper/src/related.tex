@@ -37,6 +37,25 @@ noise before there is any log interaction to speak of.  The use of CTRs
 enable caching similar to CT-over-DNS, but it does not put the logs in the dark
 like PIR could.
 
-TODO: related work on STHs
+Meaningful inclusion proof fetching requires that everyone observes the same
+set of consistent STHs.
+One option is to configure client software with a list of entities that they
+should gossip with, e.g., CT monitors~\cite{chase}.
+Such trusted auditor relationships may work for some but not
+others~\cite{nordberg}.
+Chuat~\emph{et~al} proposed that HTTPS clients and HTTPS servers could pool
+STHs and consistency proofs which are gossiped on website visits~\cite{chuat}.
+Nordberg~\emph{et~al.} suggested a similar variant, reducing the risk of user
+tracking by pooling fewer and recent STHs~\cite{nordberg}.
+Dahlberg~\emph{et~al.} noted that such privacy-insensitive STHs need not be
+encrypted, which could enable network operators to use programmable data planes
+to provide gossip as-a-service~\cite{dahlberg}.
+Syta~\emph{et~al.} proposed an alternative to reactive gossip mechanism by
+showing how an STH can be cosigned efficiently by many independent
+witnesses~\cite{syta}.
+A scaled-down version of witness cosigning could be instantiated by
+cross-logging STHs in other CT logs~\cite{minimal-gossip},
+or, in other append-only ledgers~\cite{catena}.
+TODO: concretely how this relates to ctor
 
 TODO: related work for Tor Browser
