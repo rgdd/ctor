@@ -11,7 +11,8 @@ and evidently misplaced in CT logs~\cite{%
 	venafi-disqualified,%
 	gdca1-omission,%
 	digicert-log-compromised%
-}.
+}.  Several proposals surfaced that aim to do better than today's CT
+policies, targeting omissions and split-views.
 
 %%%
 % Privacy preserving inclusion proofs
@@ -66,6 +67,9 @@ Tor consensus.  In contrast, the base design is not about catching log
 misbehavior, and the extended design in Section~\ref{sec:log} exposes logs
 that misbehave \emph{without} fetching inclusion proofs.
 
+%%%
+% Other work that is closely related to our approach
+%%%
 Nordberg proposed that Tor clients could enforce public logging of consensus
 documents and votes~\cite{consensus-transparency}.  Such an initiative is
 mostly orthogonal to CTor, as it strenghtens the assumption of a secure Tor
