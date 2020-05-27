@@ -31,15 +31,11 @@ a two-server computational PIR database to ensure that any inclusion proof can
 be computed privately on-the-fly~\cite{kales}.
 Nordberg~\emph{et~al.} avoid inclusion proof fetching by hanging on to presented
 SFOs, handing them back to the same origin at a later time~\cite{nordberg}.
-
-In contrast, CTor assumes a stateless web browser that protects the user's
-privacy by submitting each SFO on an independent Tor circuit to a CTR, which in
-turn adds random noise before there is any log interaction to speak of.  The
-added noise is unlike CT-over-DNS, which otherwise shares some similarities
-with regards to client-wide caching.  On the premise that the database servers
-do not collude, PIR provides superior privacy properties.  Such a trust
-assumption is similar to today's SCT-centric CT policies, which CTor improves
-upon by adding \emph{resilience} as a base and \emph{detection} as extension.
+In contrast, CTor protects the user's privacy without any persited browser state
+by submitting SFOs on independent Tor circuits to CTRs, which in turn add random
+noise before there is any log interaction to speak of.  The use of CTRs
+enable caching similar to CT-over-DNS, but it does not put the logs in the dark
+like PIR could.
 
 TODO: related work on STHs
 
