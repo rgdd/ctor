@@ -66,4 +66,16 @@ Tor consensus.  In contrast, the base design is not about catching log
 misbehavior, and the extended design in Section~\ref{sec:log} exposes logs
 that misbehave \emph{without} fetching inclusion proofs.
 
-TODO: related work for Tor Browser
+Nordberg proposed that Tor clients could enforce public logging of consensus
+documents and votes~\cite{consensus-transparency}.  Such an initiative is
+mostly orthogonal to CTor, as it strenghtens the assumption of a secure Tor
+consensus by enabling detection of compromised signing keys rather than
+mis-issued TLS certificates.  Winter~\emph{et~al.} proposed that Tor Browser
+could check self-signed TLS certificates for extact matches on independent Tor
+circuits.  Alicherry~\emph{et~al.} proposed that any web browser could
+double-check TLS certificates on first encounter using alternative paths and
+Tor, again, looking for certificate mismatches and generating warnings of
+possible man-in-the-middle attacks~\cite{doublecheck}.  The submission phase in
+CTor is similar to such double-checking, expect that there is no normal-case TLS
+handshake blocking, browser warnings, or strict assumptions regarding the
+attacker's location.
