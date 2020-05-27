@@ -38,12 +38,16 @@ Tor’s consensus. In a sense, this system is a consensus mechanism for CT logs.
 
 The main limitation of CTor in terms of privacy is that CTor continuously leaks
 to CT logs, and to auditors in the case of the auditor extension
-(Section~\ref{sec:auditor}), all certificates of websites visited using TB to
-the relatively small number of operators of CT logs. In some ways, this is
-similar to how OCSP validation by TB and DNS resolution at exit-relays give
-relative few operators of such infrastructure insight into TB
-browsing~\cite{TorDNS}. Arguably, DNS and OCSP are worse due to their real-time
-nature.
+(Section~\ref{sec:auditor}), a fraction of certificates of websites
+visited using TB to the relatively small number of operators of CT
+logs.  This provides to a CT log a partial list of websites visited
+via the Tor network over a period of a few days, together with some
+indication of distribution based on the number of active CTRs. It does
+not, however, provide even pseudonymously any information about which
+sites individual users visit, much less with which patterns or timing.
+As such it leaks significantly less information than does OCSP
+validation by TB or DNS resolution at exit-relays~\cite{TorDNS}, both
+of which indicate visit activity in real time.
 
 \subsection{Circuit overhead}
 Let $p$ be the probability that Tor Browser submits an SFO to a sampled CTR on a
@@ -218,3 +222,8 @@ Ext:log appealing to make CT logs accountable
 Ext:auditor also appleaing due to ecosystem value
 
 Alternatively, goes in conclusion + impactful tor research
+
+%%% Local Variables: 
+%%% mode: latex 
+%%% TeX-master: "../main"
+%%% End:          
