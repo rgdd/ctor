@@ -51,7 +51,7 @@ The existing \texttt{known-flags} item determines the different flags that a
 given consensus document might contain.  We add another flag named \texttt{CTR},
 which indicates that a Tor relay should support CT-auditing as described in
 Sections~\ref{sec:base:phase2}--\ref{sec:base:phase3}.  A relay qualifies as a
-CTR if it is flagged as \texttt{stable} and \texttt{middle}.  As such, we
+CTR if it is flagged as \texttt{Stable} and not \texttt{Exit}.  As such, we
 suggest using resources that are more abundant when compared to, e.g., exit
 bandwidth.  A relay is assigned the \texttt{CTR} flag if a majority of directory
 authorities voted for it.
