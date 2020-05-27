@@ -45,13 +45,14 @@ from CT's threat model, which aims to remedy certificate mis-issuance
 focus on HTTPS traffic that Tor Browser generated because Tor is used to browse
 the normal (encrypted) web~\cite{mani}.  Note that it is generally
 \emph{difficult} to target a specific Tor Browser user due to Tor's anonymity,
-circuit isolation, and HTTPS everywhere.  However, targeting a subset of all
+circuit isolation, and HTTPS everywhere.  However, targeting some or all 
 users that visit a website is an eminent threat:
-	simply intercept traffic from an exit relay~\cite{spoiled-onions}.
+	simply intercept traffic from an exit relay or
+	upstream of the website.
 Once network traffic can be intercepted, it is trivial to serve an exploit to a
 subset of Tor Browser users and much easier to target an identifiable user.
-Such zero-day exploits are considered within our threat model because \emph{user
-exploitation} is the primary reason to conduct an attack against Tor Browser.
+Such zero-day exploits are considered in our threat model because \emph{user
+exploitation} is the primary reason to attack Tor Browser.
 
 %
 % Defer introducing threats that follow from design details
