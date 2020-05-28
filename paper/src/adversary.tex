@@ -6,7 +6,7 @@ We consider an attacker that controls
 	a CA,
 	enough CT logs to pass Tor Browser's SCT-centric CT policy, 
 	some Tor clients, and
-	a moderate fraction of Tor relays.
+	a fraction of Tor relays.
 For example, it is possible to
 	issues certificates and SCTs,
 	dishonor promises of public logging,
@@ -14,14 +14,15 @@ For example, it is possible to
 	intercept and delay traffic from controlled exit relays as well as CT logs,
 		and
 	be partially present in the network.
-Note that this includes a weaker attacker that does not \emph{control} CAs and
-CT logs, but, who gained access to their signing
-keys~\cite{turktrust,gdca1-omission}.
-A subset of CTor entities can be subject to DoS, but not everyone at once and
-all the time.  In other words, we consider the threat model of Tor and Tor
-Browser as a starting point~\cite{tor,tor-browser}.  It assumed that the
-attacker knows all Tor relay configurations, e.g., available memory and setup of
-torlog.
+This includes a weaker attacker that does not \emph{control} CAs and CT logs,
+but, who \emph{gained access} to the relevant signing keys~\cite{turktrust,%
+gdca1-omission}.  A modest fraction of CTor entities can be subject to DoS, but
+not everyone at once and all the time.  In other words, we consider the threat
+model of Tor and Tor Browser as a starting point~\cite{tor,tor-browser}.  Any
+attacker that can reliably disrubt CT and/or Tor to such a large extent is
+therefore not accounted for in our work.
+% TODO: not sure if we need to emph "it assumed that the attacker knows all Tor
+% relay configurations, e.g., available memory and setup of torlog". now (?).
 
 %
 % Attacker goal and mindset
@@ -60,11 +61,7 @@ exploitation} is the primary reason to attack Tor Browser.
 %
 % Defer introducing threats that follow from design details
 %
-We identify additional threats that follow from our adversary model and
-design throughout the paper.  For example, the attacker may attempt to
-\emph{flood} a Tor relay's submission endpoint to the extent that some
-submission must be deleted, i.e., by posing as a Tor Browser user.  If enough
-submissions are deleted, the attacker builds up confidence that stored evidence
-of CA and CT log misbehavior will not be audited in phase~3
-(Section~\ref{sec:todo}).
-% TODO: maybe forward ref tagging too
+We identify additional threats that follow from our adversary model and design
+in the security analysis.  Namely, attack vectors related to
+	timing (Section~\ref{sec:analysis:pr:phase1}) as well as
+	Tor relay tagging and flooding (Section~\ref{sec:auditor:analysis}).
