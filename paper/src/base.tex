@@ -64,12 +64,10 @@ a base URL~\cite{ct,ct/bis}.
 Following from our basic CTR design, there need not be any overlap between the
 logs that the Tor consensus recognizes when compared to Tor Browser's CT policy.
 There could be overlap, however.  The ideal scenario is that there are many
-independent logs that accept certificate chains for most trust anchors.
-
-For now, we do not provide any details as to how the Tor consensus captures
-whether two logs are independent or which trust anchors they accept.
-Section~\ref{sec:discussion:logs} discusses this and other related
-considerations further.
+independent logs that accept certificate chains for most trust anchors.  We
+discuss whether this is currently the case or not in Section~\ref{sec:todo}.  In
+favor of brevity, details on how the Tor consensus captures whether two logs are
+independent and which trust anchors they accept are omitted.
 
 \subsubsection{Other Parameters} \label{sec:base:consensus:params}
 Directory authorities influence the way in which Tor Browser and CTRs behave by
