@@ -11,14 +11,6 @@ if it is digitally signed by a Certificate Authority (CA) that the browser
 trusts. Each CA is trusted to certify (sign) that specific cryptographic
 key-material as part of a certificate belongs to a particular domain name.
 
-It used to be costly to obtain a widely trusted certificate in the past, but
-Let's Encrypt significantly reduced the barrier towards HTTPS everywhere by
-providing free and automated certificate issuance since its launch as a
-non-profit CA in 2015~\cite{le}. The current mindset of encryption as default is
-evident by other ongoing initiatives too, such as modern web browsers moving
-from positive to negative security indicators~\cite{chrome-ui,firefox-ui} and
-the rapid deployment of TLS version 1.3~\cite{rapid-tls13}.
-
 The CA trust model suffers from \emph{weakest-link} security: web browsers trust
 hundreds of CAs, and it is enough to compromise a single CA to get a certificate
 mis-issued in the name of a target domain~\cite{ca-ecosystem,https-sok}.
