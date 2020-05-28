@@ -129,10 +129,8 @@ that some operators are honest.
 
 \subsection{Contribution and Structure}
 Section~\ref{sec:background} provides necessary background on CT and Tor. Our
-adversary model is specified in detail in Section~\ref{sec:adversary}, taking
-into account the threat models of both Tor and CT\@. We also present two
-categories of attacks that are central to our setting: flooding and tagging
-attacks.
+threat model is described in detail in Section~\ref{sec:adversary}, taking into
+account the threat models of both Tor and CT\@.
 
 Section~\ref{sec:base} presents the base design of CTor that enables TB to
 probabilistically provide evidence to CT logs that it has been presented with a
@@ -142,7 +140,7 @@ the issuing CA may get revoked from the trust store of browsers, the domain name
 in question (as part of the certificate) is made public, and awareness of the
 event may draw unwanted attention. Our security analysis, in
 Section~\ref{sec:analysis}, shows that one of the best bets for an attacker may
-be to attack the entire Tor network: an act that in itself will draw much
+be to attack the entire Tor network: an act that in itself may draw unwanted
 attention.
 
 Two extensions to the base CTor design are presented in
@@ -157,10 +155,14 @@ CT log ecosystem available from Tor's consensus. This view could be used as the
 basis for trust by other browsers, greatly improving the security posture of the
 entire web.
 
-% FIXME: beef out once we're set on content
-Section~\ref{sec:trade-offs} presents trade-offs in parameter selection for
-CTor, followed by a wider discussion of CTor in Section~\ref{sec:discussion} and
-conclusions in Section~\ref{sec:conclusion}.
+Section~\ref{sec:performance} estimates performance aspects of our designs,
+including estimated circuit overhead and estimated load on the Tor network.
+Privacy aspects of our design choices are covered in Section~\ref{sec:privacy},
+with a focus on the essential role of the distributed nature of the Tor network
+in both preserving privacy of Tor users as well as the overall security of our
+proposed designs. In gist, a similar approach would not work without Tor, e.g.,
+if integrated into Google Chrome. Finally, Section~\ref{sec:related} covers
+related work and Section~\ref{sec:conclusion} concludes this paper.
 
 %%% Local Variables: 
 %%% mode: latex 
