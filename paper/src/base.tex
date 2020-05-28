@@ -104,8 +104,6 @@ median of all votes.
 		random time intervals to spread out log overhead.
 \end{description}
 
-TODO: mixing relation goes here
-
 The parameter \texttt{ct-delay-dist} is fulfilling two goals by adding
 a randomized delay to the time a CTR should wait before auditing a
 submitted SFO\@. For the base design, if a client visits a website and
@@ -120,15 +118,38 @@ leakage. But both of these are primarily for overhead and perfomance,
 and the latter is only on the order of minutes. \texttt{ct-delay-dist}
 provides a guarantee of behavior obfuscation. 
 
-For the auditor extension of Section~\ref{sec:auditor} and log
-extension of Section~\ref{sec:log}, \texttt{ct-delay-dist} provides
-some protection against flooding attacks. Since the available
-memory of a CTR is known, by flooding that CTR with enough SFOs
-before MMD of a mis-issued SCT, the adversary could flush the
-desired SFO from the CTR and it would thus never be audited.
-Also, if SFOs were audited in order received or precisely upon
-reaching MMD, then by sending crafted SFOs to a CTR an adversary
-could know by seeing audits for those whether 
+For the base design, as well as the auditor extension of
+Section~\ref{sec:auditor} and log extension of Section~\ref{sec:log},
+\texttt{ct-delay-dist} provides some protection against flooding
+attacks. Since the available memory of a CTR is known, by flooding
+that CTR with enough SFOs before MMD of a mis-issued SCT, the
+adversary could flush the desired SFO from the CTR and it would thus
+never be audited.  Also for the extensions, if SFOs were audited as
+soon as MMD was reached, then an adversary could be more efficient
+about knowing when to flood the CTR\@ This could possibly even make
+flooding of all CTRs in the network feasible. Even if auditing order
+were randomized among all SFOs within an exact interval after MMD (a
+timed mix), when to flood a CTR would be predictable. Adding a
+randomized delay makes something akin to a stop-and-go mix, except
+that the delay time is set by the CTR not the client, which is fine
+since this aspect is not to protect client identity but to resist DoS
+of SFO audit. Consult the literature~\cite{trickle02} for a description
+of mix types.
+
+If the storage strategy against flooding favored preserving SFOs
+already at the CTR by dropping inbound SFOs or those farthest from
+auditing, the adversary could optimize flooding to just before or
+shortly after the mis-issued SFO is sent. If the storage strategy
+against flooding favored not blocking incoming SFOs by dropping those
+closest to being audited, then the adversary could optimize flooding
+to after the mis-issued SFO is sent and as close to MMD as will make
+flushing of it likely. To prevent useful optimization of flooding,
+when storage capacity at a CTR is exceeded we thus select randomly
+from among the pool of received SFOs regardless of time till audit.
+And \texttt{ct-delay-dist} similarly complicates any attempted
+optimization of when to flood a CTR, thus increasing average cost
+of any such DoS attack for the adversary.
+
 
 \subsection{Phase~1---Tor Browser} \label{sec:base:phase1}
 The first phase covers Tor Browser and how an SFO is validated in the TLS
