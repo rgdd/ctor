@@ -69,19 +69,19 @@ logs into an account at the service associated with its identity and that the
 attacker can now observe.
 
 \subsection{Introducing CTor}
-In this paper, we propose an incremental design which we refer to as CTor. CTor
-brings CT to Tor by modifying both how TB and relays in the Tor network work.
-The goal is to make impersonation and man-in-the-middle attacks on HTTPS
-connections \emph{detectable after the fact} when they are carried out by a
-powerful attacker that:
-\begin{itemize}
+In this paper, we propose an incremental and privacy-preserving design which we
+refer to as CTor. CTor brings CT to Tor by modifying both how TB and relays in
+the Tor network work. The goal is to make impersonation and man-in-the-middle
+attacks on HTTPS connections \emph{detectable after the fact} when they are
+carried out by a powerful attacker that:
+\begin{enumerate}
 	\item can acquire a forged certificate from a trusted CA,
 	\item with the necessary forged cryptographic proofs from CT logs so that TB
 	accepts the certificate as valid (with no intent of making the forged
 	certificate publicly available in a CT log), and
 	\item has the capability to fully gain control of TB shortly after the
 	establishment of the HTTPS connection.
-\end{itemize}
+\end{enumerate}
 
 Our base CTor design uses the CT log ecosystem against the attacker to ensure a
 non-zero (tweakable) probability of detection of the forged certificate. This is
@@ -90,13 +90,12 @@ those directly inferable as under attacker control (due to the accompanying
 proofs). TB uses modified relays to cache and interact with CT logs for the sake
 of privacy, ensuring that CT log operators (such as Google and Cloudflare) do
 not get a real-time feed of all browsing activities from TB (beyond what their
-privileged position on the Internet already provides them~\cite{TorDNS}). 
-% FIXME: some other source would be good above, have to mention DNS to make
-% current one make sense
+privileged position on the Internet already provides
+them~\cite{1mtrack,TorDNS}). 
 
-Beyond the base CTor design we present two extensions. Both extensions have in
-common that their goal is to make transparent the forged cryptographic proofs
-from attacker-controlled CT logs used to get TB to accept malicious HTTPS
+In addition to the base CTor design we present two extensions. Both extensions
+have in common that their goal is to make transparent the forged cryptographic
+proofs from attacker-controlled CT logs used to get TB to accept malicious HTTPS
 connections. Such a proof would likely immediately disqualify each offending CT
 log and thus come and great cost to the attacker in terms of lost capability.
 Even a small probability of detection may entail unacceptable risk at such a
