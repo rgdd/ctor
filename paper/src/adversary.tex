@@ -11,14 +11,17 @@ For example, it is possible to
 	issues certificates and SCTs,
 	dishonor promises of public logging,
 	present split-views at will,
-	intercept and delay traffic from exit relays as well as controlled CT logs,
+	intercept and delay traffic from controlled exit relays as well as CT logs,
 		and
-	observe some Tor traffic.
-A subset of CTor entities can be subject to temporary Denial-of-Service (DoS),
-but not everyone at once and all the time.  In other words, we stay within the
-threat model of Tor and Tor Browser~\cite{tor,tor-browser}.  It is further
-assumed that the attacker knows all Tor relay configurations, e.g., available
-memory and torlog's logging setup.
+	be partially present in the network.
+Note that this includes a weaker attacker that does not \emph{control} CAs and
+CT logs, but, who gained access to their signing
+keys~\cite{turktrust,gdca1-omission}.
+A subset of CTor entities can be subject to DoS, but not everyone at once and
+all the time.  In other words, we consider the threat model of Tor and Tor
+Browser as a starting point~\cite{tor,tor-browser}.  It assumed that the
+attacker knows all Tor relay configurations, e.g., available memory and setup of
+torlog.
 
 %
 % Attacker goal and mindset
@@ -26,7 +29,7 @@ memory and torlog's logging setup.
 Given that we are in the business of enforcing CT, the attacker needs to hide
 mis-issued TLS certificates and SCTs from entities that audit the CT landscape.
 As described in Section~\ref{sec:background:ct}, this can either be achieved by
-omission or inconsistency.  Our intended attacker is clearly powerful and may
+omission or slit-view attacks.  Our intended attacker is clearly powerful and may
 successfully issue a certificate chain and associated SCTs without detection
 some of the time, but, a CA caught in mis-issuance or a CT log that violated an
 MMD promise will no longer be regarded as trusted.  Therefore, we assume a
