@@ -1,6 +1,8 @@
 % allow URL breaks on dashes
 \def\UrlBreaks{\do\/\do-}
 
+\usepackage[dvipsnames]{xcolor}
+
 % math environment
 \usepackage{mathtools}
 \usepackage{amsmath}
@@ -29,6 +31,12 @@
 \definecolor{rgddDred}{HTML}{E04644}
 \definecolor{rgddDgreen}{HTML}{008000}
 \definecolor{rgddDblue}{HTML}{2809B2}
+
+\hypersetup{
+  colorlinks,
+  citecolor=MidnightBlue,
+  linkcolor=MidnightBlue,
+  urlcolor=MidnightBlue}
 
 % custom commands
 \newcommand{\TODO}[1]{\textcolor{red}{TODO:} \emph{#1}}
