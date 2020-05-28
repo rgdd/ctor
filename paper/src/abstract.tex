@@ -1,0 +1,29 @@
+The security of the web has greatly improved in the last couple of years. HTTPS
+is now the new default, with browsers moving towards warning when unencrypted
+connections are made. The Certificate Authority (CA) system has also been
+greatly improved. In particular, the advent of mandatory Certificate
+Transparency (CT) logging of all issues certificates by CAs---enforced by web
+browsers---has made the weakest-link setting of the CA system more sustainable.
+However, Tor and in particular Tor Browser, based on Firefox, is missing support
+for CT. This leaves millions of daily Tor users without direct gain from the
+improvements made by the CT ecosystem. 
+
+In this paper, we investigate designs for adding incremental and
+privacy-preserving support for CT in Tor. Our designs go beyond the support
+found in browsers like Google Chrome or Apple's Safari: we aim to make it
+possible for cryptographic evidence of CA and/or CT log misbehavior to become
+public, when such misbehavior is done to man-in-the-middle or impersonate HTTPS
+connections from Tor Browser. Our base design can probabilistically detect CA
+misbehavior while reducing privacy leaks of browsing behavior of Tor Browser
+users through the use of distributed reporting of observed certificates with the
+help of Tor network relays.
+
+We also present two possible extensions to our base design that can also detect
+CT log misbehavior. One extension makes a slight change to the API and operation
+of CT logs, the other adds more complexity to Tor but in turn completely removes
+all trust placed in CT log operators. Detecting CT log misbehavior is
+particularly important for the wider web, since CT as currently deployed lacks
+strong mechanisms necessary for reducing trust in CT log operators. In a sense,
+we turn Tor into a system for maintaining a probabilistically-audited
+cryptographically-verifiable view of the entire CT log ecosystem available from
+Tor’s consensus.
