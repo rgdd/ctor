@@ -76,8 +76,9 @@ connections \emph{detectable after the fact} when they are carried out by a
 powerful attacker that:
 \begin{itemize}
 	\item can acquire a forged certificate from a trusted CA,
-	\item with the necessary cryptographic proofs from CT logs so that TB
-	accepts the certificate as valid, and
+	\item with the necessary forged cryptographic proofs from CT logs so that TB
+	accepts the certificate as valid (with no intent of making the forged
+	certificate publicly available in a CT log), and
 	\item has the capability to fully gain control of TB shortly after the
 	establishment of the HTTPS connection.
 \end{itemize}
