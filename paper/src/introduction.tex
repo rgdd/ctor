@@ -29,41 +29,44 @@ require cryptographic proof from the server that the presented certificate has
 been included into CT logs trusted by the browser. Notable browsers with
 mandatory CT support by default are Google Chrome and Apple's Safari
 \cite{chrome-policy,safari-policy}. Unfortunately, Mozilla's Firefox lacks
-support but has a partially complete implementation.
-% TODO: do we want to source/rephrase this?
+support but has a partial implementation.
 
-Firefox is the basis for Tor Browser (TB) from the Tor Project~\cite{tor}. TB
-enables anyone to browse the web anonymously by relaying traffic between browser
-and web server through the Tor network, consisting of thousands of voluntary-run
-relays across the globe. There are many techniques an attacker can use to
-attempt to deanonymize a TB user, such as end-to-end correlation attacks or
-other forms of traffic analysis~\cite{tor,FIXME}. 
+Beyond security on the web, anonymous access to the web has also matured. In
+particular, Tor with its Tor Browser (TB) today have millions of daily users
+\cite{tor,mani}, and effort is ongoing into maturing the technology for wider
+use\footnote{\url{https://web.archive.org/web/20200528174708/https://mozilla-research.forms.fm/mozilla-research-grants-2019h1/forms/6510}}.
+The basis of TB is Firefox, where TB then enables anyone to browse the web
+anonymously by relaying traffic between browser and web server through the Tor
+network, consisting of thousands of voluntary-run relays across the globe. 
 
-One common deanonymization technique---known to be used in practice by, e.g., law
-enforcement---is to compromise TB instead of directly circumventing the anonymity
-provided by the Tor network~\cite{FIXME}. Modern web browsers like TB (Firefox)
-are one of the most complex types of software in wide use today. This complexity
-and wide use leads to security vulnerabilities and incentives for exploitation.
-For example, the exploit acquisition platform Zerodium offers up to \$100,000
-for a zero-day exploit against Firefox that leads to remote code execution and
-local privilege
+Just like attackers may be interested in breaking HTTPS, attackers are
+interested in breaking the anonymity provided by Tor with the goal of
+deanonymizing users. One common deanonymization technique, known to be used in
+practice by, e.g., law enforcement, is to compromise TB instead of directly
+circumventing the anonymity provided by the Tor
+network\footnote{\url{https://web.archive.org/web/20200528175225/https://zerodium.com/tor.html}}.
+Modern web browsers like TB (Firefox) are one of the most complex types of
+software in wide use today. This complexity and wide use leads to security
+vulnerabilities and incentives for exploitation. For example, the exploit
+acquisition platform Zerodium offers up to \$100,000 for a zero-day exploit
+against Firefox that leads to remote code execution and local privilege
 escalation\footnote{\url{https://web.archive.org/web/20200521151311/https://zerodium.com/program.html}}
 (i.e., full control of the browser for the attacker).
 
 An attacker that wishes to use such an exploit to compromise and then ultimately
-deanonymize a TB user has to deliver the exploit to TB\@. Since the web is mostly
-encrypted today, this primarily has to happen over an HTTPS connection, where the
-attacker controls the content returned by the web server. While there are a
-number of possible ways for an attacker to accomplish this (e.g., by
+deanonymize a TB user has to deliver the exploit to TB\@. Since the web is
+mostly encrypted today, this primarily has to happen over an HTTPS connection,
+where the attacker controls the content returned by the web server. While there
+are a number of possible ways for an attacker to accomplish this (e.g., by
 compromising a web server that the target TB user connects to), one option is to
-\emph{impersonate} a web server by acquiring a fraudulent certificate. Due to the
-Tor network being run by volunteers, getting into a position for performing such
-an attack is relatively straightforward (the attacker can volunteer to run
+\emph{impersonate} a web server by acquiring a fraudulent certificate. Due to
+the Tor network being run by volunteers, getting into a position for performing
+such an attack is relatively straightforward (the attacker can volunteer to run
 malicious relays~\cite{spoiled-onions}). The same is true for an attacker that
 wishes to \emph{man-in-the-middle} connections made by TB users. In such a case,
 a TB exploit may not even be needed to deanonymize the user; e.g., if the user
-logs into an account at the service associated with its identity 
-and that the attacker can now observe.
+logs into an account at the service associated with its identity and that the
+attacker can now observe.
 
 \subsection{Introducing CTor}
 In this paper, we propose an incremental design which we refer to as CTor. CTor
