@@ -1,30 +1,32 @@
 \section{Design} \label{sec:base}
-Unfortunately, this design is not as straightforward as completing
-Mozilla's partial implementation in Firefox, enabling it in TB and having TB
-directly query CT logs. Real-time interaction with CT logs by TB with little to
+Unfortunately, this design is not as straightforward as completing Mozilla's
+partial implementation in Firefox, enabling it in TB and having TB directly
+query CT logs. For one, real-time interaction with CT logs by TB with little to
 no caching leads to CT log operators (e.g., Google and Cloudflare that are major
 operators) getting an unacceptably centralized degree of insight into TB usage
 across the entire network. Adding caching or delays to TB is non-trivial due to
-TB's security and privacy design goals~\cite{FIXME}. In particular, the
-\emph{state separation},
+TB's security and privacy design goals (see Section~\ref{sec:background}). In
+particular, the \emph{state separation},
 \emph{cross-origin identifier unlinkability} and \emph{long-term unlinkability}
 goals rule out a large number of designs in which TB caches or delays
 interacting with CT logs on its own. Instead, we use relays in the Tor network
-to cache and interact with CT logs.
+to cache and interact with CT logs. We refer to these relays as Certificate
+Transparency Relays (CRTs). Further, we refer to the certificate chains and
+associated SCTs---regardless of how they are delivered to TB (e.g., included in
+the certificate, over OCSP, or stapled)---as SCT Feedback Objects, or SFOs for
+short~\cite{nordberg}.
 
 First we introduce a base design that is extended later on.  Our aim is to hold
 CAs accountable in a setting where some, but not all, CT logs are dishonest.  In
 other words, the starting-point is to catch misbehaving CAs by adding resilience
 against misbehaving CT logs.  The basic idea is shown in
-Figure~\ref{fig:design-ca} as three distinct phases:
-	a \emph{submission phase} where SFOs are presented to Tor Browser
-		and submitted probabilistically to CTRs,
-	a \emph{storage phase} where the submitted SFOs are stored for some time to
-		obfuscate real-time browsing patterns, and
-	an \emph{auditing phase} where the stored SFOs are audited further by adding
-		the underlying certificate chains to independent CT logs.
-The exact behavior of these phases are governed by parameters set in the Tor
-consensus.
+Figure~\ref{fig:design-ca} as three distinct phases: a \emph{submission phase}
+where SFOs are presented to Tor Browser and submitted probabilistically to CTRs,
+a \emph{storage phase} where the submitted SFOs are stored for some time to
+obfuscate real-time browsing patterns, and an \emph{auditing phase} where the
+stored SFOs are audited further by adding the underlying certificate chains to
+independent CT logs. The exact behavior of these phases are governed by
+parameters set in the Tor consensus.
 
 \begin{figure*}
 	\centering
@@ -106,12 +108,12 @@ median of all votes.
 TODO: mixing relation goes here
 
 \subsection{Phase~1---Tor Browser} \label{sec:base:phase1}
-The first phase evolves around Tor Browser and how an SFO is validated in the
-TLS handshake.  We rely on Tor Browser's trust store to check certificate
-chains, an assumed SCT-centric CT policy similar to Chrome~\cite{chrome-policy}
-and Safari~\cite{safari-policy} to avoid breakage, and \texttt{ct-max-sfo-bytes}
-as well as \texttt{ct-submit-pr} to determine whether and how there should be
-any follow-up auditing that goes beyond SCT signature verification.  Given an
+The first phase covers Tor Browser and how an SFO is validated in the TLS
+handshake.  We rely on Tor Browser's trust store to check certificate chains, an
+assumed SCT-centric CT policy similar to Chrome~\cite{chrome-policy} and
+Safari~\cite{safari-policy} to avoid breakage, and \texttt{ct-max-sfo-bytes} as
+well as \texttt{ct-submit-pr} to determine whether and how there should be any
+follow-up auditing that goes beyond SCT signature verification.  Given an
 incoming SFO $s$:
 
 \begin{enumerate}
@@ -124,10 +126,9 @@ incoming SFO $s$:
 		all steps and then accept~$s$ as valid.
 	\item Flip a biased coin based on \texttt{ct-submit-pr} and stop if the
 		outcome indicates no further auditing.
-	\item Submit $s$ to a sampled CTR's SFO-endpoint on a pre-built CT-circuit
-		that starts from the client's guard and ends at the CTR: three hops in
-		total.  The circuit used for submission is closed immediately after
-		use without waiting for any acknowledgment.
+	\item Submit $s$ to a sampled CTR's SFO-endpoint on a pre-built CT-circuit.
+		The circuit used for submission is closed immediately after use without
+		waiting for any acknowledgment.
 \end{enumerate}
 
 In other words, an SFO is accepted as valid if the end-entity certificate is
