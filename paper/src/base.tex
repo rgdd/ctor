@@ -56,6 +56,8 @@ suggest using resources that are more abundant when compared to, e.g., exit
 bandwidth.  A relay is assigned the \texttt{CTR} flag if a majority of directory
 authorities voted for it.
 
+TODO: elaborate 1-2 sentences why this ctr criteria and what it entails (?)
+
 \subsubsection{Recognized CT Log} \label{sec:base:consensus:log}
 CTRs only interact with CT logs that are recognized by the Tor consensus.  A log
 is recognized if a majority of directory authorities voted for its inclusion by
@@ -68,6 +70,8 @@ independent logs that accept certificate chains for most trust anchors.  We
 discuss whether this is currently the case or not in Section~\ref{sec:todo}.  In
 favor of brevity, details on how the Tor consensus captures whether two logs are
 independent and which trust anchors they accept are omitted.
+
+TODO: wrap-up here instead without any forward ref
 
 \subsubsection{Other Parameters} \label{sec:base:consensus:params}
 Directory authorities influence the way in which Tor Browser and CTRs behave by
@@ -98,6 +102,8 @@ median of all votes.
 		Section~\ref{sec:base:phase3}, CTRs audit pending SFOs in batches at
 		random time intervals to spread out log overhead.
 \end{description}
+
+TODO: mixing relation goes here
 
 \subsection{Phase~1---Tor Browser} \label{sec:base:phase1}
 The first phase evolves around Tor Browser and how an SFO is validated in the
