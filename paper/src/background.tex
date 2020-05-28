@@ -43,32 +43,32 @@ gossip~\cite{chuat,dahlberg,nordberg,syta}.
 The standardized CT protocol defines public HTTP(S) endpoints that allow anyone
 to check the log's accepted trust anchors and added certificates, as well as
 obtaining the most recent STH and fetching proofs~\cite{ct,ct/bis}.  For
-example, the \texttt{add-chain} endpoint returns an SCT if the added
-certificate chain ends in a trust anchor returned by the \texttt{get-roots}
-endpoint.  CAs mostly add certificate chains because Google's Chrome and
-Apple's Safari require at least two SCTs for an otherwise valid certificate
-chain to be accepted~\cite{chrome-policy,safari-policy}.  The log's
-\texttt{add-chain} endpoint is open for anyone, however.  We use it in
-Section~\ref{sec:base}.
-
-We also use the log's \texttt{get-proof-by-hash} and \texttt{get-sth} endpoints
-in Section~\ref{sec:auditor}.  The former takes as input a leaf certificate hash
-as well an STH's tree size.  The tree size indicates which tree head the log
-should base its inclusion proof on.  The proof is valid if it can be used in
-combination with the certificate in question to reconstruct the tree head in the
-log's original STH.
+example, the \texttt{add-chain} endpoint returns an SCT if the added certificate
+chain ends in a trust anchor returned by the \texttt{get-roots} endpoint.  We
+use the \texttt{add-chain} endpoint in Section~\ref{sec:base}, and the
+\texttt{get-proof-by-hash} as well as the \texttt{get-sth} endpoints in
+Section~\ref{sec:auditor}.  The \texttt{get-proof-by-hash} endpoint takes as
+input a leaf certificate hash and an STH's tree size, which indicates the tree
+head that the log should base its inclusion proof on.  The proof is valid if it
+can be used in combination with the certificate to reconstruct the tree head of
+some STH.
 
 \subsubsection{Verification}
 The CT landscape provides a limited value unless it is verified that the logs
-play by the rules.  While browser vendors have a large say in policy aspects
-such as a log's uptime requirements and accepted trust anchors, it is evident
-that the most fundamental forms of cheating are omission and split-view
-attacks:
+play by the rules.  The rules are largely influenced by major browser vendors
+that define CT policies.  For example, how is CT enforced by their user agents,
+and what is required to become a recognized CT log in terms of uptime
+requirements and accepted trusted anchors.  Google's Chrome and Apple's Safari
+require that a certificate chain must be accompanied by two independent
+SCTs~\cite{chrome-policy,safari-policy}.  Independence refers to the associated
+log operators.  While there are several ways that
+a log can misbehave with regards to these policy aspects, the most fundamental
+forms of cheating are omission and split-view attacks:
 	it would undermine detection of mis-issued TLS certificates.
 A party that follows-up on inclusion and consistency proofs is said to
 \emph{audit} the logs.  Wide-spread client-side auditing is a premise for CT
-logs to be untrusted, but none of the web browsers that enforce CT
-engage in such activities yet.  For example, it is difficult due privacy
+logs to be untrusted, but none of the web browsers that enforce CT engage in
+such activities yet.  For example, it is difficult due privacy
 concerns~\cite{ct-with-privacy}.  CT also assumes that domain owners
 \emph{monitor} the logs for mis-issuance by inspecting the added
 certificates~\cite{lwm,ct-monitors}.
