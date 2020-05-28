@@ -93,9 +93,8 @@ median of all votes.
 		As outlined in Section~\ref{sec:base:phase3}, timeouts trigger implicit
 		resubmissions.
 	\item[ct-delay-dist:] A distribution that determines how long a CTR should
-		wait at minimum before auditing a submitted SFO.  As outlined in
-		Section~\ref{sec:base:phase2}, random noise is added to obfuscate
-		real-time browsing patterns, e.g., in the order minutes to an hour.
+		wait at minimum before auditing a submitted SFO\@.  As outlined in
+		Section~\ref{sec:base:phase2}, random noise is added, e.g., on the order of minutes to an hour.
 	\item[ct-backoff-dist:]
 		A distribution that determines how long a CTR should wait between two
 		auditing instances, e.g., a few minutes on average.  As outlined in
@@ -104,6 +103,30 @@ median of all votes.
 \end{description}
 
 TODO: mixing relation goes here
+
+The parameter \texttt{ct-delay-dist} is fulfilling two goals by adding
+a randomized delay to the time a CTR should wait before auditing a
+submitted SFO\@. For the base design, if a client visits a website and
+then an associated SFO is submitted to a CT log shortly thereafter,
+this could leak information about client behavior. As an extreme
+example, if a known client is unique in visiting a specific collection
+of websites together within a short period, seeing associated SFOs for
+websites in that collection could indicate to a CT log the behavior of
+that client. The randomness in whether a client submits and the
+randomness of \texttt{ct-backoff-dist} might help complicate such
+leakage. But both of these are primarily for overhead and perfomance,
+and the latter is only on the order of minutes. \texttt{ct-delay-dist}
+provides a guarantee of behavior obfuscation. 
+
+For the auditor extension of Section~\ref{sec:auditor} and log
+extension of Section~\ref{sec:log}, \texttt{ct-delay-dist} provides
+some protection against flooding attacks. Since the available
+memory of a CTR is known, by flooding that CTR with enough SFOs
+before MMD of a mis-issued SCT, the adversary could flush the
+desired SFO from the CTR and it would thus never be audited.
+Also, if SFOs were audited in order received or precisely upon
+reaching MMD, then by sending crafted SFOs to a CTR an adversary
+could know by seeing audits for those whether 
 
 \subsection{Phase~1---Tor Browser} \label{sec:base:phase1}
 The first phase evolves around Tor Browser and how an SFO is validated in the
@@ -238,3 +261,8 @@ unrelated buffer entries.
 %In other words, a mis-issued certificate would make it into the public domain
 %in such a scenario if we resubmit it rather than discarding it due to lack of
 %an independent log.
+
+%%% Local Variables: 
+%%% mode: latex 
+%%% TeX-master: "../main"
+%%% End:          
