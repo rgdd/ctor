@@ -1,8 +1,8 @@
 \section{Security Analysis} \label{sec:analysis}
 
 \subsection{Impact of Being Detected} \label{sec:analysis:impact}
-Given a man-in-the-middle attack against Tor Browser we consider four impact
-scenarios for the attacker:
+Given a man-in-the-middle attack against Tor Browser we consider four
+different scenarios of \emph{impact}, namely:
 \begin{description}
 	\item[None:] the attack was undetected or detected without knowing any
 		details as to how it was carried out.
@@ -15,10 +15,10 @@ scenarios for the attacker:
 		that proves CT log misbehavior.
 \end{description}
 
-We want to minimize the existence of successful attacks where it cannot be
-established if and how they were carried out.  As argued subsequently, our
-base design achieves a significant impact level within our threat model.  The
-extended designs in Sections~\ref{sec:auditor}--\ref{sec:log} aim higher.
+Our base design achieves a significant impact level against risk-averse
+attackers in our threat model.  The extended designs in
+Sections~\ref{sec:auditor}--\ref{sec:log} aim higher, making it possible
+to enforce catastrophic impact for the attacker.
 
 \subsection{Probability of Being Detected} \label{sec:analysis:pr}
 Suppose the attacker mis-issued a certificate chain that is rooted in Tor
@@ -31,9 +31,14 @@ of significant exposure is instead bound by the probability that \emph{any} of
 the three phases in our design fails to propagate the mis-issued SFO to a benign
 independent CT log.  We analyze each phase separately.
 
+In sum the risk of exposure can never be higher than the probability that Tor
+Browser submits an SFO to a genuine CTR successfully, and that risk decreases
+proportionally with the attacker's increased capability to operate or DoS CTRs
+as well as independent CT logs.
+
 \subsubsection{Phase~1: Submission} \label{sec:analysis:pr:phase1}
-The probability of detection can never exceed the value of
-\texttt{ct-submit-pr}.  We focus our analysis on the scenario where the
+The probability of detection cannot exceed the value of \texttt{ct-submit-pr}.
+We focus our analysis on the scenario where the
 attacker's mis-issued SFO is audited further.  There are two cases to consider,
 namely, the mis-issued SFO is either larger than \texttt{ct-max-sfo-bytes} or it
 is not.
@@ -42,73 +47,77 @@ If the SFO is larger than \texttt{ct-max-sfo-bytes}, Tor Browser blocks until
 the SFO is submitted and its CT circuit is closed.  As such, it is impossible to
 serve a Tor Browser exploit reactively over the man-in-the-middled connection
 that shuts-down the submission procedure before it occurs.  Assuming that
-forensic traces in tor and Tor Browser are unreliable\footnote{On marking a
-circuit as closed in tor, tor immediately schedules the associated data
-structures to be freed as soon as possible.}, the sampled CTR identity also
-cannot be reliably revealed afterwards by compromising Tor Browser.  The
-attacker may know that the SFO is being stored by \emph{some CTR} based on
-timing, however, i.e., blocking-behavior is measurable and stands out. Note that
-the attacker must not learn a CTR's identity: it is well within our threat model
-to DoS a single Tor relay.
+forensic traces in tor and Tor Browser are unreliable,\footnote{%
+	On marking a circuit as closed in tor, tor immediately schedules the
+	associated data structures to be freed as soon as possible.
+} the sampled CTR identity also cannot be revealed with high certainty
+afterwards by compromising Tor Browser.  The attacker may know that the SFO is
+stored by \emph{some CTR} based on timing, i.e., blocking-behavior is likely
+measurable and distinct.  The important part is not to reveal \emph{which CTR}
+received a submission:  a single Tor relay may be subject to DoS.
 
 If the SFO is smaller or equal to \texttt{ct-max-sfo-bytes}, then there is a
 race between (i) the time it takes for Tor Browser to submit the SFO and close
 its CT circuit against (ii) the time it takes for the attacker to compromise Tor
 Browser and identify the CTR in question.  It is more advantageous to try and
-win this race rather than being in the unfruitful scenario above.  Therefore, we
-assume the attacker would maximize the time it takes to perform (i) by sending
-an SFO that is \texttt{ct-max-sfo-bytes}.  Section~\ref{sec:todo} analyzes the
-timing and work involved while submitting \texttt{ct-max-sfo-bytes} over a CT
-circuit that is closed immediately after use.
+win this race rather than being in the unfruitful scenario above.  Therefore,
+the attacker would maximize the time it takes to perform (i) by sending an SFO
+that is \texttt{ct-max-sfo-bytes}.  Our design reduced the threat of an attacker
+that wins this race by using pre-built CT circuits that are closed immediately
+after use.  This makes the attack surface \emph{narrow}, limiting the number of
+reliable exploits (if any).
 
-TODO: wrap-up with how our design reduced the attack surface, i.e., motivate
-\texttt{ct-max-sfo-bytes} and pre-built one-time CT circuits.  Explain
-why \texttt{ct-submit-pr} is the dominant factor with regards to detection in
-phase~1.
+Note that the attack surface could, in theory, be eliminated by setting
+\texttt{ct-max-sfo-bytes} to infinity.  It is too costly in terms of TLS
+handshake latency, however.
 
 \subsubsection{Phase~2: Storage} \label{sec:analysis:pr:phase2}
-The probability of detection can never exceed $1-f_{\mathsf{ctr}}$, where
-$f_{\mathsf{ctr}}$ is the fraction of attacker-controlled CTRs.  We analyze
-the case of submission to a genuine CTR.
+The probability of detection cannot exceed $1-(f_{\mathsf{ctr}} +
+f_{\mathsf{dos}})$, where $f_{\mathsf{ctr}}$ is the fraction of
+malicious CTRs and $f_{\mathsf{dos}}$ the fraction of CTRs that suffer from
+DoS.  We analyze the case of successful submission to a genuine CTR.
 
-The time that an SFO is stored before any auditing takes place is governed by
-randomness in the \texttt{audit\_after} timestamp~$t$ as well as the back-off
-delay~$d$.  The average storage time is thus in the order of minutes, see
-Section~\ref{sec:base:consensus:params}.  The attacker may try to intervene with
-a CTR so that the mis-issued SFO is deleted.  However, at this stage it is
-generally unknown which CTR should be targeted:
-	an attacker that infers the sampled CTR reliably from observing a large
-	majority of the Tor network is not within our threat model.
-If the target CTR is not known, perhaps all CTRs could be targeted instead.
-While a network-wide DoS is also outside of Tor's threat model, the attacker can
-interact with all CTRs through their SFO submission endpoints.  This is little
-or no threat, however, because a network-wide flush within \emph{minutes} is
-impractical.  See section~\ref{sec:todo}.
+The time that an SFO is stored is governed by randomness in the
+\texttt{audit\_after} timestamp~$t$ as well as the back-off delay~$d$,
+which combined is in the order of minutes
+	(Section~\ref{sec:base:consensus:params}).
+The attacker might try to increase the storage time by making the CT landscape
+unavailable, forcing additional back-off times and resubmissions.  The attacker
+does not know which independent log to target, however.  Since it is not within
+our threat model to DoS a significant fraction of CT logs simultaneously, any
+attempt to increase the storage time will be unreliable and thus of little use
+for our attacker.
+
+The attacker might still try to intervene within the time window at hand, which
+involves some method that deletes the mis-issued SFO that is stored somewhere.
+Fortunately, it is not known which CTR to target.
+%	an attacker that infers the sampled CTR reliably from observing a large
+%	majority of the Tor network is not within our threat model.
+This means that any attempt to intervene must target all CTRs.  It is clearly
+not within Tor's threat model to DoS each and every CTR.  A less intrusive
+approach towards intervention would be to simply submit SFOs, posing as genuine
+Tor Browser clients.  If enough SFOs are submitted, CTRs could run out of memory
+and therefore be forced to delete at random (Section~\ref{sec:base:phase2}).
+The threat of such a flood does not apply here:
+	conducting it within minutes implies a network-wide DoS,
+	see Section~\ref{sec:auditor:analysis:phase2}.
 
 \subsubsection{Phase~3: Auditing} \label{sec:analysis:pr:phase3}
-The probability of detection can never exceed $1-f_{\mathsf{log}}$, where
-$f_{\mathsf{log}}$ is the fraction of attacker-controlled CT logs.  We analyze
-the case of interacting with genuine CT logs.
+The probability of detection cannot exceed $1-f_{\mathsf{log}}$, where
+$f_{\mathsf{log}}$ is the fraction of seemingly independent but
+attacker-controlled CT logs.  We analyze the case of a CTR that sampled a
+genuine CT log in phase~2, which remains fixed in the event of transient errors.
+Adding a certificate chain to the log as part of the auditing phase does not
+leak which CTR holds an SFO \emph{to the attacker} unless all log connections
+that leave the Tor network are inspected.\footnote{%
+	We have not specified any further verification of the log's TLS certificate,
+	which means that the attacker can forge it without detection.  This is not
+	true for the returned SCT (if any), but the CTR in question could be
+	identified by tagging.  See Section~\ref{sec:auditor:analysis:phase3}.
+} The attacker in our threat model is only partially present in the network,
+however.  An identifiable CTR can therefore not be targeted reliably before any
+resubmission takes place.  Without resubmission or once logging finally
+succeeds, the mis-issued certificate is exposed to the public and
+\emph{significant impact} is achieved.
 
-While auditing, CTRs attempt to add certificate chains to independent CT logs.
-Thus, the attacker does not learn which CTR holds a mis-issued SFO despite
-our design reusing a single Tor circuit:
-	recall the threat of tagging in Section~\ref{sec:adversary}.
-The attacker is aware of all CT logs that are independent, however.  This
-introduces the threat of targeting the CT landscape's availability, which has
-the adverse effect of increasing the window during which CTRs store SFOs
-due to resubmissions.
-
-TODO: note that resubmission is fixed with regards to a log and why this is
-important
-
-TODO: wrap-up
-
-\subsubsection{Conclusion}
-The probability of detection is determined by 
-	the value of \texttt{ct-submit-pr},
-	the likelihood that Tor Browser samples a benign CTR, and
-	the likelihood that the benign CTR samples a benign CT log.
-In other words, the risk of exposure can never be higher than the probability
-that Tor Browser submits an SFO to a CTR, and that risk decreases proportionally
-as the attacker controls larger parts of the Tor network and the CT landscape.
+TODO: pin keys to establish secure connections with the logs?!
