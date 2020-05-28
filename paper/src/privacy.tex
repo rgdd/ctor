@@ -1,0 +1,51 @@
+\section{Privacy} \label{sec:privacy}
+
+\subsection{Privacy and CTRs}
+There is an inherent privacy problem in the setting due to how CT is designed. A
+browser, like TB, that wishes to validate that SFOs presented to it are
+\emph{consistent} and \emph{included} in CT logs must directly or indirectly
+interact with CT logs wrt. its observed SFOs. Without protections like Private
+Information Retrieval (PIR), exposing shared SFOs to any party leaks partial
+information about the browsing activities of the user.
+
+Given the constraints of the existing CT ecosystem, CTor is made
+privacy-preserving mainly in two ways. First, all communication between TB,
+CTRs, CT logs, and auditors are made over full Tor-circuits. This is a
+significant privacy-gain, not available, e.g., to browsers like Chrome that in
+their communications would reveal their public IPv4-address (among a number of
+other potentially identifying metadata). Secondly, the use of CTRs as
+intermediaries probabilistically delays the interaction with the CT
+logs---making correlation harder---and can safely maintain a dynamic cache of
+the most commonly already verified SFOs. While regular browsers like Chrome
+could maintain a cache, TB and its security and privacy goals (see
+Section~\ref{sec:background:tor}) prohibit such persisted dynamic state.
+
+CTRs are also essential for security in the setting of the auditor extension. A
+rational attacker will produce SFOs with SCT timestamps that are too new to have
+to be part of CT logs at the time of the attack. TB cannot store SFOs for any
+extended period of time (a couple of days, see
+Section~\ref{sec:discussion:flooding}) without violating its security and
+privacy goals, not to mention that presumably most TB sessions are not
+maintained for days. Further, buffering at TB is not an option, since an
+attacker could compromise TB shortly after presenting the forged SFO.
+
+In gist, the distributed nature of Tor with its anonymity properties and
+high-uptime relays that make up the Tor network are essential for
+privacy-preserving auditing of the current CT ecosystem. The auditor extension
+turns Tor into a system for maintaining a probabilistically-audited
+cryptographically-verifiable view of the entire CT log ecosystem available from
+Tor’s consensus. In a sense, this system is a consensus mechanism for CT logs.
+
+The main limitation of CTor in terms of privacy is that CTor continuously leaks
+to CT logs, and to auditors in the case of the auditor extension
+(Section~\ref{sec:auditor}), a fraction of certificates of websites
+visited using TB to the relatively small number of operators of CT
+logs.  This provides to a CT log a partial list of websites visited
+via the Tor network over a period of a few days, together with some
+indication of distribution based on the number of active CTRs. It does
+not, however, provide even pseudonymously any information about which
+sites individual users visit, much less with which patterns or timing.
+As such it leaks significantly less information than does OCSP
+validation by TB or DNS resolution at exit-relays~\cite{TorDNS}, both
+of which indicate visit activity in real time.
+
