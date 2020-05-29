@@ -207,55 +207,75 @@ publish the extent to which CTR-to-log interactions fail.
 \subsection{Security Analysis} \label{sec:auditor:analysis}
 Idea: go through what is \emph{different} with regards to the base analysis.
 
+Make sure it is clear why we do delete at random before analysis starts
+
 \subsubsection{Phase~2---Storage} \label{sec:auditor:analysis:phase2}
-Main difference: longer storage time to avoid early signals.  Bound by 2*MMD +
-C, where C is the longest time to get an STH into the Tor consensus.  I.e.,
-attacker can maximize the window by producing an STH after MMD-1s, then wait
-another MMD before making next STH which we are waiting for to make it into the
-Tor consensus.  MMD usually 24h, and a consensus document is valid for 3h.  As
-such, attack window is at most 51 hours without any formal log misbehavior.
+The main difference with regards to the base design is that an SFO can be
+stored much longer.  The attacker can maximize the \texttt{audit\_after}
+timestamp by using a newly issued SFO, resulting in a storage phase of \emph{at
+least} an MMD.  This time can be extended further by delaying issuance of an
+STH that would capture the omission:
+	a log must produce an STH every MMD~\cite{ct,ct/bis}.
+This means that the maximized storage time is in the order of two MMDs; not
+considering that it also takes time for an STH to be propagated into the Tor
+consensus.  Most logs use an MMD of 24~hours, resulting in an attack window that
+ranges from one to two days.  A risk-averse attacker should prefer to use the
+lower bound:
+	suddenly not issuing any new STH is visible, attracting attention.
 
-Flooding can be modelled as...see equation.  Assuming 1GiB memory and a
-confidence level of 0.90, 433.2k queries and roughly 2GiB bytes must be
-transmitted to flush a single CTR.  Note: some relays have bandwidth in the
-order of 1--5 MiB/s, which if all is used to flood, flooding still takes
-takes between 3--35 minutes regardless of the attacker's available bandwidth.
+Following from Tor's threat model, the mis-issued SFO must be stored in
+volatile memory and not to disk.  Two risks emerge as a result of the increased
+storage time:
+	the CTR in question might be restarted by the operator,
+	and the attacker might \emph{flood} it by submitting many SFOs with the
+		intent to \emph{flush} a target entry from the buffer~\cite{nordberg}.
+A risk-averse attacker cannot rely on the former, but the latter is applicable
+if all CTRs can be targeted without making Tor unavailable.
+Appendix~\ref{app:flush} shows that the number of SFO submissions~$k$
+that the attacker needs to successfully flush a buffer of $n>1$ entries with
+some probability~$p<1$ is given by Equation~\ref{eq:flush}.
+\begin{equation} \label{eq:flush}
+	k = \frac{\log(1-p)}{\log(1 - \frac{1}{n})}
+\end{equation}
 
-The attacker does not know which CTR to flood.  As such, the entire network must
-be targeted.  This results in 1.73B SFO submissions and roughly 1TiB bytes.  To
-flush the network in 10m, 20m, 1h, and 24h, it requires a flooding bandwidth of
-at least 142 Gbps, 71.1 Gbps, 23.7 Gbps, and 0.99 Gbps.  The announced bandwidth
-of the Tor network is 450 Gbps, and the announced exit bandwidth is roughly 110
-Gbps.
+It is recommended that a non-exit relay should have at least 512~MB of memory.
+If the available bandwidth exceeds 40~Mbps, it should have at least
+1~GB~\cite{relay-config}.  Given that these recommendations are lower bounds,
+suppose the average memory available to store SFOs is 1~GiB.  Further, our
+dataset in Section~\ref{sec:performance} shows that the average SFO is in the
+order of 6~KiB.  This means that the buffer capacity is $n \gets 174763$ SFOs.
+Plugging it into Equation~\ref{eq:flush} for $p \gets \frac{9}{10}$, the
+attacker's flood must involve $k \gets 402406$ submissions.  In other words,
+2.3~GiB must be transmitted to flush a single CTR,\footnote{%
+	As a corner case and implementation detail, it is important that Tor Browser
+	and CTRs \emph{reject} SFOs that are bogus in terms of size:
+		it is a trivial DoS vector to load data indefinitely.
+	Analysis based on, e.g., 1~MiB SFOs also requires 2.3~GiB of data to flush.
+} which takes $7.9$--$39.3$~minutes if its bandwidth is between 8 and 40~Mbps.
+Thus, it is impractical to flush all CTRs within minutes.
 
-TODO: it is certainly DoS within minutes if we do Tor circuit, coming out from
-an exit to a CTR.  And assuming CTRs checked that submission circuits come from
-an exit relay.  Can also possibly draw parallel to historical attacks, e.g.,
-attack on root DNS servers was around 35 Gbps in 2015 (before amplification).
-
-TODO: wrap-up, attacker can flush the entire network without DoS:ing it.  It
-would be detected by the extra-info document, but hard to attribute to the
-actual attacker.  Implies minor impact scenario.  
-
-TODO: double check numbers in more detail, extracted quickly from our github
-page.
-
-Note: need to mention that deletion must be weighted towards the size of the
-submitted SFO.
+Metrics reported by the Tor project show that there are over 4000 relays that
+match our CTR criteria~\cite{relay-by-flag}.  As such, a network-wide flush
+involves the transmission of at least 8.99~TiB.  It might sound daunting at
+first, but distributed over a day it only requires 0.91~Gbps.  While we cannot
+avoid early signals to the logs \emph{and} at the same time prevent flushing
+without writing anything to disk, it is detectable based on the extra-info
+document.  On the flip-side, \emph{not observing any flushing} adds a large
+degree of confidence that there are no mis-issued SFOs.
 
 \subsubsection{Phase~3---Auditing} \label{sec:auditor:analysis:phase3}
-Now we are talking to the attacker.  Attacker learns that a mis-issued SFO
-is being audited.  Auditing happens over a shared Tor circuit, and despite the
-anonymity that it provides, the attacker can overcome it by tagging.  Briefly
-explain tagging.
-
-If the CTR submitted to a CT auditor, it would leave a ~seconds window where
-the attacker could simply DoS an identifiable CTR.  Therefore, we delegated
-reporting to a random watchdog \emph{before} doing the inclusion query.
-The attacker does not learn the watchdog identity unless we sample the
-attacker's CTR.  We do not consider the threat of fully taking over the Tor
-relay within seconds to identify the watchdog; too strong for Tor's threat
-model.
+%Now we are talking to the attacker.  Attacker learns that a mis-issued SFO
+%is being audited.  Auditing happens over a shared Tor circuit, and despite the
+%anonymity that it provides, the attacker can overcome it by tagging.  Briefly
+%explain tagging.
+%
+%If the CTR submitted to a CT auditor, it would leave a ~seconds window where
+%the attacker could simply DoS an identifiable CTR.  Therefore, we delegated
+%reporting to a random watchdog \emph{before} doing the inclusion query.
+%The attacker does not learn the watchdog identity unless we sample the
+%attacker's CTR.  We do not consider the threat of fully taking over the Tor
+%relay within seconds to identify the watchdog; too strong for Tor's threat
+%model.
 
 % MISC notes
 % - Network-wide flush, detectable but hard to attribute
