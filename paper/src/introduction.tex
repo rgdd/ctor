@@ -137,15 +137,15 @@ account the threat models of Tor and CT\@.
 
 Section~\ref{sec:base} presents the base design of CTor that enables TB to
 probabilistically provide evidence to CT logs that it has been presented with a
-fraudulent certificate. This greatly impacts risk-averse attackers, since part
-of its fraudulent behavior has been made transparent through the CT ecosystem:
-the issuing CA may get revoked from the trust store of browsers, the domain name
-in question (as part of the certificate) is made public, and awareness of the
-event may draw unwanted attention. Our security analysis, in
-Section~\ref{sec:analysis}, shows that one of the best bets for an attacker may
-be to attack the entire Tor network or all CT logs: an act that in itself may
-would likely draw unwanted attention and is outside of Tor's (and ours by
-necessity) threat model.
+fraudulent certificate while preserving privacy. This greatly impacts
+risk-averse attackers, since part of its fraudulent behavior has been made
+transparent through the CT ecosystem: the issuing CA may get revoked from the
+trust store of browsers, the domain name in question (as part of the
+certificate) is made public, and awareness of the event may draw unwanted
+attention. Our security analysis, in Section~\ref{sec:analysis}, shows that one
+of the best bets for an attacker may be to attack the entire Tor network or all
+CT logs: an act that in itself may would likely draw unwanted attention and is
+outside of Tor's (and ours by necessity) threat model.
 
 Two extensions to the base CTor design are presented in
 Sections~\ref{sec:auditor} and \ref{sec:log}. Both extensions aim to make
@@ -154,10 +154,16 @@ to accept a fraudulent certificate. The deployment of either design would
 greatly contribute to the open question of how to reduce trust in CT log
 operators currently caused by the lack of an appropriate gossiping
 mechanism~\cite{minimal-gossip,nordberg}. In particular, the auditor-based
-design (Section~\ref{sec:auditor}) would result in a probabilistically-audited
-cryptographically-verifiable view of the entire CT log ecosystem available from
-Tor's consensus. This view could be used as the basis for trust by other
-browsers, greatly improving the security posture of the entire web.
+extension (Section~\ref{sec:auditor}) would result in a
+probabilistically-audited cryptographically-verifiable view of the entire CT log
+ecosystem available from Tor's consensus. This view could be used as the basis
+for trust by other browsers, greatly improving the security posture of the
+entire web.
+
+By splitting our designs into a base design and two possible extensions we ague
+that CTor is incrementally deployable: start with completing Firefox support for
+CT, add the base CTor design, then pick one of the two extensions based on how
+the landscape develops.
 
 Section~\ref{sec:performance} estimates performance aspects of our designs,
 including estimated circuit overhead and load on the Tor network based on the
