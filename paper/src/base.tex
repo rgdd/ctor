@@ -11,7 +11,7 @@ particular, the \emph{state separation},
 goals rule out a large number of designs in which TB caches or delays
 interacting with CT logs on its own. Instead, we use relays in the Tor network
 to cache and interact with CT logs. We refer to these relays as Certificate
-Transparency Relays (CRTs). Further, we refer to the certificate chains and
+Transparency Relays (CTRs). Further, we refer to the certificate chains and
 associated SCTs---regardless of how they are delivered to TB (e.g., included in
 the certificate, over OCSP, or stapled)---as SCT Feedback Objects, or SFOs for
 short~\cite{nordberg}.
@@ -226,7 +226,7 @@ alongside an \texttt{audit\_after} timestamp and a sampled CT log.  The
 \texttt{audit\_after} timestamp specifies the earliest point in time that an SFO
 will be audited in phase~3, which adds random noise that obfuscate real-time
 browsing patterns in the Tor network.  Auditing is also fixed at this stage with
-regards to some CT log, notably including resubmissions.  If memory become a
+regards to some CT log, notably including resubmissions.  If memory becomes a
 scarce resource, e.g., due to flooding, delete pending SFOs at
 random~\cite{nordberg}.
 

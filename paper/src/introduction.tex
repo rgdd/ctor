@@ -32,7 +32,7 @@ mandatory CT support by default are Google Chrome and Apple's Safari
 support but has a partial implementation.
 
 Beyond security on the web, anonymous access to the web has also matured. In
-particular, Tor with its Tor Browser (TB) today have millions of daily users
+particular, Tor with its Tor Browser (TB) today has millions of daily users
 \cite{tor,mani}, and effort is ongoing into maturing the technology for wider
 use\footnote{\url{https://web.archive.org/web/20200528174708/https://mozilla-research.forms.fm/mozilla-research-grants-2019h1/forms/6510}}.
 The basis of TB is Firefox, where TB then enables anyone to browse the web
@@ -62,7 +62,7 @@ compromising a web server that the target TB user connects to), one option is to
 \emph{impersonate} a web server by acquiring a fraudulent certificate. Due to
 the Tor network being run by volunteers, getting into a position for performing
 such an attack is relatively straightforward (the attacker can volunteer to run
-malicious relays~\cite{spoiled-onions}). The same is true for an attacker that
+malicious exit relays~\cite{spoiled-onions}). The same is true for an attacker that
 wishes to \emph{man-in-the-middle} connections made by TB users. In such a case,
 a TB exploit may not even be needed to deanonymize the user; e.g., if the user
 logs into an account at the service associated with its identity and that the
@@ -70,7 +70,7 @@ attacker can now observe.
 
 \subsection{Introducing CTor}
 In this paper, we propose an incremental and privacy-preserving design which we
-refer to as CTor. CTor brings CT to Tor by modifying both how TB and relays in
+refer to as CTor. CTor brings CT to Tor by modifying how both TB and relays in
 the Tor network work. The goal is to make impersonation and man-in-the-middle
 attacks on HTTPS connections \emph{detectable after the fact} when they are
 carried out by a powerful attacker that:
@@ -97,7 +97,7 @@ In addition to the base CTor design we present two extensions. Both extensions
 have in common that their goal is to make transparent the forged cryptographic
 proofs from attacker-controlled CT logs used to get TB to accept malicious HTTPS
 connections. Such a proof would likely immediately disqualify each offending CT
-log and thus come and great cost to the attacker in terms of lost capability.
+log and thus come at great cost to the attacker in terms of lost capability.
 Even a small probability of detection may entail unacceptable risk at such a
 high cost. Note that we have already observed several instances of CT logs that
 misbehaved~\cite{izenpe-disqualified,venafi-disqualified,gdca1-omission}. Most
