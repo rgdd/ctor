@@ -86,10 +86,11 @@ non-zero (tweakable) probability of detection of the forged certificate. This is
 done by probabilistically adding the certificate to \emph{other CT logs} than
 those directly inferable as under attacker control (due to the accompanying
 proofs). TB uses modified relays to cache and interact with CT logs for the sake
-of privacy, ensuring that CT log operators (such as Google and Cloudflare) do
-not get a real-time feed of all browsing activities from TB (beyond what their
-privileged position on the Internet already provides
-them~\cite{1mtrack,TorDNS}). 
+of privacy, ensuring that CT log operators (e.g., Google and Cloudflare) do not
+get a real-time feed of all browsing activities from TB (in addition to what
+their privileged positions on the Internet already provides
+them~\cite{1mtrack,TorDNS}). The use of relays are also essential for security
+in the setting, as explained in later sections.
 
 In addition to the base CTor design we present two extensions. Both extensions
 have in common that their goal is to make transparent the forged cryptographic
