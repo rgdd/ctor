@@ -104,51 +104,24 @@ median of all votes.
 		random time intervals to spread out log overhead.
 \end{description}
 
-The parameter \texttt{ct-delay-dist} is fulfilling two goals by adding
-a randomized delay to the time a CTR should wait before auditing a
-submitted SFO\@. For the base design, if a client visits a website and
-then an associated SFO is submitted to a CT log shortly thereafter,
-this could leak information about client behavior. As an extreme
-example, if a known client is unique in visiting a specific collection
-of websites together within a short period, seeing associated SFOs for
-websites in that collection could indicate to a CT log the behavior of
-that client. The randomness in whether a client submits and the
-randomness of \texttt{ct-backoff-dist} might help complicate such
-leakage. But both of these are primarily for overhead and perfomance,
-and the latter is only on the order of minutes. \texttt{ct-delay-dist}
-provides a guarantee of behavior obfuscation. 
-
-For the base design, as well as the auditor extension of
-Section~\ref{sec:auditor} and log extension of Section~\ref{sec:log},
-\texttt{ct-delay-dist} provides some protection against flooding
-attacks. Since the available memory of a CTR is known, by flooding
-that CTR with enough SFOs before MMD of a mis-issued SCT, the
-adversary could flush the desired SFO from the CTR and it would thus
-never be audited.  Also for the extensions, if SFOs were audited as
-soon as MMD was reached, then an adversary could be more efficient
-about knowing when to flood the CTR\@. This could possibly even make
-flooding of all CTRs in the network feasible. Even if auditing order
-were randomized among all SFOs within an exact interval after MMD (a
-timed mix), when to flood a CTR would be predictable. Adding a
-randomized delay makes something akin to a stop-and-go mix, except
-that the delay time is set by the CTR not the client, which is fine
-since this aspect is not to protect client identity but to resist DoS
-of SFO audit. Consult the literature~\cite{trickle02} for a description
-of mix types.
-
-If the storage strategy against flooding favored preserving SFOs
-already at the CTR by dropping inbound SFOs or those farthest from
-auditing, the adversary could optimize flooding to just before or
-shortly after the mis-issued SFO is sent. If the storage strategy
-against flooding favored not blocking incoming SFOs by dropping those
-closest to being audited, then the adversary could optimize flooding
-to after the mis-issued SFO is sent and as close to MMD as will make
-flushing of it likely. To prevent useful optimization of flooding,
-when storage capacity at a CTR is exceeded we thus select randomly
-from among the pool of received SFOs regardless of time till audit.
-And \texttt{ct-delay-dist} similarly complicates any attempted
-optimization of when to flood a CTR, thus increasing average cost
-of any such DoS attack for the adversary.
+Besides improving load-balancing and performance, sampling the parameter
+\texttt{ct-backoff-dist} helps protect privacy by effectively creating
+a timed mix~\cite{trickle02}, though one with a randomized firing
+interval. The randomness in whether a client submits an SFO at all
+combined with the timed mixing potentially complicates leaking client
+behavior to a CT log. But we cannot reliably assume that other honest
+clients submit to the CTR between mix firings (submissions to CT
+logs). Adding a per-SFO value sampled from \texttt{ct-delay-dist}
+effectively adds stop-and-go mixing~\cite{kesdogan:ih1998} to the
+privacy protection, but where there is only one mix (CTR) between
+sender (client) and receiver (CT log). So there is no point in a
+client-specified interval-start-time such that the mix drops messages
+arriving before then, and there is no additional risk in having the
+interval end time set by the mix rather than the sender. This means
+both that some SFOs a client sends to a CTR at roughly the same time
+might be in different batches of SFOs sent to a CT log and that SFOs
+submitted to that CTR by other honest clients are more likely to be
+mixed with these.
 
 
 \subsection{Phase~1---Tor Browser} \label{sec:base:phase1}

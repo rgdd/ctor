@@ -15,42 +15,40 @@ The CA trust model suffers from \emph{weakest-link} security: web browsers trust
 hundreds of CAs, and it is enough to compromise a single CA to get a certificate
 mis-issued in the name of a target domain~\cite{ca-ecosystem,https-sok}.
 Motivated by this issue manifested by prominent CA compromises---such as the
-issuance of a fraudulent certificate for \url{google.com} by DigiNotar in
-2011\footnote{\url{https://web.archive.org/web/20200521135444/https://arstechnica.com/information-technology/2011/08/earlier-this-year-an-iranian/}}---several
-major browser vendors have mandated that certificates issued by CAs must be
-included into trusted Certificate Transparency (CT) logs for browsers to trust
+issuance of a fraudulent certificate for \url{*.google.com} and
+\url{*.torproject.org} by DigiNotar in 2011~\cite{diginotar}---several major
+browser vendors have mandated that certificates issued by CAs must be included
+into trusted Certificate Transparency (CT) logs for browsers to trust
 them~\cite{ct/a,ct,ct/bis}. The idea behind CT is that, by making all issued
 certificates transparent, mis-issued certificates can be detected \emph{after}
 issuance and appropriate actions taken to keep the wider web safe (e.g.,
 revocation of certificates, suspected compromises investigated, or trust in
 misbehaving CAs removed from browsers). Browsers that wish to benefit from CT
 augment the validation done by the browser during the TLS handshake to also
-require cryptographic proof from the server that the presented certificate has
-been included into CT logs trusted by the browser. Notable browsers with
-mandatory CT support by default are Google Chrome and Apple's Safari
+require cryptographic proof from the server that the presented certificate will
+be included into CT logs trusted by the browser. Notable browsers with mandatory
+CT support by default are Google Chrome and Apple's Safari
 \cite{chrome-policy,safari-policy}. Unfortunately, Mozilla's Firefox lacks
-support but has a partial implementation.
+support but has a partial implementation~\cite{ffct}.
 
-Beyond security on the web, anonymous access to the web has also matured. In
+Beyond encryption on the web, anonymous access to the web has also matured. In
 particular, Tor with its Tor Browser (TB) today has millions of daily users
 \cite{tor,mani}, and effort is ongoing into maturing the technology for wider
-use\footnote{\url{https://web.archive.org/web/20200528174708/https://mozilla-research.forms.fm/mozilla-research-grants-2019h1/forms/6510}}.
-The basis of TB is Firefox, where TB then enables anyone to browse the web
-anonymously by relaying traffic between browser and web server through the Tor
-network, consisting of thousands of voluntary-run relays across the globe. 
+use~\cite{fftor}. The basis of TB is Firefox, where TB then enables anyone to
+browse the web anonymously by relaying traffic between browser and web server
+through the Tor network, consisting of thousands of voluntary-run relays across
+the globe. 
 
-Just like attackers may be interested in breaking HTTPS, attackers are
-interested in breaking the anonymity provided by Tor with the goal of
-deanonymizing users. One common deanonymization technique, known to be used in
-practice by, e.g., law enforcement, is to compromise TB instead of directly
-circumventing the anonymity provided by the Tor
-network\footnote{\url{https://web.archive.org/web/20200528175225/https://zerodium.com/tor.html}}.
-Modern web browsers like TB (Firefox) are one of the most complex types of
-software in wide use today. This complexity and wide use leads to security
-vulnerabilities and incentives for exploitation. For example, the exploit
-acquisition platform Zerodium offers up to \$100,000 for a zero-day exploit
-against Firefox that leads to remote code execution and local privilege
-escalation\footnote{\url{https://web.archive.org/web/20200521151311/https://zerodium.com/program.html}}
+Just like attackers may be interested in breaking HTTPS, attackers may also be
+interested in breaking the anonymity provided by Tor to deanonymize users. One
+common deanonymization technique, known to be used in practice by, e.g., law
+enforcement, is to compromise TB instead of directly circumventing the anonymity
+provided by the Tor network~\cite{selfrando,lepop1,lepop2,zerotor}. Modern web
+browsers like TB (Firefox) are one of the most complex types of software in wide
+use today. This complexity and wide use leads to security vulnerabilities and
+incentives for exploitation. For example, the exploit acquisition platform
+Zerodium offers up to \$100,000 for a zero-day exploit against Firefox that
+leads to remote code execution and local privilege escalation~\cite{zeromain}
 (i.e., full control of the browser for the attacker).
 
 An attacker that wishes to use such an exploit to compromise and then ultimately
@@ -88,10 +86,11 @@ non-zero (tweakable) probability of detection of the forged certificate. This is
 done by probabilistically adding the certificate to \emph{other CT logs} than
 those directly inferable as under attacker control (due to the accompanying
 proofs). TB uses modified relays to cache and interact with CT logs for the sake
-of privacy, ensuring that CT log operators (such as Google and Cloudflare) do
-not get a real-time feed of all browsing activities from TB (beyond what their
-privileged position on the Internet already provides
-them~\cite{1mtrack,TorDNS}). 
+of privacy, ensuring that CT log operators (e.g., Google and Cloudflare) do not
+get a real-time feed of all browsing activities from TB (in addition to what
+their privileged positions on the Internet already provides
+them~\cite{1mtrack,TorDNS}). The use of relays are also essential for security
+in the setting, as explained in later sections.
 
 In addition to the base CTor design we present two extensions. Both extensions
 have in common that their goal is to make transparent the forged cryptographic
@@ -99,7 +98,8 @@ proofs from attacker-controlled CT logs used to get TB to accept malicious HTTPS
 connections. Such a proof would likely immediately disqualify each offending CT
 log and thus come at great cost to the attacker in terms of lost capability.
 Even a small probability of detection may entail unacceptable risk at such a
-high cost. Note that we have already observed several instances of CT logs that
+high cost. Note that we have already observed several instances of CT logs that,
+intentionally or not,
 misbehaved~\cite{izenpe-disqualified,venafi-disqualified,gdca1-omission}. Most
 recently, a compromised CT log signing key was reported for the first
 time~\cite{digicert-log-compromised}. 
@@ -122,50 +122,58 @@ operators.
 The second extension involves only a minor tweak to the base CTor design.
 Unfortunately, this tweak is primarily not to Tor but to the API of CT logs.
 While similar changes have been discussed earlier in the context of gossiping in
-CT, it is a significant deployment issue. The small tweak is that CT logs
-provide an API for receiving cryptographic proofs made by other CT logs wrt
-certificate inclusion. This would then mean that relays would add to
-other CT logs proofs observed by TB clients in addition to the certificate.
-This would also significantly reduce the trust assumptions the wider web has to
-place on CT log operators, from close to full trust as-is today to only trusting
-that some operators are honest.
+CT, it is a significant change. The small tweak is that CT logs provide an API
+for receiving cryptographic proofs made by other CT logs wrt. certificate
+inclusion. This would then mean that relays would add to other CT logs proofs
+observed by TB clients in addition to the certificate. This would also
+significantly reduce the trust assumptions the wider web has to place on CT log
+operators, from close to full trust as-is today to only trusting that some
+operators are honest.
 
 \subsection{Contribution and Structure}
 Section~\ref{sec:background} provides necessary background on CT and Tor. Our
 threat model is described in detail in Section~\ref{sec:adversary}, taking into
-account the threat models of both Tor and CT\@.
+account the threat models of Tor and CT\@.
 
 Section~\ref{sec:base} presents the base design of CTor that enables TB to
 probabilistically provide evidence to CT logs that it has been presented with a
-fraudulent certificate. This greatly impacts risk-averse attackers, since part
-of its fraudulent behavior has been made transparent through the CT ecosystem:
-the issuing CA may get revoked from the trust store of browsers, the domain name
-in question (as part of the certificate) is made public, and awareness of the
-event may draw unwanted attention. Our security analysis, in
-Section~\ref{sec:analysis}, shows that one of the best bets for an attacker may
-be to attack the entire Tor network: an act that in itself may draw unwanted
-attention.
+fraudulent certificate while preserving privacy. This greatly impacts
+risk-averse attackers, since part of its fraudulent behavior has been made
+transparent through the CT ecosystem: the issuing CA may get revoked from the
+trust store of browsers, the domain name in question (as part of the
+certificate) is made public, and awareness of the event may draw unwanted
+attention. Our security analysis, in Section~\ref{sec:analysis}, shows that one
+of the best bets for an attacker may be to attack the entire Tor network or all
+CT logs: an act that in itself may would likely draw unwanted attention and is
+outside of Tor's (and ours by necessity) threat model.
 
 Two extensions to the base CTor design are presented in
 Sections~\ref{sec:auditor} and \ref{sec:log}. Both extensions aim to make
 transparent the accompanying fraudulent proofs issued by CT logs to convince TB
-to accept a fraudulent certificate. The deployment of either design would
-greatly contribute to the open question of how to reduce trust in CT log operators
-currently caused by the lack of an appropriate gossiping mechanism~\cite{FIXME}.
-In particular, the auditor-based design (Section~\ref{sec:auditor}) would result
-in a probabilistically-audited cryptographically-verifiable view of the entire
-CT log ecosystem available from Tor's consensus. This view could be used as the
-basis for trust by other browsers, greatly improving the security posture of the
+to accept a fraudulent certificate. The deployment of either extension would
+greatly contribute to the open question of how to reduce trust in CT log
+operators currently caused by the lack of an appropriate gossiping
+mechanism~\cite{minimal-gossip,nordberg}. In particular, the auditor-based
+extension (Section~\ref{sec:auditor}) would result in a
+probabilistically-audited cryptographically-verifiable view of the entire CT log
+ecosystem available from Tor's consensus. This view could be used as the basis
+for trust by other browsers, greatly improving the security posture of the
 entire web.
 
+By splitting our designs into a base design and two possible extensions we ague
+that CTor is incrementally deployable: start with completing Firefox support for
+CT, add the base CTor design, then pick one of the two extensions based on how
+the landscape develops.
+
 Section~\ref{sec:performance} estimates performance aspects of our designs,
-including estimated circuit overhead and estimated load on the Tor network.
-Privacy aspects of our design choices are covered in Section~\ref{sec:privacy},
-with a focus on the essential role of the distributed nature of the Tor network
-in both preserving privacy of Tor users as well as the overall security of our
-proposed designs. In gist, a similar approach would not work without Tor, e.g.,
-if integrated into Google Chrome. Finally, Section~\ref{sec:related} covers
-related work and Section~\ref{sec:conclusion} concludes this paper.
+including estimated circuit overhead and load on the Tor network based on the
+network measurements by Mani et al.~\cite{mani}. Privacy aspects of our design
+choices are covered in Section~\ref{sec:privacy}, with a focus on the essential
+role of the distributed nature of the Tor network in both preserving privacy of
+Tor users as well as the overall security of our proposed designs. In gist, a
+similar approach would not work without Tor, e.g., if integrated into Google
+Chrome. Finally, Section~\ref{sec:related} covers related work and
+Section~\ref{sec:conclusion} concludes this paper.
 
 %%% Local Variables: 
 %%% mode: latex 
