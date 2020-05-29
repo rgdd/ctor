@@ -16,20 +16,19 @@ hundreds of CAs, and it is enough to compromise a single CA to get a certificate
 mis-issued in the name of a target domain~\cite{ca-ecosystem,https-sok}.
 Motivated by this issue manifested by prominent CA compromises---such as the
 issuance of a fraudulent certificate for \url{google.com} by DigiNotar in
-2011~\cite{diginotar}---several
-major browser vendors have mandated that certificates issued by CAs must be
-included into trusted Certificate Transparency (CT) logs for browsers to trust
-them~\cite{ct/a,ct,ct/bis}. The idea behind CT is that, by making all issued
-certificates transparent, mis-issued certificates can be detected \emph{after}
-issuance and appropriate actions taken to keep the wider web safe (e.g.,
-revocation of certificates, suspected compromises investigated, or trust in
-misbehaving CAs removed from browsers). Browsers that wish to benefit from CT
-augment the validation done by the browser during the TLS handshake to also
-require cryptographic proof from the server that the presented certificate has
-been included into CT logs trusted by the browser. Notable browsers with
-mandatory CT support by default are Google Chrome and Apple's Safari
-\cite{chrome-policy,safari-policy}. Unfortunately, Mozilla's Firefox lacks
-support but has a partial implementation~\cite{ffct}.
+2011~\cite{diginotar}---several major browser vendors have mandated that
+certificates issued by CAs must be included into trusted Certificate
+Transparency (CT) logs for browsers to trust them~\cite{ct/a,ct,ct/bis}. The
+idea behind CT is that, by making all issued certificates transparent,
+mis-issued certificates can be detected \emph{after} issuance and appropriate
+actions taken to keep the wider web safe (e.g., revocation of certificates,
+suspected compromises investigated, or trust in misbehaving CAs removed from
+browsers). Browsers that wish to benefit from CT augment the validation done by
+the browser during the TLS handshake to also require cryptographic proof from
+the server that the presented certificate will be included into CT logs trusted
+by the browser. Notable browsers with mandatory CT support by default are Google
+Chrome and Apple's Safari \cite{chrome-policy,safari-policy}. Unfortunately,
+Mozilla's Firefox lacks support but has a partial implementation~\cite{ffct}.
 
 Beyond security on the web, anonymous access to the web has also matured. In
 particular, Tor with its Tor Browser (TB) today has millions of daily users
