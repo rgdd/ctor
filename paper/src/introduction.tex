@@ -122,18 +122,18 @@ operators.
 The second extension involves only a minor tweak to the base CTor design.
 Unfortunately, this tweak is primarily not to Tor but to the API of CT logs.
 While similar changes have been discussed earlier in the context of gossiping in
-CT, it is a significant deployment issue. The small tweak is that CT logs
-provide an API for receiving cryptographic proofs made by other CT logs wrt
-certificate inclusion. This would then mean that relays would add to
-other CT logs proofs observed by TB clients in addition to the certificate.
-This would also significantly reduce the trust assumptions the wider web has to
-place on CT log operators, from close to full trust as-is today to only trusting
-that some operators are honest.
+CT, it is a significant change. The small tweak is that CT logs provide an API
+for receiving cryptographic proofs made by other CT logs wrt. certificate
+inclusion. This would then mean that relays would add to other CT logs proofs
+observed by TB clients in addition to the certificate. This would also
+significantly reduce the trust assumptions the wider web has to place on CT log
+operators, from close to full trust as-is today to only trusting that some
+operators are honest.
 
 \subsection{Contribution and Structure}
 Section~\ref{sec:background} provides necessary background on CT and Tor. Our
 threat model is described in detail in Section~\ref{sec:adversary}, taking into
-account the threat models of both Tor and CT\@.
+account the threat models of Tor and CT\@.
 
 Section~\ref{sec:base} presents the base design of CTor that enables TB to
 probabilistically provide evidence to CT logs that it has been presented with a
@@ -143,8 +143,9 @@ the issuing CA may get revoked from the trust store of browsers, the domain name
 in question (as part of the certificate) is made public, and awareness of the
 event may draw unwanted attention. Our security analysis, in
 Section~\ref{sec:analysis}, shows that one of the best bets for an attacker may
-be to attack the entire Tor network: an act that in itself may draw unwanted
-attention.
+be to attack the entire Tor network or all CT logs: an act that in itself may
+would likely draw unwanted attention and is outside of Tor's (and ours by
+necessity) threat model.
 
 Two extensions to the base CTor design are presented in
 Sections~\ref{sec:auditor} and \ref{sec:log}. Both extensions aim to make
