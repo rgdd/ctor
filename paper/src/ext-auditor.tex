@@ -203,11 +203,57 @@ publish the extent to which CTR-to-log interactions fail.
 %This goes back to the point of general ecosystem value.
 % => this is now a "forward point"
 
+%TODO: all flushing and tagging details here
 \subsection{Security Analysis} \label{sec:auditor:analysis}
-TODO: all flushing and tagging details here
+Idea: go through what is \emph{different} with regards to the base analysis.
 
 \subsubsection{Phase~2---Storage} \label{sec:auditor:analysis:phase2}
+Main difference: longer storage time to avoid early signals.  Bound by 2*MMD +
+C, where C is the longest time to get an STH into the Tor consensus.  I.e.,
+attacker can maximize the window by producing an STH after MMD-1s, then wait
+another MMD before making next STH which we are waiting for to make it into the
+Tor consensus.  MMD usually 24h, and a consensus document is valid for 3h.  As
+such, attack window is at most 51 hours without any formal log misbehavior.
+
+Flooding can be modelled as...see equation.  Assuming 1GiB memory and a
+confidence level of 0.90, 433.2k queries and roughly 2GiB bytes must be
+transmitted to flush a single CTR.  Note: some relays have bandwidth in the
+order of 1--5 MiB/s, which if all is used to flood, flooding still takes
+takes between 3--35 minutes regardless of the attacker's available bandwidth.
+
+The attacker does not know which CTR to flood.  As such, the entire network must
+be targeted.  This results in 1.73B SFO submissions and roughly 1TiB bytes.  To
+flush the network in 10m, 20m, 1h, and 24h, it requires a flooding bandwidth of
+at least 142 Gbps, 71.1 Gbps, 23.7 Gbps, and 0.99 Gbps.  The announced bandwidth
+of the Tor network is 450 Gbps, and the announced exit bandwidth is roughly 110
+Gbps.
+
+TODO: it is certainly DoS within minutes if we do Tor circuit, coming out from
+an exit to a CTR.  And assuming CTRs checked that submission circuits come from
+an exit relay.  Can also possibly draw parallel to historical attacks, e.g.,
+attack on root DNS servers was around 35 Gbps in 2015 (before amplification).
+
+TODO: wrap-up, attacker can flush the entire network without DoS:ing it.  It
+would be detected by the extra-info document, but hard to attribute to the
+actual attacker.  Implies minor impact scenario.  
+
+TODO: double check numbers in more detail, extracted quickly from our github
+page.
+
 \subsubsection{Phase~3---Auditing} \label{sec:auditor:analysis:phase3}
+Now we are talking to the attacker.  Attacker learns that a mis-issued SFO
+is being audited.  Auditing happens over a shared Tor circuit, and despite the
+anonymity that it provides, the attacker can overcome it by tagging.  Briefly
+explain tagging.
+
+If the CTR submitted to a CT auditor, it would leave a ~seconds window where
+the attacker could simply DoS an identifiable CTR.  Therefore, we delegated
+reporting to a random watchdog \emph{before} doing the inclusion query.
+The attacker does not learn the watchdog identity unless we sample the
+attacker's CTR.  We do not consider the threat of fully taking over the Tor
+relay within seconds to identify the watchdog; too strong for Tor's threat
+model.
+
 % MISC notes
 % - Network-wide flush, detectable but hard to attribute
 % - Requires new reliable auditor software
