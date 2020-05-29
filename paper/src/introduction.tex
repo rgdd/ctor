@@ -16,7 +16,7 @@ hundreds of CAs, and it is enough to compromise a single CA to get a certificate
 mis-issued in the name of a target domain~\cite{ca-ecosystem,https-sok}.
 Motivated by this issue manifested by prominent CA compromises---such as the
 issuance of a fraudulent certificate for \url{google.com} by DigiNotar in
-2011\footnote{\url{https://web.archive.org/web/20200521135444/https://arstechnica.com/information-technology/2011/08/earlier-this-year-an-iranian/}}---several
+2011~\cite{diginotar}---several
 major browser vendors have mandated that certificates issued by CAs must be
 included into trusted Certificate Transparency (CT) logs for browsers to trust
 them~\cite{ct/a,ct,ct/bis}. The idea behind CT is that, by making all issued
@@ -29,29 +29,27 @@ require cryptographic proof from the server that the presented certificate has
 been included into CT logs trusted by the browser. Notable browsers with
 mandatory CT support by default are Google Chrome and Apple's Safari
 \cite{chrome-policy,safari-policy}. Unfortunately, Mozilla's Firefox lacks
-support but has a partial implementation.
+support but has a partial implementation~\cite{ffct}.
 
 Beyond security on the web, anonymous access to the web has also matured. In
 particular, Tor with its Tor Browser (TB) today has millions of daily users
 \cite{tor,mani}, and effort is ongoing into maturing the technology for wider
-use\footnote{\url{https://web.archive.org/web/20200528174708/https://mozilla-research.forms.fm/mozilla-research-grants-2019h1/forms/6510}}.
-The basis of TB is Firefox, where TB then enables anyone to browse the web
-anonymously by relaying traffic between browser and web server through the Tor
-network, consisting of thousands of voluntary-run relays across the globe. 
+use~\cite{fftor}. The basis of TB is Firefox, where TB then enables anyone to
+browse the web anonymously by relaying traffic between browser and web server
+through the Tor network, consisting of thousands of voluntary-run relays across
+the globe. 
 
-Just like attackers may be interested in breaking HTTPS, attackers are
-interested in breaking the anonymity provided by Tor with the goal of
-deanonymizing users. One common deanonymization technique, known to be used in
-practice by, e.g., law enforcement, is to compromise TB instead of directly
-circumventing the anonymity provided by the Tor
-network\footnote{\url{https://web.archive.org/web/20200528175225/https://zerodium.com/tor.html}}.
-Modern web browsers like TB (Firefox) are one of the most complex types of
-software in wide use today. This complexity and wide use leads to security
-vulnerabilities and incentives for exploitation. For example, the exploit
-acquisition platform Zerodium offers up to \$100,000 for a zero-day exploit
-against Firefox that leads to remote code execution and local privilege
-escalation\footnote{\url{https://web.archive.org/web/20200521151311/https://zerodium.com/program.html}}
-(i.e., full control of the browser for the attacker).
+Just like attackers may be interested in breaking HTTPS, attackers may also be
+interested in breaking the anonymity provided by Tor to deanonymize users. One
+common deanonymization technique, known to be used in practice by, e.g., law
+enforcement, is to compromise TB instead of directly circumventing the anonymity
+provided by the Tor network~\cite{zerotor}. Modern web browsers like TB
+(Firefox) are one of the most complex types of software in wide use today. This
+complexity and wide use leads to security vulnerabilities and incentives for
+exploitation. For example, the exploit acquisition platform Zerodium offers up
+to \$100,000 for a zero-day exploit against Firefox that leads to remote code
+execution and local privilege escalation~\cite{zeromain} (i.e., full control of
+the browser for the attacker).
 
 An attacker that wishes to use such an exploit to compromise and then ultimately
 deanonymize a TB user has to deliver the exploit to TB\@. Since the web is
