@@ -4,19 +4,20 @@ connections are made. The Certificate Authority (CA) system has also been
 greatly improved. In particular, the advent of mandatory Certificate
 Transparency (CT) logging of all certificates issued by CAs---enforced by web
 browsers---has made the weakest-link setting of the CA system more sustainable.
-However, Tor and in particular Tor Browser, based on Firefox, is missing support
-for CT. This leaves millions of daily Tor users without direct gain from the
-improvements made by the CT ecosystem. 
+However, Tor and its Tor Browser, based on Firefox, is missing support for CT.
+This leaves the millions of daily Tor users without direct gain from the
+improvements made by the CT ecosystem.
 
-In this paper, we investigate designs for adding incremental and
-privacy-preserving support for CT in Tor. Our designs go beyond the support
-found in browsers like Google Chrome or Apple's Safari: we aim to make it
-possible for cryptographic evidence of CA and/or CT log misbehavior to become
-public, when such misbehavior is done to man-in-the-middle or impersonate HTTPS
-connections from Tor Browser. Our base design can probabilistically detect CA
-misbehavior while reducing privacy leaks of browsing behavior of Tor Browser
-users through the use of distributed reporting of observed certificates with the
-help of Tor network relays.
+In this paper, we present designs for privacy preserving and
+incrementally-deployable support for CT in Tor. Our designs go beyond the
+support for CT found in browsers like Google Chrome or Apple's Safari: we aim to
+not only detect but also make it possible for cryptographic evidence of CA
+and/or CT log misbehavior to become public, when such misbehavior is done to
+man-in-the-middle or impersonate HTTPS connections from Tor Browser. Our base
+design targets making public CA misbehavior by sharing observed certificates in
+Tor Browser with other CT logs. Associated privacy leaks of browsing behavior of
+Tor users are minimized through the use of distributed reporting and caching of
+observed certificates using relays in the Tor network.
 
 We also present two possible extensions to our base design that can also detect
 CT log misbehavior. One extension makes a slight change to the API and operation
