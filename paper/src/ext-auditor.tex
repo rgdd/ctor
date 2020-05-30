@@ -290,7 +290,8 @@ distinct SFOs, and upon seeing them in the audit loop the exact identity is
 revealed.  We mitigated this threat using a watchdog, sending the SFO upfront
 \emph{before} auditing.  The attacker does not know the watchdog identity based
 on the same premises that the attacker does not know which CTR stores an
-SFO during the storage phase.
+SFO during the storage phase.  It should be noted that the use of watchdog CTRs
+give the attacker a \emph{second shot} at being selected at random.
 
 Another difference is that inclusion proofs are based on STHs that the directory
 authorities fetch from attacker-controlled CT logs, agreeing on which ones to
