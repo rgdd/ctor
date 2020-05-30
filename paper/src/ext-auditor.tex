@@ -153,7 +153,10 @@ watchdog:
 	during the \texttt{ct-log-timeout} actions could then be taken to ensure
 		that the SFO does not reach a CT auditor.
 A watchdog that receives a suspicious SFO reports it to a random CT auditor,
-and resubmits it later on if the \texttt{ct-auditor-timeout} happens to trigger.
+and resubmits it later on if the \texttt{ct-auditor-timeout} happens to
+trigger.  An important detail is that at most one SFO should await per log in
+each watchdog circuit, and in the case of resubmissions these are stored as part
+of the overall SFO buffer to follow the delete-at-random strategy.
 
 \subsubsection{Extra-Info Document} \label{sec:auditor:extra-info}
 Following from the \texttt{audit\_after} timestamp algorithm in
