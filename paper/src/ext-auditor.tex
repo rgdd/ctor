@@ -175,20 +175,16 @@ other extra-info metrics such as \texttt{read-history}.
 We analyze \emph{differences} with regards to the base design in
 Section~\ref{sec:base}.  The catastrophic impact level is possible because SFOs
 that cannot be timely validated against Tor's view of the CT landscape are
-reported.  While trust in CT logs is eliminated, it is shifted towards
-trusted CT auditors that endeavour to follow-up on suspected log misbehavior.
-The premise of third-party auditors is fundamental in our setting:
-	manually interacting with the wider CT ecosystem to expose a misbehaving
-		log exceeds what could reasonably be expected by a relay operator, and
-	it requires persisted storage which is not available in Tor's threat model.
-Another observation is that these auditors are subject to different operational
-requirements than a browser-included CT log, which is somewhat analogous to the
-base design that instead permits additional community logs to strengthen the
-diversity assumption.  Appendix~\ref{app:auditor} provides auditor details.
-
-Next, our phase-based analysis reveals that catching misbehaving CT logs comes
-at the cost of also opening up for minor impact scenarios due to Tor's threat
-model.
+reported.  While trust in CT logs is eliminated, it is shifted towards trusted
+CT auditors that endeavour to follow-up on suspected log misbehavior. The
+premise of third-party auditors is fundamental in our setting: manually
+interacting with the wider CT ecosystem to expose a misbehaving log exceeds what
+could reasonably be expected by a relay operator. Another observation is that
+these auditors are subject to different operational requirements than a
+browser-included CT log, which is somewhat analogous to the base design that
+instead permits additional community logs for the sake of diversity of actors in
+the ecosystem. Appendix~\ref{app:auditor} provides further details on what would
+be reasonable expectations on auditors.
 
 \subsubsection{Phase~2---Storage} \label{sec:auditor:analysis:phase2}
 The main difference with regards to the base design is that an SFO can be
@@ -221,27 +217,29 @@ given by:
 It is recommended that a non-exit relay should have at least 512~MB of memory.
 If the available bandwidth exceeds 40~Mbps, it should have at least
 1~GB~\cite{relay-config}.  Given that these recommendations are lower bounds,
-suppose the average memory available to store SFOs is 1~GiB.  Further, our
-dataset in Section~\ref{sec:performance} shows that the average SFO is in the
-order of 6~KiB.  This means that the buffer capacity is $n \gets 174763$ SFOs.
-Plugging it into Equation~\ref{eq:flush} for $p \gets \frac{9}{10}$, the
-attacker's flood must involve $k \gets 402406$ submissions.  In other words,
-2.3~GiB must be transmitted to flush a single CTR,\footnote{%
-	As a corner case and implementation detail, it is important that Tor Browser
-	and CTRs \emph{reject} SFOs that are bogus in terms of size:
-		it is a trivial DoS vector to load data indefinitely.
-	Analysis based on, e.g., 1~MiB SFOs also requires 2.3~GiB of data to flush.
-} which takes $7.9$--$39.3$~minutes if its bandwidth is between 8 and 40~Mbps.
-Thus, it is impractical to flush all CTRs within minutes.
+suppose the average memory available to store SFOs is 1~GiB (a conservative
+assumption).  Further, our dataset in Section~\ref{sec:performance} shows that
+the average SFO is in the order of 6~KiB.  This means that the buffer capacity
+is $n \gets 174763$ SFOs. Plugging it into Equation~\ref{eq:flush} for $p \gets
+\frac{9}{10}$, the attacker's flood must involve $k \gets 402406$ submissions.
+In other words, 2.3~GiB must be transmitted to flush a single CTR,\footnote{% As
+a corner case and implementation detail, it is important that Tor Browser and
+CTRs \emph{reject} SFOs that are bogus in terms of size: it is a trivial DoS
+vector to load data indefinitely. Analysis based on, e.g., 1~MiB SFOs also
+requires 2.3~GiB of data to flush.} which takes $7.9$--$39.3$~minutes if its
+bandwidth is between 8 and 40~Mbps. Thus, it is impractical to flush all CTRs
+within minutes.
 
 Metrics reported by the Tor project show that there are over 4000 relays that
-match our CTR criteria~\cite{relay-by-flag}.  As such, a network-wide flush
-involves the transmission of at least 8.99~TiB.  It might sound daunting at
-first, but distributed over a day it only requires 0.91~Gbps.  While we cannot
-avoid early signals to the logs \emph{and} at the same time prevent flushing
-without writing anything to disk, it is detectable based on the extra-info
-document.  On the flip-side, \emph{not observing any flushing} adds a large
-degree of confidence that there are no mis-issued SFOs.
+match our CTR criteria set in
+Section~\ref{sec:base:consensus:ctr-flag}~\cite{relay-by-flag}.  As such, a
+network-wide flush involves the transmission of at least 8.99~TiB.  It might
+sound daunting at first, but distributed over a day it only requires 0.91~Gbps.
+While we cannot avoid early signals to the logs \emph{and} at the same time
+prevent flushing without writing anything to disk, it is detectable based on the
+extra-info document.  On the flip-side, \emph{not observing any flushing} adds a
+large degree of confidence that there are no significant numbers of mis-issued
+SFOs.
 
 \subsubsection{Phase~3---Auditing} \label{sec:auditor:analysis:phase3}
 The main difference with regards to the base design is that we query the
