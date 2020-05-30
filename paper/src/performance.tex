@@ -1,13 +1,19 @@
+%
+% emph focus on normal-case behavior, and use distributions that mean auditing
+% delay is avg ~10m.  Risk averse attacker would still need to assume shorter
+% storage, i.e., success 50\% not enough.
+%
 \section{Performance} \label{sec:performance}
 Our performance evaluation estimates the expected overhead as the base design of
 CTor is instantiated.  Mani~\emph{et~al.} showed that up to 140~million websites
 are visited over Tor on a daily basis~\cite{mani}.  Our analysis also needs to
 know the size of a typical SFO, as well as the distribution of presented SFOs
 per website.  To this end we collected a dataset based on the most popular
-webpages submitted to Reddit (r/frontpage, all time) as of December 4, 2019.  An
-average certificate chain is 5440~bytes, and is seldom accompanied by more than
-a few SCTs.  As such, we assume that a typical SFO is 6~KiB.  No certificate
-chain exceeded 20KiB, and it is likely a conservative value for
+webpages submitted to Reddit (r/frontpage, all time) as of December 4, 2019.
+% \url{https://github.com/pylls/padding-machines-for-tor/commit/353bfa75e9f7d6aa0a1dff9516ff234cbf0f4562}
+An average certificate chain is 5440~bytes, and is seldom accompanied by more
+than a few SCTs.  As such, we assume that a typical SFO is 6~KiB.  No
+certificate chain exceeded 20KiB, and it is likely a conservative value for
 \texttt{ct-max-sfo-bytes} that avoids blocking in the TLS handshake.  The
 average number of SFOs per website was seven, which is an overestimate due to
 collecting the dataset with fresh Chromium instances and NetLog \emph{without}
@@ -18,49 +24,20 @@ average auditing delay of 10~minutes at CTRs.  The effect of CTR caching is
 disregarded.  In other words, our focus is on upper bounds.
 
 \textbf{Circuit overhead.}
+Equation~\ref{eq:sub-oh} shows the average circuit overhead for Tor Browser
+over time, where $p$ is the submit probability and $\mathcal{D}$ a distribution
+describing how many SFOs are presented per website visit.
+
+\begin{equation} \label{eq:sub-oh}
+	%f(p,\mathcal{D}) =
+		\frac{p}{n} \sum_{i=1}^{n} c_i, \textrm{where } c_i\sample\mathcal{D}
+\end{equation}
+
+Using $p \gets \frac{1}{10}$ and our approximated $\mathcal{D}$ with $n \gets
+8858$ data points, the average circuit overhead is $0.70$.  In contrast to these
+short-lived circuits, each and every CTR maintains a long-lived circuit for
+log interactions.
 
 \textbf{Bandwidth overhead.}
 
 \textbf{Memory overhead.}
-
-%
-%Let $p$ be the probability that Tor Browser submits an SFO to a sampled CTR on a
-%fresh independent circuit, and $\mathcal{D}$ a distribution that describes how
-%many SFOs are presented on a website visit.  As shown in
-%Equation~\ref{eq:sub-oh}, we can now estimate the resulting circuit overhead.
-%\begin{equation} \label{eq:sub-oh}
-%	f(p,\mathcal{D}) =
-%		\frac{p}{n} \sum_{i=1}^{n} c_i, \textrm{where } c_i\sample\mathcal{D}
-%\end{equation}
-%
-%We decided to approximate $\mathcal{D}$ using the $n$ most popular webpages
-%submitted to Reddit (r/frontpage, all time) as of December 4, 2019.\footnote{%
-%	\url{https://github.com/pylls/padding-machines-for-tor/commit/353bfa75e9f7d6aa0a1dff9516ff234cbf0f4562}
-%} This was motivated by the intuition that such webpages should include more
-%resources than basic frontpages, such that $\mathcal{D}$ is more likely to be
-%overestimated rather than underestimated.  This should further be the case
-%because we collected the SFO data set using fresh Chromium instances, simply
-%harvesting all SFOs that appeared in NetLog.  In other words, due to some
-%initial call-home behavior on start-up, a few additional SFOs are included per
-%data point.
-%
-%TODO: skip blabbering too much about data set collection
-%
-%Using $p=\frac{1}{10}$ and plugging our approximated $\mathcal{D}$ into
-%Equation~\ref{eq:sub-oh}, the resulting circuit overhead is $0.70$.  It should be
-%noted that these circuits are \emph{light} in terms of bandwidth when compared
-%to loading an entire website.
-%
-%TODO: on CTR side, maintain an auditing circuit and, in case of extended auditor
-%design, also a watchdog circuit.  
-%
-%TODO: normal case memory overhead to store SFOs based on Mani
-%
-%TODO: bandwidth overhead based on Mani
-%
-%TODO: don't consider latency overhead because \texttt{ct-max-sfo-bytes} should
-%be larger than all legit SFOs.  Give example of this value based on data set.
-%
-%TODO: emph focus on normal-case behavior, and use distributions that mean
-%auditing delay is avg ~10m.  Risk averse attacker would still need to assume
-%shorter storage, i.e., success 50\% not enough.
