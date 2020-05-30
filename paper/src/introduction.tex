@@ -135,47 +135,41 @@ Section~\ref{sec:background} provides necessary background on CT and Tor. Our
 threat model is described in detail in Section~\ref{sec:adversary}, taking into
 account the threat models of Tor and CT\@.
 
-Section~\ref{sec:base} presents the base design of CTor that enables TB to
+Section~\ref{sec:base} presents the base design of CTor that enables \emph{TB to
 probabilistically provide evidence to CT logs that it has been presented with a
-fraudulent certificate while preserving privacy. This greatly impacts
+fraudulent certificate while preserving privacy}. This greatly impacts
 risk-averse attackers, since part of its fraudulent behavior has been made
 transparent through the CT ecosystem: the issuing CA may get revoked from the
 trust store of browsers, the domain name in question (as part of the
 certificate) is made public, and awareness of the event may draw unwanted
 attention. Our security analysis, in Section~\ref{sec:analysis}, shows that one
-of the best bets for an attacker may be to attack the entire Tor network or all
-CT logs: an act that in itself may would likely draw unwanted attention and is
-outside of Tor's (and ours by necessity) threat model.
+of the best bets for an attacker would be to attack the entire Tor network or
+all CT logs: an act that would likely draw unwanted attention.
 
 Two extensions to the base CTor design are presented in
 Sections~\ref{sec:auditor} and \ref{sec:log}. Both extensions aim to make
 transparent the accompanying fraudulent proofs issued by CT logs to convince TB
-to accept a fraudulent certificate. The deployment of either extension would
-greatly contribute to the open question of how to reduce trust in CT log
-operators currently caused by the lack of an appropriate gossiping
+to accept a fraudulent certificate. The deployment of either extension
+\emph{would greatly contribute to the open question of how to reduce trust in CT
+log operators} currently caused by the lack of an appropriate gossiping
 mechanism~\cite{minimal-gossip,nordberg}. In particular, the auditor-based
 extension (Section~\ref{sec:auditor}) would result in a
-probabilistically-audited cryptographically-verifiable view of the entire CT log
-ecosystem available from Tor's consensus. This view could be used as the basis
-for trust by other browsers, greatly improving the security posture of the
-entire web.
+\emph{probabilistically-verified view of the entire CT log ecosystem} available
+from Tor's consensus. This view could be used as the basis for trust by other
+browsers, \emph{greatly improving the security posture of the entire web}.
 
 By splitting our designs into a base design and two possible extensions we ague
-that CTor is incrementally deployable: start with completing Firefox support for
-CT, add the base CTor design, then pick one of the two extensions based on how
-the landscape develops.
+that CTor is \emph{incrementally deployable}: start with completing Firefox
+support for CT, add the base CTor design, then pick one of the two extensions
+based on how the landscape evolves.
 
 Section~\ref{sec:performance} estimates performance aspects of our designs,
-including estimated circuit overhead and load on the Tor network based on the
-network measurements by Mani et al.~\cite{mani}. Privacy aspects of our design
-choices are covered in Section~\ref{sec:privacy}, with a focus on the essential
-role of the distributed nature of the Tor network in both preserving privacy of
-Tor users as well as the overall security of our proposed designs. In gist, a
-similar approach would not work without Tor, e.g., if integrated into Google
-Chrome. Finally, Section~\ref{sec:related} covers related work and
-Section~\ref{sec:conclusion} concludes this paper.
-
-%%% Local Variables: 
-%%% mode: latex 
-%%% TeX-master: "../main"
-%%% End:          
+showing that the estimated (based on Mani et al.'s measurements~\cite{mani})
+circuit-, bandwidth- and memory- \emph{overheads are modest even without
+caching}. Privacy aspects of our design choices are covered in
+Section~\ref{sec:privacy}, with a focus on the essential role of the distributed
+nature of the Tor network in both preserving privacy of Tor users as well as the
+overall security of our proposed designs. In gist, \emph{a similar approach
+would be privacy-invasive without Tor}, e.g., if adopted by Google Chrome.
+Section~\ref{sec:related} presents related work and Section~\ref{sec:conclusion}
+conclusions.
