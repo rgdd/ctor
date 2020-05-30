@@ -231,13 +231,14 @@ bandwidth is between 8 and 40~Mbps. Thus, it is impractical to flush all CTRs
 within minutes.
 
 Metrics reported by the Tor project show that there are over 4000 relays that
-match our CTR criteria~\cite{relay-by-flag}.  As such, a network-wide flush
-involves the transmission of at least 8.99~TiB.  It might sound daunting at
-first, but distributed over a day it only requires 0.91~Gbps.  While we cannot
-avoid early signals to the logs \emph{and} at the same time prevent flushing
-without writing anything to disk, it is detectable based on the extra-info
-document.  On the flip-side, \emph{not observing any flushing} adds a large
-degree of confidence that there are no mis-issued SFOs.
+match our CTR criteria set in
+Section~\ref{sec:base:consensus:ctr-flag}~\cite{relay-by-flag}.  As such, a
+network-wide flush involves the transmission of at least 8.99~TiB.  It might
+sound daunting at first, but distributed over a day it only requires 0.91~Gbps.
+While we cannot avoid early signals to the logs \emph{and} at the same time
+prevent flushing without writing anything to disk, it is detectable based on the
+extra-info document.  On the flip-side, \emph{not observing any flushing} adds a
+large degree of confidence that there are no mis-issued SFOs.
 
 \subsubsection{Phase~3---Auditing} \label{sec:auditor:analysis:phase3}
 The main difference with regards to the base design is that we query the
