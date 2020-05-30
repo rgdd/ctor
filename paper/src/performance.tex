@@ -42,9 +42,22 @@ log interactions.
 a CTR over a Tor circuit.  Later on, the underlying certificate chain is added
 to an independent CT log using another Tor circuit.  This means that the
 bandwidth of six relays are involved, one of which must be an exit.  Given 140~M
-daily website visits and our submit probability, this amounts to 14~M SFOs and
-thus 80.1~GiB per day.  Viz., $47.8$~Mbps in total.  Such order of overhead is
-negligible when compared to the advertised capacity of Tor:
+daily website visits and our submit probability as well as SFO distribution,
+this amounts to 98~M SFO submissions and thus 560.8~GiB per day.  Viz.,
+$334.5$~Mbps in total.  Such order of overhead is negligible when compared to
+the advertised capacity of Tor:
 	at least 450~Gbps~\cite{tor-bandwidth}.
 
 \textbf{Memory overhead.}
+During the average storage time of 10~minutes, there are 972~k website visits
+and thus 680~k SFO submissions.  These are distributed randomly across more than
+4000 CTRs, resulting in an average buffer size of 170~SFOs and $1.0$~MiB memory.
+Such order of overhead is negligible when compared to the recommended relay
+requirements:
+	at least 512~MiB~\cite{relay-config}.
+
+Note that the expected memory overhead does not increase much even if the
+storage phase is extended for \emph{newly issued} SFOs.  For example, suppose
+that all SFOs had a 90~day lifetime due to being issued by Let's
+Encrypt~\cite{le}.  On average, 1.1\% of the submitted SFOs must be retained for
+the order of an MMD rather than 10~m.
