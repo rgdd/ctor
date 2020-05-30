@@ -38,6 +38,13 @@ Using $p \gets \frac{1}{10}$ and our approximated $\mathcal{D}$ with $n \gets
 short-lived circuits, each and every CTR maintains a long-lived circuit for
 log interactions.
 
-\textbf{Bandwidth overhead.}
+\textbf{Bandwidth overhead.}  An SFO that is audited further gets submitted to
+a CTR over a Tor circuit.  Later on, the underlying certificate chain is added
+to an independent CT log using another Tor circuit.  This means that the
+bandwidth of six relays are involved, one of which must be an exit.  Given 140~M
+daily website visits and our submit probability, this amounts to 14~M SFOs and
+thus 80.1~GiB per day.  Viz., $47.8$~Mbps in total.  Such order of overhead is
+negligible when compared to the advertised capacity of Tor:
+	at least 450~Gbps~\cite{tor-bandwidth}.
 
 \textbf{Memory overhead.}
