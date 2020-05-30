@@ -265,18 +265,33 @@ document.  On the flip-side, \emph{not observing any flushing} adds a large
 degree of confidence that there are no mis-issued SFOs.
 
 \subsubsection{Phase~3---Auditing} \label{sec:auditor:analysis:phase3}
-%Now we are talking to the attacker.  Attacker learns that a mis-issued SFO
-%is being audited.  Auditing happens over a shared Tor circuit, and despite the
-%anonymity that it provides, the attacker can overcome it by tagging.  Briefly
-%explain tagging.
-%
-%If the CTR submitted to a CT auditor, it would leave a ~seconds window where
-%the attacker could simply DoS an identifiable CTR.  Therefore, we delegated
-%reporting to a random watchdog \emph{before} doing the inclusion query.
-%The attacker does not learn the watchdog identity unless we sample the
-%attacker's CTR.  We do not consider the threat of fully taking over the Tor
-%relay within seconds to identify the watchdog; too strong for Tor's threat
-%model.
+The main difference with regards to the base design is that we query the
+attacker for inclusion proofs; not an independent CT log.  As such, there is a
+time window to act between the time that the attacker learns some CTR audits a
+mis-issued SFO and until the \texttt{ct-log-timeout} elapses.  Suppose that the
+attacker could identify the CTR in question at the time of auditing, i.e.,
+despite our design (re)using a Tor circuit for all inclusion proofs.  Clearly,
+the query timeout must be a few seconds to avoid premature auditor reporting.
+This leaves a large enough window to simply DoS the CTR in question.  Our design
+makes no attempt to hide the CTR's identity while querying the log.  For
+example, the attacker can trivially \emph{tag} each CTR by submitting many
+distinct SFOs, and upon seeing them in the audit loop the exact identity is
+revealed.  We mitigated this threat using a watchdog, sending the SFO upfront
+\emph{before} auditing.  The attacker does not know the watchdog identity based
+on the same premises that the attacker does not know which CTR stores an
+SFO during the storage phase.
+
+Another difference is that inclusion proofs are based on STHs that the directory
+authorities fetch from attacker-controlled CT logs, agreeing on which ones to
+use via deterministic rules.  This means that the attacker controls which STHs
+go into the Tor consensus.  Once an STH is announced, it follows from Tor's
+threat model that it is fixed because a threshold of directory authorities are
+benign.  As such, CTRs have access to the same (in)consistent view of the CT
+landscape.  Fortunately, any inconsistent view that makes it into the Tor
+consensus is trivially detected:
+	the announced STHs are public and auditable by anyone.
+Therefore, the attacker should be deterred from creating split-views in Tor.
+Other user agents could benefit from Tor's audited view of CT logs.
 
 % MISC notes
 % - Network-wide flush, detectable but hard to attribute
@@ -286,4 +301,3 @@ degree of confidence that there are no mis-issued SFOs.
 % - A rational attacker is the issuer of all SCTs in the omitted SFO, so it is
 % sufficient to verify inclusion with regards to one SCT and then leave it to
 % the auditors to bust all involved CT logs.
-
