@@ -36,12 +36,18 @@ def main():
             "{}/sfo-info__chain-len.pdf".format(OUT_DIR),
             "certificate chain size (number)",
         )
+
         plotter.cdf([
                 ([s["chain_bytes"] for s in sfo_summary], "reddit"),
             ],
             "{}/sfo-info__chain-bytes.pdf".format(OUT_DIR),
             "certificate chain size (bytes)",
         )
+
+        chain_bytes = [s["chain_bytes"] for s in sfo_summary]
+        log.info("Avg chain len: {}".format(np.mean(chain_bytes)))
+        log.info("Max chain len: {}".format(np.max(chain_bytes)))
+
         plotter.cdf([
                 ([s["num_sfo"] for s in sfo_summary], "reddit"),
             ],
