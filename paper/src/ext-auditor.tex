@@ -175,15 +175,16 @@ other extra-info metrics such as \texttt{read-history}.
 We analyze \emph{differences} with regards to the base design in
 Section~\ref{sec:base}.  The catastrophic impact level is possible because SFOs
 that cannot be timely validated against Tor's view of the CT landscape are
-reported.  While trust in CT logs is eliminated, it is shifted towards
-trusted CT auditors that endeavour to follow-up on suspected log misbehavior.
-The premise of third-party auditors is fundamental in our setting:
-	manually interacting with the wider CT ecosystem to expose a misbehaving
-		log exceeds what could reasonably be expected by a relay operator.
-Another observation is that these auditors are subject to different operational
-requirements than a browser-included CT log, which is somewhat analogous to the
-base design that instead permits additional community logs to strengthen the
-diversity assumption.  Appendix~\ref{app:auditor} provides auditor details.
+reported.  While trust in CT logs is eliminated, it is shifted towards trusted
+CT auditors that endeavour to follow-up on suspected log misbehavior. The
+premise of third-party auditors is fundamental in our setting: manually
+interacting with the wider CT ecosystem to expose a misbehaving log exceeds what
+could reasonably be expected by a relay operator. Another observation is that
+these auditors are subject to different operational requirements than a
+browser-included CT log, which is somewhat analogous to the base design that
+instead permits additional community logs for the sake of diversity of actors in
+the ecosystem. Appendix~\ref{app:auditor} provides further details on what would
+be reasonable expectations on auditors.
 
 Next, our phase-based analysis reveals that catching misbehaving CT logs comes
 at the cost of also opening up for minor impact scenarios due to Tor's threat
