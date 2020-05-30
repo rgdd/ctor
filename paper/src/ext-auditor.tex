@@ -21,7 +21,6 @@ reported to a CT auditor.  Phase~1 remains unchanged, some changes are needed
 in phase~2, and major changes are required in phase~3 as well as the Tor
 consensus.  The extra-info document also includes two new metrics that are
 related to flooding.
-%Another prerequisite is the existence of CT auditors.
 
 \begin{figure*}
     \centering
@@ -40,11 +39,11 @@ related to flooding.
 Tor's consensus should capture a fixed view of the CT landscape by publishing
 STHs from all recognized logs.  A CT log is recognized if a majority of directory
 authorities proposed a \texttt{ct-log-info} item, which contains a log's ID,
-public key, base URL, MMD, and most recent STH.  Note that each directory
-authority proposes its own STH, and agrees to use the most recent STH as
-determined by timestamp.  Since CTRs verify inclusion statuses of SCTs
-that Tor Browser accepts, the CT logs recognized by Tor Browser must be in
-Tor's consensus.
+public key, base URL, MMD, and most recent STH.  Each directory authority
+proposes its own STH, and agrees to use the most recent STH as determined by
+timestamp and lexicographical order.  Since CTRs verify inclusion with regards
+to SCTs that Tor Browser accepts, the CT logs recognized by Tor Browser must be
+in Tor's consensus.
 
 Tor's directory authorities also majority-vote on \texttt{ct-auditor} items,
 which pin base URLs and public keys of CT auditors that watchdogs contact in
@@ -172,55 +171,24 @@ in the extra-info document.  These metrics indicate how many SFO bytes were
 received and deleted throughout different time intervals, which is similar to
 other extra-info metrics such as \texttt{read-history}.
 
-\subsubsection{CT Auditor} \label{sec:auditor:auditor}
-An announced auditor is expected to accept SFOs at a dedicated endpoint,
-endeavoring to validate the inclusion status of each SCT with regards to the
-first STH in the Tor consensus that elapsed the log's MMD.  If a log appears to
-function correctly except for some evidence that cannot be
-resolved despite multiple attempts that span a given time period, it is
-paramount that the auditor software alerts its operator who can investigate
-the issue further before submitting a full report to the CT-policy mailing list.
-Cases of misbehavior, in detail:
-\begin{itemize}
-	\item If the log fails to provide a valid inclusion proof for an SCT with
-		regards to the first applicable STH in the Tor consensus
-		(certificate omission).
-	\item If the log fails to provide a valid consistency proof between two
-		STHs in the Tor consensus
-		(split-view).
-	\item If a published STH is future-dated or backdated more than an MMD
-		(general log misbehavior).
-	\item If a log ignores some CTRs (uptime misbehavior).
-\end{itemize}
+\subsection{Discussion} \label{sec:auditor:analysis}
+We analyze \emph{differences} with regards to the base design in
+Section~\ref{sec:base}.  The catastrophic impact level is possible because SFOs
+that cannot be timely validated against Tor's view of the CT landscape are
+reported.  While trust in CT logs is eliminated, it is shifted towards
+trusted CT auditors that endeavour to follow-up on suspected log misbehavior.
+The premise of third-party auditors is fundamental in our setting:
+	manually interacting with the wider CT ecosystem to expose a misbehaving
+		log exceeds what could reasonably be expected by a relay operator, and
+	it requires persisted storage which is not available in Tor's threat model.
+Another observation is that these auditors are subject to different operational
+requirements than a browser-included CT log, which is somewhat analogous to the
+base design that instead permits additional community logs to strengthen the
+diversity assumption.  Appendix~\ref{app:auditor} provides auditor details.
 
-An unresponsive log can be suspected by observing the watchdog report frequency,
-and possibly confirmed by querying the log in question from different vantage
-points.  Among other extra-info metrics that go beyond received and deleted
-SFO-bytes that the announced CT auditors should check, it could be valuable to
-publish the extent to which CTR-to-log interactions fail.
-
-%While not within our threat model, we do encourage the announced auditors to
-%verify that STHs in the Tor consensus are consistent with external views of the
-%CT landscape.  For example, operate an STH pollination~\cite{nordberg} endpoint
-%and fetch STHs actively from many diverse vantage points using Tor, VPN
-%services, DoH resolvers, and RIPE Atlas (to mention a few low-cost options).
-%This goes back to the point of general ecosystem value.
-% => this is now a "forward point"
-
-\subsection{Security Analysis} \label{sec:auditor:analysis}
-We analyze the \emph{difference} with regards to Section~\ref{sec:analysis}.
-The catastrophic impact level is possible because SFOs that cannot be timely
-validated against Tor's view of the CT landscape are reported to the pinned
-auditors.  At the same time, this opens up for the threat of flooding and thus
-minor impact scenarios due to Tor's threat model.
-
-%Have to hand-wave a few obvious things before we get started, e.g., maybe the
-%attacker controls some announced auditors, but not all so it is not reliable.
-%
-%Need somewhere note on how watchdog treats received SFOs, i.e., in case of
-%deletions it is just one big buffer.  Should maybe mention that at most one
-%"open" entry per log, i.e., if you get another one on the same circuit that is
-%an implicit ACK of any previous SFO that was being watched.
+Next, our phase-based analysis reveals that catching misbehaving CT logs comes
+at the cost of also opening up for minor impact scenarios due to Tor's threat
+model.
 
 \subsubsection{Phase~2---Storage} \label{sec:auditor:analysis:phase2}
 The main difference with regards to the base design is that an SFO can be
