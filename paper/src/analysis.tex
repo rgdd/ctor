@@ -113,13 +113,13 @@ Adding a certificate chain to the log as part of the auditing phase does not
 leak which CTR holds an SFO \emph{to the attacker} unless all log connections
 that leave the Tor network are inspected.\footnote{%
 	We have not specified any further verification of the log's TLS certificate,
-	which means that the attacker can forge it without detection.  This is not
-	true for the returned SCT (if any), but the CTR in question could be
-	identified by tagging.  See Section~\ref{sec:auditor:analysis:phase3}.
+	which means that the attacker can forge it without detection.  It is
+	possible to eliminate this attack vector by pinning additional public key
+	information as part of a log's \texttt{ct-log-info} item.  Assuming the
+	ability to inspect the audit loop, the attacker can trivially identify
+	the CTR by tagging.  See Section~\ref{sec:auditor:analysis:phase3}.
 } The attacker in our threat model is only partially present in the network,
 however.  An identifiable CTR can therefore not be targeted reliably before any
 resubmission takes place.  Without resubmission or once logging finally
 succeeds, the mis-issued certificate is exposed to the public and
 \emph{significant impact} is achieved.
-
-TODO: pin keys to establish secure connections with the logs?!
