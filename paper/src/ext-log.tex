@@ -4,24 +4,17 @@ to avoid inclusion verification and the involved complexities as described in
 Section~\ref{sec:auditor}.  The idea is based on returning back to the premise
 of some, but not all, CT logs being honest.  However, the goal is not only
 \emph{resilience towards} but also \emph{detection of} CT logs that misbehaved.
-The extended design idea is shown in Figure~\ref{fig:ext-log}.  Tor
-Browser submits presented SFOs probabilistically to CTRs that are selected
-at random, and CTRs store the submitted SFOs before any auditing takes place.
+The extended design idea is nearly identical to the base design, as was shown in
+Figure~\ref{fig:design-ca}.  Tor Browser submits presented SFOs
+probabilistically to CTRs that are selected at random in phase 1, and CTRs store
+the submitted SFOs in phase 2 before any \emph{auditing} takes place in phase 3.
 Here, auditing refers to adding an SFO to an independent CT log; not just the
-underlying certificate chain.  By also adding the issued SCTs, the associated CT
-logs can be held accountable for possible omissions.
-
-\begin{figure*}
-    \centering
-    \includegraphics[width=0.85\textwidth]{img/design-log}
-	\caption{The updated design of CTor to capture cryptographic evidence of CT
-	log omission. The key difference to the previous design (shown in
-	Figure~\ref{fig:design-ca}) is the new API call used at CT logs.}
-    \label{fig:ext-log}
-\end{figure*}
+underlying certificate chain.  This is the main difference in the log extension.
+By also adding the issued SCTs, the associated CT logs can be held accountable
+for possible omissions.
 
 The prerequisite for such an extension to work is that CT logs support an
-additional endpoint:
+additional API endpoint:
 	\texttt{add-sfo}.
 First we describe how this endpoint could be operated so that \emph{the only
 change} with regards to the base design in Section~\ref{sec:base} is that
