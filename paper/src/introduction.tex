@@ -14,20 +14,19 @@ key-material as part of a certificate belongs to a particular domain name.
 The CA trust model suffers from \emph{weakest-link} security: web browsers trust
 hundreds of CAs, and it is enough to compromise a single CA to get a certificate
 mis-issued in the name of a target domain~\cite{ca-ecosystem,https-sok}.
-Motivated by this issue manifested by prominent CA compromises---such as the
-issuance of a fraudulent certificate for \url{*.google.com} and
-\url{*.torproject.org} by DigiNotar in 2011~\cite{diginotar}---several major
-browser vendors have mandated that certificates issued by CAs must be included
-into trusted Certificate Transparency (CT) logs for browsers to trust
-them~\cite{ct/a,ct,ct/bis}. The idea behind CT is that, by making all issued
-certificates transparent, mis-issued certificates can be detected \emph{after}
-issuance and appropriate actions taken to keep the wider web safe (e.g.,
-revocation of certificates, suspected compromises investigated, or trust in
-misbehaving CAs removed from browsers). Browsers that wish to benefit from CT
-augment the validation done by the browser during the TLS handshake to also
-require cryptographic proof from the server that the presented certificate will
-be included into CT logs trusted by the browser. Notable browsers with mandatory
-CT support by default are Google Chrome and Apple's Safari
+Motivated in part by prominent CA compromises---such as the issuance of a
+fraudulent certificate for \url{*.google.com} and \url{*.torproject.org} by
+DigiNotar in 2011~\cite{diginotar}---several major browser vendors have mandated
+that certificates issued by CAs must be included into trusted Certificate
+Transparency (CT) logs for browsers to trust them~\cite{ct/a,ct,ct/bis}. The
+idea behind CT is that, by making all issued certificates transparent,
+mis-issued certificates can be detected \emph{after} issuance and appropriate
+actions taken to keep the wider web safe (e.g., revocation of certificates,
+suspected compromises investigated, or trust in misbehaving CAs removed from
+browsers). Browsers that wish to benefit from CT augment the TLS handshake to
+also require cryptographic proof from the server that the presented certificate
+will be included into CT logs trusted by the browser. Notable browsers with
+mandatory CT support are Google Chrome and Apple's Safari
 \cite{chrome-policy,safari-policy}. Unfortunately, Mozilla's Firefox lacks
 support but has a partial implementation~\cite{ffct}.
 
@@ -37,7 +36,7 @@ particular, Tor with its Tor Browser (TB) today has millions of daily users
 use~\cite{fftor}. The basis of TB is Firefox, where TB then enables anyone to
 browse the web anonymously by relaying traffic between browser and web server
 through the Tor network, consisting of thousands of voluntary-run relays across
-the globe. 
+the globe~\cite{relay-by-flag}. 
 
 Just like attackers may be interested in breaking HTTPS, attackers may also be
 interested in breaking the anonymity provided by Tor to deanonymize users. One
@@ -82,15 +81,14 @@ when they are carried out by a powerful attacker that:
 \end{enumerate}
 
 Our base CTor design uses the CT log ecosystem against the attacker to ensure a
-non-zero (tweakable) probability of detection of the forged certificate. This is
-done by probabilistically adding the certificate to \emph{other CT logs} than
-those directly inferable as under attacker control (due to the accompanying
-proofs). TB uses modified relays to cache and interact with CT logs for the sake
-of privacy, ensuring that CT log operators (e.g., Google and Cloudflare) do not
-get a real-time feed of all browsing activities from TB (in addition to what
-their privileged positions on the Internet already provides
-them~\cite{1mtrack,TorDNS}). The use of relays are also essential for security
-in the setting, as explained in later sections.
+non-zero (tweakable) probability of public disclosure of the forged certificate
+\emph{per use} against a TB user. This is done by probabilistically adding the
+certificate to \emph{other CT logs} than those directly inferable as under
+attacker control (due to the accompanying proofs). TB uses modified relays to
+cache and interact with CT logs for the sake of privacy, ensuring that CT log
+operators (e.g., Google and Cloudflare) do not get a real-time feed of all
+browsing activities from TB (in addition to what their privileged positions on
+the Internet already provides them~\cite{1mtrack,TorDNS}).
 
 In addition to the base CTor design we present two extensions. Both extensions
 have in common that their goal is to make transparent the forged cryptographic
@@ -107,28 +105,24 @@ time~\cite{digicert-log-compromised}.
 The key change in the first extension is that relays now challenge CT logs to
 cryptographically prove the correctness of their prior proofs presented to TB
 instead of simply sharing the certificates (the subject of the proofs) with
-other CT logs. In case an offending CT log fails to provide such a proof
-in a timely manner,
-the querying relay ensures that the proof arrives at a trusted auditor. While
-this adds both more complexity and operational challenges to Tor (of both
-auditors and storage at relays), it completely removes all trust in the CT
+other CT logs. In case an offending CT log fails to provide such a proof in a
+timely manner, the querying relay ensures that the proof arrives at a trusted
+auditor. While this adds both more complexity and operational challenges to Tor
+(mainly auditors and storage at relays), it removes all trust in the CT
 ecosystem. Another benefit is that, as a consequence of CTor's design, Tor would
-provide a probabilistically-audited cryptographically-verifiable view of the
-entire CT log ecosystem. This significantly addresses one of the main open
-issues with the currently deployed CT ecosystem: the lack of a sufficiently
-secure gossiping mechanism that makes it possible to place zero-trust in the log
-operators.
+provide a probabilistically-verified view of the CT log ecosystem from Tor's
+consensus.
 
 The second extension involves only a minor tweak to the base CTor design.
 Unfortunately, this tweak is primarily not to Tor but to the API of CT logs.
 While similar changes have been discussed earlier in the context of gossiping in
-CT, it is a significant change. The small tweak is that CT logs provide an API
-for receiving cryptographic proofs made by other CT logs wrt. certificate
-inclusion. This would then mean that relays would add to other CT logs proofs
-observed by TB clients in addition to the certificate. This would also
-significantly reduce the trust assumptions the wider web has to place on CT log
-operators, from close to full trust as-is today to only trusting that some
-operators are honest.
+CT~\cite{minimal-gossip,nordberg}, it is a significant change. The small tweak
+is that CT logs provide an API for receiving cryptographic proofs made by other
+CT logs wrt. certificate inclusion. This would then mean that relays would add
+to other CT logs proofs observed by TB clients in addition to the certificate.
+This would also significantly reduce the trust assumptions the wider web has to
+place on CT log operators, from close to full trust as-is today to only trusting
+that some operators are honest.
 
 \subsection{Contribution and Structure}
 Section~\ref{sec:background} provides necessary background on CT and Tor. Our
