@@ -15,13 +15,17 @@ An average certificate chain is 5440~bytes, and is seldom accompanied by more
 than a few SCTs.  As such, we assume that a typical SFO is 6~KiB.  No
 certificate chain exceeded 20KiB, and it is likely a conservative value for
 \texttt{ct-max-sfo-bytes} that avoids blocking in the TLS handshake.  The
-average number of SFOs per website was seven, which is an overestimate due to
-collecting the dataset with fresh Chromium instances and NetLog \emph{without}
-filtering SFOs related to the initial call-home on start-up behavior.  Now we
-take a closer look at circuit, bandwidth, and memory overhead using a modest
-submit probability $\texttt{ct-submit-pr} \gets \frac{1}{10}$ and an
-average auditing delay of 10~minutes at CTRs.  The effect of CTR caching is
-disregarded.  In other words, our focus is on upper bounds.
+average number of SFOs per website was seven, which might be an overestimate due
+to collecting the dataset with fresh Chromium instances and NetLog
+\emph{without} filtering SFOs related to the initial call-home on start-up
+behavior.
+
+Now we take a closer look at circuit, bandwidth, and memory overhead using a
+modest 10\% submission probability and an average 10~minute auditing delay at
+CTRs.  The positive effect of CTR caching is disregarded for simplicity, or,
+viewed from a different perspective:
+	we can already show that the incurred CTor overhead is acceptable and/or
+	insignificant from basic sketching.
 
 \textbf{Circuit overhead.}
 Equation~\ref{eq:sub-oh} shows the average circuit overhead for Tor Browser
@@ -33,31 +37,30 @@ describing how many SFOs are presented per website visit.
 		\frac{p}{n} \sum_{i=1}^{n} c_i, \textrm{where } c_i\sample\mathcal{D}
 \end{equation}
 
-Using $p \gets \frac{1}{10}$ and our approximated $\mathcal{D}$ with $n \gets
-8858$ data points, the average circuit overhead is $0.70$.  In contrast to these
-short-lived circuits, each and every CTR maintains a long-lived circuit for
-log interactions.
+Using our submission probability and approximated $\mathcal{D}$ with $n \gets
+8858$ data points, the circuit overhead is $0.70$ on average.  In contrast to
+these short-lived circuits, each CTR also maintains a single long-lived circuit
+at all times to interact with logs in the CT landscape.
 
 \textbf{Bandwidth overhead.}  An SFO that is audited further gets submitted to
 a CTR over a Tor circuit.  Later on, the underlying certificate chain is added
 to an independent CT log using another Tor circuit.  This means that the
-bandwidth of six relays are involved, one of which must be an exit.  Given 140~M
-daily website visits and our submit probability as well as SFO distribution,
-this amounts to 98~M SFO submissions and thus 560.8~GiB per day.  Viz.,
-$334.5$~Mbps in total.  Such order of overhead is negligible when compared to
-the advertised capacity of Tor:
-	at least 450~Gbps~\cite{tor-bandwidth}.
+bandwidth of six relays are involved, one of which must be an exit.  Given the
+daily website visits of Mani~\emph{et~al.} as well as our submission probability
+and SFO distribution, this amounts to 98 million SFO submissions and thus
+560.8~GiB per day.  Converted into bits per second and taking six Tor relays
+into account yields $334.5$~Mbps in total.  Such order of overhead is small when
+compared to Tor's capacity: 450~Gbps~\cite{tor-bandwidth}.
 
 \textbf{Memory overhead.}
-During the average storage time of 10~minutes, there are 972~k website visits
-and thus 680~k SFO submissions.  These are distributed randomly across more than
-4000 CTRs, resulting in an average buffer size of 170~SFOs and $1.0$~MiB memory.
-Such order of overhead is negligible when compared to the recommended relay
-requirements:
+During the average storage time of 10~minutes, there are 680.6~k SFO submissions
+that are distributed randomly across more than 4000 CTRs.  This results in an
+average buffer size of 170~SFOs, which corresponds to $1.0$~MiB memory.  Such
+order of overhead is small when compared to the recommended relay configuration:
 	at least 512~MiB~\cite{relay-config}.
-
 Note that the expected memory overhead does not increase much even if the
-storage phase is extended for \emph{newly issued} SFOs.  For example, suppose
-that all SFOs had a 90~day lifetime due to being issued by Let's
-Encrypt~\cite{le}.  On average, 1.1\% of the submitted SFOs must be retained for
-the order of an MMD rather than 10~m.
+storage phase is extended for \emph{newly issued} SFOs as in
+Section~\ref{sec:auditor}.  For example, suppose that all SFOs had 90~day
+lifetimes due to being issued by Let's Encrypt~\cite{le}.  On average, 1.1\% of
+the submitted SFOs must then be stored for the order of an MMD rather than
+10~minutes.
