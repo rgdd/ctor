@@ -24,15 +24,15 @@ related to flooding.
 
 \begin{figure*}
     \centering
-    \includegraphics[width=0.85\textwidth]{img/design-auditor}
-	\caption{The auditor extension to CTor, where cryptographic evidence of log
-	omission can be collected without modification to CT logs. The extension
-	changes the consensus to include the latest STHs from CT logs and makes
-	phase 3 significantly more complex. CTRs in phase 3 now challenge logs to
-	prove inclusion of certificates from SFOs, using other CTRs as
-	``watchdogs'', ensuring that SFOs that are not provably correct are reported
-	to trusted auditors.}
+	\includegraphics[width=0.8\textwidth]{img/design-auditor}
+	\vspace{-8px}
+	\caption{The auditor extension, where cryptographic evidence of log omission
+	can be collected. The extension changes the consensus to include the latest
+	STHs from CT logs. The CTRs in phase 3 now challenge logs to prove inclusion
+	of certificates from SFOs, using other CTRs as ``watchdogs'', ensuring that
+	SFOs that are not provably correct are reported to trusted auditors.}
 	\label{fig:auditor}
+	\vspace{-10px}
 \end{figure*}
 
 \subsubsection{Tor Consensus} \label{sec:auditor:design:consensus}
