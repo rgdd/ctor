@@ -42,45 +42,35 @@ parameters set in the Tor consensus.
 \end{figure*}
 
 \subsection{Tor Consensus} \label{sec:base:consensus}
-Our proposal extends Tor's consensus document
-so that it entails information regarding
-	CTRs,
-	recognized CT logs, and
-	other necessary parameters that can be tuned.
+Our proposal extends Tor's consensus document to list CTRs, recognized CT logs,
+and other necessary parameters that can be tuned for CTor.
 
 \subsubsection{CTR Flag} \label{sec:base:consensus:ctr-flag}
-The existing \texttt{known-flags} item determines the different flags that a 
+The existing \texttt{known-flags} item determines the different flags that a
 given consensus document might contain.  We add another flag named \texttt{CTR},
 which indicates that a Tor relay should support CT-auditing as described in
-Sections~\ref{sec:base:phase2}--\ref{sec:base:phase3}.  A relay qualifies as a
-CTR if it is flagged as \texttt{Stable} and not \texttt{Exit}.  As such, we
-suggest using resources that are more abundant when compared to, e.g., exit
-bandwidth.  A relay is assigned the \texttt{CTR} flag if a majority of directory
-authorities voted for it.
-
-TODO: elaborate 1-2 sentences why this ctr criteria and what it entails (?)
+Sections~\ref{sec:base:phase2}--\ref{sec:base:phase3}.  For now, assume that a
+relay qualifies as a CTR if it is flagged as \texttt{Stable} and not
+\texttt{Exit}, to spare relatively sparse on exit bandwidth and only use relays
+that can be expected to stay online. Section~\ref{sec:privacy} discusses
+trade-offs in the assignment of the \texttt{CTR} flag.
 
 \subsubsection{Recognized CT Log} \label{sec:base:consensus:log}
 CTRs only interact with CT logs that are recognized by the Tor consensus.  A log
 is recognized if a majority of directory authorities voted for its inclusion by
 proposing a \texttt{ct-log-info} entry that contains a log ID, a public key, and
-a base URL~\cite{ct,ct/bis}. 
-Following from our basic CTR design, there need not be any overlap between the
-logs that the Tor consensus recognizes when compared to Tor Browser's CT policy.
-There could be overlap, however.  The ideal scenario is that there are many
-independent logs that accept certificate chains for most trust anchors.  We
-discuss whether this is currently the case or not in Section~\ref{sec:todo}.  In
-favor of brevity, details on how the Tor consensus captures whether two logs are
-independent and which trust anchors they accept are omitted.
-
-TODO: wrap-up here instead without any forward ref
+a base URL~\cite{ct,ct/bis}. Note that there does not need to be any overlap
+between the logs that the Tor consensus recognizes and those in Tor Browser's CT
+policy in this design (later extensions change this). Overlap is likely though.
+The ideal scenario is that there are many independent logs that accept
+certificate chains for most trust anchors, such that potentially mis-issued
+certificates can be widely spread.  TODO Rasmus: wrap-up here and cite the paper
+that talked about this, maybe also short LE note where this concern comes from?
 
 \subsubsection{Other Parameters} \label{sec:base:consensus:params}
 Directory authorities influence the way in which Tor Browser and CTRs behave by
-voting on other necessary parameters.  For example, the likelihood that
-an SFO is submitted to a CTR is a security parameter that is determined by the
-value of \texttt{ct-submit-pr}.  Below, the value of an item is computed as the
-median of all votes.
+voting on other necessary parameters. Below, the value of an item is computed as
+the median of all votes.
 \begin{description}
 	\item[ct-submit-pr:] A floating-point in $[0,1]$ that determines Tor
 		Browser's submission probability.  For example, $0$ disables submissions
