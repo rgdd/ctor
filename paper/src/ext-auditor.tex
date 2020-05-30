@@ -212,6 +212,11 @@ Make sure it is clear why we do delete at random before analysis starts
 Have to hand-wave a few obvious things before we get started, e.g., maybe the
 attacker controls some announced auditors, but not all so it is not reliable.
 
+Need somewhere note on how watchdog treats received SFOs, i.e., in case of
+deletions it is just one big buffer.  Should maybe mention that at most one
+"open" entry per log, i.e., if you get another one on the same circuit that is
+an implicit ACK of any previous SFO that was being watched.
+
 \subsubsection{Phase~2---Storage} \label{sec:auditor:analysis:phase2}
 The main difference with regards to the base design is that an SFO can be
 stored much longer.  The attacker can maximize the \texttt{audit\_after}
