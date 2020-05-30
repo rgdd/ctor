@@ -157,17 +157,17 @@ and resubmits it later on if the \texttt{ct-auditor-timeout} happens to trigger.
 
 \subsubsection{Extra-Info Document} \label{sec:auditor:extra-info}
 Following from the \texttt{audit\_after} timestamp algorithm in
-Figure~\ref{fig:audit-after}, an SFO may be stored throughout an entire MMD.
-This results in a relatively large time window during which the attacker can
-attempt to flood all CTRs in hope that they delete the omitted SFO at random
-before it is audited.  We discuss the threat of flooding further in
-Section~\ref{sec:auditor:analysis:phase2}, noting that it can be detected if
-CTRs publish two new metrics in the extra-info document:
+Figure~\ref{fig:audit-after}, an SFO may be stored for at least an MMD.  This
+results in a relatively large time window during which the attacker can attempt
+to flood all CTRs in hope that a target SFO is \emph{flushed} from the relevant
+CTR buffer due to finite memory constraints (Section~\ref{sec:base:phase2}).
+The threat of flooding is discussed in
+Section~\ref{sec:auditor:analysis:phase2}.  It can be detected if CTRs publish
 	\texttt{ct-receive-bytes} and
-	\texttt{ct-delete-bytes}.
-These metrics indicate how many SFO bytes were received and deleted throughout
-different time intervals, which is similar to other extra-info metrics such
-as \texttt{read-history}.
+	\texttt{ct-delete-bytes}
+in the extra-info document.  These metrics indicate how many SFO bytes were
+received and deleted throughout different time intervals, which is similar to
+other extra-info metrics such as \texttt{read-history}.
 
 \subsubsection{CT Auditor} \label{sec:auditor:auditor}
 An announced auditor is expected to accept SFOs at a dedicated endpoint,
@@ -237,13 +237,12 @@ Following from Tor's threat model, the mis-issued SFO must be stored in
 volatile memory and not to disk.  Two risks emerge as a result of the increased
 storage time:
 	the CTR in question might be restarted by the operator,
-	and the attacker might \emph{flood} it by submitting many SFOs with the
-		intent to \emph{flush} a target entry from the buffer~\cite{nordberg}.
-A risk-averse attacker cannot rely on the former, but the latter is applicable
-if all CTRs can be targeted without making Tor unavailable.
-Appendix~\ref{app:flush} shows that the number of SFO submissions~$k$
-that the attacker needs to successfully flush a buffer of $n>1$ entries with
-some probability~$p<1$ is given by Equation~\ref{eq:flush}.
+	and the attacker could flood it by submitting a large volume of SFOs.
+A risk-averse attacker cannot rely on the former to avoid detection, but the
+latter might flush a target SFO from a CTR's memory \emph{if deleted at random}.
+Appendix~\ref{app:flush} shows that the number of SFO submissions~$k$ that the
+attacker needs to flush a buffer of $n>1$ entries with some probability~$p<1$ is
+given by:
 \begin{equation} \label{eq:flush}
 	k = \frac{\log(1-p)}{\log(1 - \frac{1}{n})}
 \end{equation}
