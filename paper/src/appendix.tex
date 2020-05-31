@@ -44,15 +44,6 @@ however.  A few notes:
 		Encrypt~\cite{le}.
 \end{itemize}
 
-\section{Flushing a Single CTR} \label{app:flush}
-Let $n$ be the number of SFOs that a CTR can store in its buffer.  The
-probability to sample a target SFO is thus $\frac{1}{n}$, and the probability to
-not sample a target SFO is $q = 1 - \frac{1}{n}$.  The probability to not sample
-a target SFO after $k$ submissions is $q^k$.  Thus, the probability to sample
-the relevant buffer index at least once is $p = 1 - q^k$.  Solving for $k$ we
-get: $k = \frac{\log(1 - p)}{\log(q)}$.  Substituting $q$ for $1 - \frac{1}{n}$
-yields Equation~\ref{eq:flush}, which was to be shown.
-
 \section{Trusted Auditor} \label{app:auditor}
 An trusted auditor is expected to accept SFOs at a dedicated endpoint,
 endeavoring to validate the inclusion status of each SCT with regards to the
@@ -86,3 +77,12 @@ the CT landscape.  For example, operate an STH pollination
 endpoint~\cite{nordberg} and fetch STHs actively from many diverse vantage
 points using Tor, VPN services, DoH resolvers, and RIPE Atlas (to mention a few
 options).  This goes back to the point of general ecosystem value.
+
+\section{Flushing a Single CTR} \label{app:flush}
+Let $n$ be the number of SFOs that a CTR can store in its buffer.  The
+probability to sample a target SFO is thus $\frac{1}{n}$, and the probability to
+not sample a target SFO is $q = 1 - \frac{1}{n}$.  The probability to not sample
+a target SFO after $k$ submissions is $q^k$.  Thus, the probability to sample
+the relevant buffer index at least once is $p = 1 - q^k$.  Solving for $k$ we
+get: $k = \frac{\log(1 - p)}{\log(q)}$.  Substituting $q$ for $1 - \frac{1}{n}$
+yields Equation~\ref{eq:flush}, which was to be shown.
