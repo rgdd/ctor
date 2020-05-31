@@ -1,5 +1,5 @@
 The security of the web has greatly improved in the last couple of years. HTTPS
-is now the new default, with browsers moving towards warning when unencrypted
+is now the default, with browsers moving towards warning when unencrypted
 connections are made. The Certificate Authority (CA) system has also improved.
 The advent of mandatory Certificate Transparency (CT) logging of all
 certificates issued by CAs---enforced by web browsers---has made the
@@ -7,15 +7,16 @@ weakest-link setting of the CA system more sustainable. However, Tor and its Tor
 Browser, based on Firefox, is missing support for CT.
 
 In this paper, we present designs for privacy preserving and
-incrementally-deployable support for CT in Tor. Our designs go beyond the
-support for CT found in browsers like Google Chrome or Apple's Safari: we aim to
-not only detect but also make it possible for cryptographic evidence of CA
-and/or CT log misbehavior to become public, when such misbehavior is done to
-man-in-the-middle or impersonate HTTPS connections from Tor Browser. Our base
-design targets making public CA misbehavior by sharing observed certificates in
-Tor Browser with other CT logs. Associated privacy leaks of browsing behavior of
-Tor users are minimized through the use of distributed reporting and caching of
-observed certificates using relays in the Tor network.
+incrementally-deployable support for CT in Tor. Our designs go beyond
+the support for CT found in browsers like Google Chrome or Apple's
+Safari: we aim to do more than detect CA misbehavior supporting
+man-in-the-middle or impersonated HTTPS connections from Tor Browser
+by also creating independent public evidence of CT log misbehavior in
+support of this. Our base design shares observed certificates in Tor
+Browser with other CT logs. Associated privacy leaks of browsing
+behavior of Tor users are minimized through the use of indirect
+routing and randomized delay of certificate reporting through relays
+in the Tor network.
 
 We also present two possible extensions to our base design that can also detect
 CT log misbehavior. One extension makes a slight change to the API and operation
