@@ -76,7 +76,7 @@ mostly orthogonal to CTor, as it strenghtens the assumption of a secure Tor
 consensus by enabling detection of compromised signing keys rather than
 mis-issued TLS certificates.  Winter~\emph{et~al.} proposed that Tor Browser
 could check self-signed TLS certificates for extact matches on independent Tor
-circuits.  Alicherry~\emph{et~al.} proposed that any web browser could
+circuits~\cite{spoiled-onions}.  Alicherry~\emph{et~al.} proposed that any web browser could
 double-check TLS certificates on first encounter using alternative paths and
 Tor, again, looking for certificate mismatches and generating warnings of
 possible man-in-the-middle attacks~\cite{doublecheck}.  The submission phase in
