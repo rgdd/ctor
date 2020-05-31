@@ -170,7 +170,7 @@ With regards to some CT circuit, process an incoming SFO $s$ as follows:
 	\item\label{enm:storage:unrecognized} Stop if no CT log in the Tor consensus
 		accepts the trust anchor of the underlying certificate chain in $s$.
 	\item\label{enm:storage:cached}
-		Stop if $s$ is cached or pending to be audited already.
+		Stop if $s$ is cached (see Section~\ref{sec:base:phase3}) or already pending to be audited.
 	\item\label{enm:storage:fix-log} Sample an independent CT log $l$ that
 		issued no SCT in $s$.  If there are no independent CT logs listed in the
 		Tor consensus, sample a dependent CT log instead.
@@ -195,34 +195,28 @@ regards to some CT log.  If memory becomes a scarce resource, delete SFOs at
 random~\cite{nordberg}.
 
 \subsection{Phase 3---Auditing} \label{sec:base:phase3}
-Each CTR maintains a single Tor circuit that is used to interact with CT logs
-that have \texttt{ct-log-info} items.  At random time intervals, separate
-auditing instances are initiated for each of these logs.  Given a known CT log~%
-$l$:
+Each CTR maintains a single shared circuit that is used to interact with all CT
+logs that have \texttt{ct-log-info} items. For \emph{each} such CT log $l$, the
+CTR runs the following steps indefinitely:
 \begin{enumerate}
 	\item\label{enm:auditing:backoff} Sample a delay $d \gets
-		\mathsf{random}(\texttt{ct-backoff-dist})$.
-	\item\label{enm:auditing:sleep} Schedule a timer, waiting until $d$
-		time units elapsed.
-	\item\label{enm:auditing:loop} For each pending buffer entry $(l',s,t)$:
+		\mathsf{random}(\texttt{ct-backoff-dist})$ and wait until $d$ time units
+		elapsed.
+	\item\label{enm:auditing:loop} For each pending buffer entry $(l',s,t)$,
+	where $l' = l$ and $t <= \mathsf{now}()$:
 		\begin{enumerate}
-			\item\label{enm:auditing:log-check} Continue the loop if $l\ne l'$.
-			\item\label{enm:auditing:timestamp-check} Continue the loop if
-				$t > \mathsf{now}()$.
-			\item\label{enm:auditing:add-chain} Use \texttt{ct-log-timeout} to
-				set a timer and add the certificate chain in $s$ to $l$ using
-				the public \texttt{add-chain}~\cite{ct} or
+			\item\label{enm:auditing:add-chain} Using \texttt{ct-log-timeout} as
+				the timeout, attempt to add the certificate chain in $s$ to $l$
+				with the \texttt{add-chain}~\cite{ct} or
 				\texttt{submit-entry}~\cite{ct/bis} endpoints.
 				\begin{itemize}
 					\item\label{enm:auditing:add-chain:success} On valid
 						SCT: cache the SFO, then discard it from the buffer of
 						pending SFOs.
 					\item\label{enm:auditing:add-chain:fail} On any other
-						outcome: break the loop.
+						outcome: go to step 1.
 				\end{itemize}
 		\end{enumerate}
-	\item\label{enm:auditing:restart} Go back to
-		step~\ref{enm:auditing:backoff}.
 \end{enumerate}
 
 As shown above we take an unusual approach towards auditing SFOs.  Rather than
@@ -236,9 +230,12 @@ within a timely manner.  On any other outcome, such as invalid SCT signature or
 timeout, the SFO remains in the buffer as the loop breaks and the CTR backs-off
 in hope that the log becomes available again after wake-up.
 
-Note that the auditing instances of different CT logs are separated.  This
-assures that the unavailability of one CT log does not halt auditing of
-unrelated buffer entries.
+Each CTR keeps a least recently used cache of the SFOs it validates, e.g., by
+hashing the entire SFO or selected SCTs in it. A few megabytes should
+significantly reduce load on CT logs. Also note that the steps above are done in
+parallel for each CT log with a \texttt{ct-log-info} entry in the consensus.
+This assures that the unavailability of one CT log does not halt auditing of
+others.
 
 %If there is no independent log listed in the Tor consensus, it is
 %still valuable to resubmit to a dependent log:

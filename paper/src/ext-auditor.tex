@@ -109,17 +109,13 @@ and rotated that ends at a random watchdog CTR.  Given a known CT log
 $l$:
 \begin{enumerate}
 	\item\label{enm:ext:auditing:backoff} Sample a delay $d \gets
-		\mathsf{random}(\texttt{ct-backoff-dist})$.
-	\item\label{enm:ext:auditing:sleep} Schedule a timer, waiting until $d$
-		time units elapsed.
-	\item\label{enm:auditing:loop} For each pending buffer entry $(l',s,t)$:
+	\mathsf{random}(\texttt{ct-backoff-dist})$ and wait until $d$ time units
+	elapsed.
+	\item Connect to a random watchdog CTR.
+	\item\label{enm:auditing:loop} For each pending buffer entry $(l',s,t)$,
+	where $l' = l$, $t <= \mathsf{now}()$ and $t <=
+	\textrm{STH}.\mathsf{timestamp}$:
 		\begin{enumerate}
-			\item\label{enm:ext:auditing:log-check}
-				Continue the loop if $l\ne l'$.
-			\item\label{enm:ext:auditing:timestamp-check} Continue the loop if
-				$t > \mathsf{now}()$.
-			\item\label{enm:ext:auditing:sth-check} Continue the loop if $t >
-				\textrm{STH}.\mathsf{timestamp}$.
 			\item\label{enm:ext:auditing:watchdog} Share $s$ with the current
 				watchdog.
 			\item\label{enm:ext:auditing:challenge} Use \texttt{ct-log-timeout}
@@ -130,11 +126,10 @@ $l$:
 						proof: send an acknowledgment to the watchdog, then
 						cache $s$ and discard it.
 					\item\label{enm:ext:auditing:challenge:fail} On any other
-						outcome: discard $s$ and break.
+						outcome: discard $s$, close circuit to the watchdog CTR,
+						and go to step 1.
 				\end{itemize}
 		\end{enumerate}
-	\item\label{enm:ext:auditing:restart} Go back to
-		step~\ref{enm:ext:auditing:backoff}.
 \end{enumerate}
 
 An SFO is not audited for inclusion until the log's MMD elapsed \emph{and} there
