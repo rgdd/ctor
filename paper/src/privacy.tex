@@ -37,9 +37,10 @@ is not an option, since an attacker could compromise TB shortly after presenting
 the forged SFO.
 
 The main limitation of CTor in terms of privacy is that CTor continuously leaks
-to CT logs, and to auditors in the case of the auditor extension
-(Section~\ref{sec:auditor}), a fraction of certificates of websites visited
-using TB to the relatively small number of operators of CT logs.  This provides
+to CT logs---and to a \emph{lesser extent} auditors in one of our extensions due
+to break-and-backoff behavior if the logs are unresponsive---a fraction of
+certificates of websites visited using TB to the relatively small number of
+operators of CT logs.  This provides
 to a CT log a partial list of websites visited via the Tor network over a period
 of time (determined by \texttt{ct-delay-dist}), together with some indication of
 distribution based on the number of active CTRs. It does not, however, provide
