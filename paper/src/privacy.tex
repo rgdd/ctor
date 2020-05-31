@@ -3,10 +3,10 @@ There is an inherent privacy problem in the setting due to how CT is designed
 and deployed. A browser, like TB, that wishes to validate that SFOs presented to
 it are \emph{consistent} and \emph{included} in CT logs must directly or
 indirectly interact with CT logs wrt. its observed SFOs. Without protections
-like Private Information Retrieval ~\cite{PIR} (that require server-side support
-or introduction of additional parties~\cite{lueks-and-goldberg}), exposing SFOs
-to any party risks leaking (partial) information about the browsing activities
-of the user.
+like Private Information Retrieval~\cite{PIR} that require server-side support
+or introduction of additional parties and trust
+assumptions~\cite{lueks-and-goldberg,kales}, exposing SFOs to any party risks
+leaking (partial) information about the browsing activities of the user.
 
 Given the constraints of the existing CT ecosystem, CTor is made
 privacy-preserving thanks to the distributed nature of Tor with its anonymity
