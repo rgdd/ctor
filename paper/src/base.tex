@@ -46,13 +46,12 @@ parameters set in the Tor consensus.
 \subsection{Tor Consensus} \label{sec:base:consensus}
 
 \subsubsection{CTR Flag} \label{sec:base:consensus:ctr-flag}
-The existing \texttt{known-flags} item determines the different flags that a
-given consensus document might contain.  We add another flag named \texttt{CTR},
-which indicates that a Tor relay should support CT-auditing as described in
-Sections~\ref{sec:base:phase2}--\ref{sec:base:phase3}.  For now, assume that a
-relay qualifies as a CTR if it is flagged as \texttt{stable} and not
-\texttt{exit}, to spare relatively sparse on exit bandwidth and only use relays
-that can be expected to stay online. Section~\ref{sec:privacy} discusses
+The existing \texttt{known-flags} item determines the different flags that the
+consensus might contain.  We add another flag named \texttt{CTR}, which
+indicates that a Tor relay should support CT-auditing as described later. For
+now, assume that a relay qualifies as a CTR if it is flagged as \texttt{stable}
+and not \texttt{exit}, to spare relatively sparse on exit bandwidth and only use
+relays that can be expected to stay online. Section~\ref{sec:privacy} discusses
 trade-offs in the assignment of the \texttt{CTR} flag.
 
 \subsubsection{Recognized CT Log} \label{sec:base:consensus:log}
