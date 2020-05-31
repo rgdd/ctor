@@ -29,12 +29,12 @@ shared (persisted) dynamic state.
 CTRs are also essential for security in the setting of the auditor extension. A
 rational attacker will produce SFOs with SCT timestamps that are too new to have
 to be part of CT logs at the time of the attack. TB cannot store SFOs for any
-extended period of time (a couple of days, see
-Section~\ref{sec:auditor:analysis}) without violating its security and privacy
-goals, not to mention that presumably most TB sessions are not maintained for
-days but rather minutes~\cite{DBLP:conf/pam/AmannS16}. Further, buffering at TB
-is not an option, since an attacker could compromise TB shortly after presenting
-the forged SFO.
+extended time period without violating its security and privacy goals, not to
+mention that presumably most TB sessions are not maintained for
+days (as required, see analysis in Section~\ref{sec:auditor:analysis}) but
+rather minutes~\cite{DBLP:conf/pam/AmannS16}. Further, buffering at TB is not an
+option, since an attacker could compromise TB shortly after presenting the
+forged SFO.
 
 The main limitation of CTor in terms of privacy is that CTor continuously leaks
 to CT logs---and to a \emph{lesser extent} auditors in one of our extensions due
