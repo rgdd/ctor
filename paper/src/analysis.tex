@@ -2,7 +2,7 @@
 
 \subsection{Impact of Being Detected} \label{sec:analysis:impact}
 Given a man-in-the-middle attack against Tor Browser we consider four
-different scenarios of \emph{impact}, namely:
+different types of \emph{impact}, namely:
 \begin{description}
 	\item[None] the attack was undetected or detected without knowing any
 		details as to how it was carried out.
@@ -15,10 +15,9 @@ different scenarios of \emph{impact}, namely:
 		that proves CT log misbehavior.
 \end{description}
 
-Our base design achieves a significant impact level against risk-averse
-attackers in our threat model.  The extended designs in
-Sections~\ref{sec:auditor}--\ref{sec:log} aim higher, making it possible
-to enforce catastrophic impact for the attacker.
+Our base design can lead to significant impact events.  The extended designs in
+Sections~\ref{sec:auditor}--\ref{sec:log} aim higher, making it possible to
+cause events of catastrophic impact.
 
 \subsection{Probability of Being Detected} \label{sec:analysis:pr}
 Suppose the attacker mis-issued a certificate chain that is rooted in Tor
