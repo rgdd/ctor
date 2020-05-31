@@ -1,7 +1,7 @@
 \section{Security Analysis} \label{sec:analysis}
 
 \subsection{Impact of Being Detected} \label{sec:analysis:impact}
-Given a man-in-the-middle attack against Tor Browser we consider four
+Given a man-in-the-middle attack against TB we consider four
 different types of \emph{impact}, namely:
 \begin{description}
 	\item[None] the attack was undetected or detected without knowing any
@@ -22,8 +22,8 @@ cause events of catastrophic impact.
 \subsection{Probability of Being Detected} \label{sec:analysis:pr}
 Suppose the attacker mis-issued a certificate chain that is rooted in Tor
 Browser's trust store, and that it is accompanied by enough SCTs from
-attacker-controlled CT logs to pass Tor Browser's CT policy.  The resulting SFO
-is further used to man-in-the-middle a single Tor Browser user.  Clearly, the
+attacker-controlled CT logs to pass TB's CT policy.  The resulting SFO
+is further used to man-in-the-middle a single TB user.  Clearly, the
 attacker-controlled CT logs have no intention to keep any promise of public
 logging as that would trivially imply significant impact.  The attacker's risk
 of significant exposure is instead bound by the probability that \emph{any} of
@@ -42,23 +42,23 @@ attacker's mis-issued SFO is audited further.  There are two cases to consider,
 namely, the mis-issued SFO is either larger than \texttt{ct-max-sfo-bytes} or it
 is not.
 
-If the SFO is larger than \texttt{ct-max-sfo-bytes}, Tor Browser blocks until
+If the SFO is larger than \texttt{ct-max-sfo-bytes}, TB blocks until
 the SFO is submitted and its CT circuit is closed.  As such, it is impossible to
-serve a Tor Browser exploit reactively over the man-in-the-middled connection
+serve a TB exploit reactively over the man-in-the-middled connection
 that shuts-down the submission procedure before it occurs.  Assuming that
-forensic traces in tor and Tor Browser are unreliable,\footnote{%
+forensic traces in tor and TB are unreliable,\footnote{%
 	``tor'' (aka ``little-t tor'') is the tor process TB uses to interact
         with the Tor network.
         On marking a circuit as closed in tor, tor immediately schedules the
 	associated data structures to be freed as soon as possible.
 } the sampled CTR identity also cannot be revealed with high certainty
-afterwards by compromising Tor Browser.  The attacker may know that the SFO is
+afterwards by compromising TB.  The attacker may know that the SFO is
 stored by \emph{some CTR} based on timing, i.e., blocking-behavior is likely
 measurable and distinct.  The important part is not to reveal \emph{which CTR}
 received a submission:  a single Tor relay may be subject to DoS.
 
 If the SFO is smaller or equal to \texttt{ct-max-sfo-bytes}, then there is a
-race between (i) the time it takes for Tor Browser to submit the SFO and close
+race between (i) the time it takes for TB to submit the SFO and close
 its CT circuit against (ii) the time it takes for the attacker to compromise Tor
 Browser and identify the CTR in question.  It is more advantageous to try and
 win this race rather than being in the unfruitful scenario above.  Therefore,
@@ -97,7 +97,7 @@ Fortunately, it is not known which CTR to target.
 This means that any attempt to intervene must target all CTRs.  It is clearly
 not within Tor's threat model to DoS each and every CTR.  A less intrusive
 approach towards intervention would be to simply submit SFOs, posing as genuine
-Tor Browser clients.  If enough SFOs are submitted, CTRs could run out of memory
+TB clients.  If enough SFOs are submitted, CTRs could run out of memory
 and therefore be forced to delete at random (Section~\ref{sec:base:phase2}).
 The threat of such a flood does not apply here:
 	it is impractical to conduct with high certainty within minutes

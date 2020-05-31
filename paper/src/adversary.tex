@@ -4,7 +4,7 @@
 %
 We consider an attacker that controls
 	a CA,
-	enough CT logs to pass Tor Browser's SCT-centric CT policy, 
+	enough CT logs to pass TB's SCT-centric CT policy, 
 	some Tor clients, and
 	a fraction of Tor relays.
 For example, it is possible to
@@ -18,7 +18,7 @@ This includes a weaker attacker that does not \emph{control} CAs and CT logs,
 but, who \emph{gained access} to the relevant signing keys~\cite{turktrust,%
 gdca1-omission}.  A modest fraction of CTor entities can be subject to DoS, but
 not everyone at once and all the time.  In other words, we consider the threat
-model of Tor and Tor Browser as a starting point~\cite{tor,tor-browser}.  Any
+model of Tor and TB as a starting point~\cite{tor,tor-browser}.  Any
 attacker that can reliably disrupt CT and/or Tor to such a large extent is
 therefore not within our threat model.
 % TODO: not sure if we need to emph "it assumed that the attacker knows all Tor
@@ -42,11 +42,11 @@ would be deterred from engaging in such activities.
 % - Why: it is a reasonable prerequisite to conduct attacks against TB users
 %
 We want to minimize the existence of undetectable man-in-the-middle attacks
-against Tor Browser.  The goal of \emph{detection} is inherited from CT's threat
+against TB.  The goal of \emph{detection} is inherited from CT's threat
 model, which aims to remedy certificate mis-issuance \emph{after the fact}; not
-prevent it~\cite{ct/a}.  We focus on HTTPS traffic that Tor Browser generated
+prevent it~\cite{ct/a}.  We focus on HTTPS traffic that TB generated
 because Tor is used to browse the normal (encrypted) web~\cite{mani}.  Note that
-it is generally \emph{difficult} to target a specific Tor Browser user due to
+it is generally \emph{difficult} to target a specific TB user due to
 Tor's anonymity, circuit isolation, and use of HTTPS Everywhere.  However,
 targeting some or all users that visit a website is an eminent threat: the
 attacker could intercept traffic from an exit relay or upstream of the website.

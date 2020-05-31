@@ -21,7 +21,7 @@ CAs accountable in a setting where some, but not all, CT logs are dishonest.  In
 other words, the starting-point is to catch misbehaving CAs by adding resilience
 against misbehaving CT logs.  The basic idea is shown in
 Figure~\ref{fig:design-ca} as three distinct phases: a \emph{submission phase}
-where SFOs are presented to Tor Browser and submitted probabilistically to CTRs,
+where SFOs are presented to TB and submitted probabilistically to CTRs,
 a \emph{storage phase} where the submitted SFOs are stored for some time to
 obfuscate real-time browsing patterns, and an \emph{auditing phase} where the
 stored SFOs are audited further by adding the underlying certificate chains to
@@ -34,7 +34,7 @@ parameters set in the Tor consensus.
 	\vspace{-5px}
 	\caption{%
 		The base design of CTor divided into three phases. A website presents an
-		SFO to Tor Browser, and Tor Browser in turn with some probability
+		SFO to TB, and TB in turn with some probability
 		submits the SFO to a random CTR (phase 1). A CTR stores the SFO a period
 		of time (phase 2). The CTR adds the certificate in the SFO to a random
 		independent CT log (phase 3).
@@ -59,7 +59,7 @@ CTRs interact with logs in the CT landscape that Tor's consensus recognizes,
 which means that a majority of directory authorities voted for inclusion by
 proposing a \texttt{ct-log-info} entry containing a log ID, a public key, and a
 base URL~\cite{ct,ct/bis}.  While it is a natural starting point to recognize
-the same logs as Tor Browser, such overlap is not required because the base
+the same logs as TB, such overlap is not required because the base
 design only adds \emph{certificate chains} in other independent logs that accept
 them.  This simplifies the addition of community-driven logs that, for example,
 could serve the primary purpose of facilitating auditing and increasing
@@ -70,7 +70,7 @@ requirements~\cite{apple-log-policy}.  We vet this assumption further based on
 related work in Appendix~\ref{app:ct-trust-anchors}~\cite{ct-root-landscape}.
 
 \subsubsection{Other Parameters} \label{sec:base:consensus:params}
-Directory authorities influence the way in which Tor Browser and CTRs behave by
+Directory authorities influence the way in which TB and CTRs behave by
 voting on other necessary parameters. Below, the value of an item is computed as
 the median of all votes.
 \begin{description}
@@ -117,8 +117,8 @@ mixed with these.
 
 
 \subsection{Phase~1---Tor Browser} \label{sec:base:phase1}
-The first phase covers Tor Browser and how an SFO is validated in the TLS
-handshake.  We rely on Tor Browser's trust store to check certificate chains, an
+The first phase covers TB and how an SFO is validated in the TLS
+handshake.  We rely on TB's trust store to check certificate chains, an
 assumed SCT-centric CT policy similar to Chrome~\cite{chrome-policy} and
 Safari~\cite{safari-policy} to avoid breakage, and \texttt{ct-max-sfo-bytes} as
 well as \texttt{ct-submit-pr} to determine whether and how there should be any
@@ -127,9 +127,9 @@ incoming SFO $s$:
 
 \begin{enumerate}
 	\item Raise a certificate error and stop if the certificate chain of $s$
-		is not rooted in Tor Browser's trust store.
+		is not rooted in TB's trust store.
 	\item Raise a certificate transparency error and stop if the SCTs of $s$
-		fail Tor Browser's SCT-centric CT policy.
+		fail TB's SCT-centric CT policy.
 	\item Accept $s$ and conduct the remaining steps in the background if
 		$\mathsf{len}(s) \le \texttt{ct-max-sfo-bytes}$, otherwise complete
 		all steps and then accept~$s$ as valid.
