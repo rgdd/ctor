@@ -146,16 +146,17 @@ transparent the accompanying fraudulent proofs issued by CT logs to convince TB
 to accept a fraudulent certificate. The deployment of either extension
 \emph{would greatly contribute to the open question of how to reduce trust in CT
 log operators} currently caused by the lack of an appropriate gossiping
-mechanism~\cite{minimal-gossip,nordberg}. In particular, the auditor-based
-extension (Section~\ref{sec:auditor}) would result in a
+mechanism and privacy issues with interacting with CT
+logs~\cite{minimal-gossip,nordberg,ct-with-privacy}. In particular, the
+auditor-based extension (Section~\ref{sec:auditor}) would result in a
 \emph{probabilistically-verified view of the entire CT log ecosystem} available
 from Tor's consensus. This view could be used as the basis for trust by other
 browsers, \emph{greatly improving the security posture of the entire web}.
 
-By splitting our designs into a base design and two possible extensions we argue 
+By splitting our designs into a base design and two possible extensions we argue
 that CTor is \emph{incrementally deployable}: start with completing Firefox
 support for CT, add the base CTor design, then pick one of the two extensions
-based on how the landscape evolves.
+based on how CT and Tor evolves.
 
 Section~\ref{sec:performance} estimates performance aspects of our designs,
 showing that the estimated (based on Mani et al.'s measurements~\cite{mani})
