@@ -75,72 +75,55 @@ certificates~\cite{lwm,ct-monitors}.
 
 \subsection{Tor} \label{sec:background:tor}
 
-Most of the activity of Tor's millions of daily users starts with Tor
-Browser (TB) and connects to some ordinary website via a circuit
-comprised of three randomly-selected Tor relays. In this way no
-identifying information from Internet protocols (such as IP address)
-are automatically provided to the destination, and no single entity
-can observe both the source and destination of a connection. TB is
-also configured and performs some filtering to resist browser
-fingerprinting, and first party isolation to resist sharing state or
-linking of identifiers across origins. More generally it avoids
-storing identifying configuration and behavioral information to disk.
+Most of the activity of Tor's millions of daily users starts with Tor Browser
+(TB) and connects to some ordinary website via a circuit comprised of three
+randomly-selected Tor relays. In this way no identifying information from
+Internet protocols (such as IP address) are automatically provided to the
+destination, and no single entity can observe both the source and destination of
+a connection. TB is also configured and performs some filtering to resist
+browser fingerprinting, and first party isolation to resist sharing state or
+linking of identifiers across origins. More generally it avoids storing
+identifying configuration and behavioral information to disk.
 
-Tor relays in a circuit are selected at random, but not uniformly. A
-typical circuit is comprise of a \emph{guard}, a \emph{middle}, and an
-\emph{exit}. A guard is selected by a client and used for several
-months as the entrance to all Tor circuits. If the guard is not owned
-by an adversary, that adversary will not find itself selected to be on
-a Tor circuit adjacent to (thus identifying) the client. And because
-some relay operators do not wish to act as the apparent Internet
-source for connections to arbitrary websites, relay operators can
-configure the ports (if any) on which they will permit connections
-besides to other Tor relays. Finally, to facilitate load balancing,
-relays are assigned a weight based on their apparent capacity to carry
-traffic. In keeping with avoiding storing of linkable state, even
-circuits that share an origin will only permit new connections over
-that circuit for ten minutes. After that, if all connections are
-closed, all state associated with the circuit is cleared. Similarly,
-at each relay state associated with a given circuit is cleared shortly
-after a circuit is closed.
+Tor relays in a circuit are selected at random, but not uniformly. A typical
+circuit is comprised of a \emph{guard}, a \emph{middle}, and an \emph{exit}. A
+guard is selected by a client and used for several months as the entrance to all
+Tor circuits. If the guard is not controlled by an adversary, that adversary
+will not find itself selected to be on a Tor circuit adjacent to (thus
+identifying) the client. And because some relay operators do not wish to act as
+the apparent Internet source for connections to arbitrary websites, relay
+operators can configure the ports (if any) on which they will permit connections
+besides to other Tor relays. Finally, to facilitate load balancing, relays are
+assigned a weight based on their apparent capacity to carry traffic. In keeping
+with avoiding storing of linkable state, even circuits that share an origin will
+only permit new connections over that circuit for ten minutes. After that, if
+all connections are closed, all state associated with the circuit is cleared.
+Similarly, at each relay state associated with a given circuit is cleared
+shortly after a circuit is closed.
 
-Tor clients use this information when choosing relays with which to
-build a circuit. They receive the information via an hourly updated
-\emph{consensus}. The consensus assigns weight as well as flags such
-as \texttt{guard} or \texttt{exit} along with auxiliary flags such as
-\texttt{stable}, which, e.g., is necessary to obtain the
-\texttt{guard} flag since guards must have good availability. The
-consensus is determined by a set of \emph{directory authorities} that
-vote on various components making up the shared view of the state of
-the Tor network. Making sure that all clients have a consistent view
-of the network prevents epistemic attacks wherein clients can be
-separated based on the routes that are consistent with their
-understanding~\cite{danezis:pets2008}.  This is only a very rough
-sketch of Tor's design and operation.  More details can be found by
-following links at Tor's documentation site~\cite{tor-documentation}.
+Tor clients use this information when choosing relays with which to build a
+circuit. They receive the information via an hourly updated \emph{consensus}.
+The consensus assigns weight as well as flags such as \texttt{guard} or
+\texttt{exit} along with auxiliary flags such as \texttt{stable}, which, e.g.,
+is necessary to obtain the \texttt{guard} flag since guards must have good
+availability. Self-reported information by relays in their \emph{extra-info
+document}, such as statistics on their read and written bytes, are also part of
+the consensus and uploaded to \emph{directory authorities}. Directory
+authorities determine the consensus by voting on various components making up
+the shared view of the state of the Tor network. Making sure that all clients
+have a consistent view of the network prevents epistemic attacks wherein clients
+can be separated based on the routes that are consistent with their
+understanding~\cite{danezis:pets2008}. This is only a very rough sketch of Tor's
+design and operation.  More details can be found by following links at Tor's
+documentation site~\cite{tor-documentation}.
 
-Tor does not prevent end-to-end correlation attacks. An adversary
-controlling the guard and exit, or controlling the destination and
-observing the client ISP, etc. is assumed able to confirm who is
-connected to whom on that particular circuit. The Tor adversary model
-assumes an adversary able to control and/or observe a small to
-moderate fraction of Tor relays measured by both number of relays and
-by consensus weight, assumes a large number of Tor clients able to,
-for example, flood individual relays to detect traffic signatures of
-honest traffic on a given circuit~\cite{long-paths}. Also, the
-adversary can knock any small number of relays offline via either
-attacks from clients or direct Internet DDoS\@. Typically, a
-Tor adversary at a destination is not assumed capable of completely
-taking over a Tor client within moments of being connected. We
-assume a stronger adversary, however, who can do so, e.g., via a zero-day.
-Similarly, our adversary is stronger in that it can take over
-an individual relay within a minute of attempting to do so. We will say
-more about our adversary in the next section.
-
-TODO: need to mention extra-info document, which in turn requires a mention of
-relay descriptor
-
-%%% Local Variables: 
-%%% mode: latex 
-%%% TeX-master: "../main"
-%%% End:          
+Tor does not aim to prevent end-to-end correlation attacks. An adversary
+controlling the guard and exit, or controlling the destination and observing the
+client ISP, etc. is assumed able to confirm who is connected to whom on that
+particular circuit. The Tor adversary model assumes an adversary able to control
+and/or observe a small to moderate fraction of Tor relays measured by both
+number of relays and by consensus weight, assumes a large number of Tor clients
+able to, for example, flood individual relays to detect traffic signatures of
+honest traffic on a given circuit~\cite{long-paths}. Also, the adversary can
+knock any small number of relays offline via either attacks from clients or
+direct Internet DDoS\@. 
