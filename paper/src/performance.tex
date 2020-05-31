@@ -37,9 +37,10 @@ describing how many SFOs are presented per website visit.
 \end{equation}
 
 Using our submission probability and approximated $\mathcal{D}$ with $n \gets
-8858$ data points, the circuit overhead is $0.70$ on average.  In contrast to
-these short-lived circuits, each CTR also maintains a single long-lived circuit
-at all times to interact with logs in the CT landscape.
+8858$ data points, the circuit overhead is $0.70$ on average, where the circuits
+are short-lived and transport on average 6 KiB. Further, each CTR also maintains
+a single long-lived circuit at all times to interact with logs in the CT
+landscape.
 
 \textbf{Bandwidth overhead.}  An SFO that is audited further gets submitted to
 a CTR over a Tor circuit.  Later on, the underlying certificate chain is added
