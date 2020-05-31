@@ -1,30 +1,29 @@
 \section{Security Analysis} \label{sec:analysis}
 
 \subsection{Impact of Being Detected} \label{sec:analysis:impact}
-Given a man-in-the-middle attack against Tor Browser we consider four
-different scenarios of \emph{impact}, namely:
+Given a man-in-the-middle attack against TB we consider four
+different types of \emph{impact}, namely:
 \begin{description}
-	\item[None:] the attack was undetected or detected without knowing any
+	\item[None] the attack was undetected or detected without knowing any
 		details as to how it was carried out.
-	\item[Minor:] the attack was detected due to some cover-up that involved
+	\item[Minor] the attack was detected due to some cover-up that involved
 		network-wide actions against CTor.  This is likely hard to attribute to
 		the actual attacker, but nevertheless it draws much unwanted attention.
-	\item[Significant:] the attack generated public cryptographic evidence
+	\item[Significant] the attack generated public cryptographic evidence
 		that proves CA misbehavior.
-	\item[Catastrophic:] the attack generated public cryptographic evidence
+	\item[Catastrophic] the attack generated public cryptographic evidence
 		that proves CT log misbehavior.
 \end{description}
 
-Our base design achieves a significant impact level against risk-averse
-attackers in our threat model.  The extended designs in
-Sections~\ref{sec:auditor}--\ref{sec:log} aim higher, making it possible
-to enforce catastrophic impact for the attacker.
+Our base design can lead to significant impact events.  The extended designs in
+Sections~\ref{sec:auditor}--\ref{sec:log} aim higher, making it possible to
+cause events of catastrophic impact.
 
 \subsection{Probability of Being Detected} \label{sec:analysis:pr}
 Suppose the attacker mis-issued a certificate chain that is rooted in Tor
 Browser's trust store, and that it is accompanied by enough SCTs from
-attacker-controlled CT logs to pass Tor Browser's CT policy.  The resulting SFO
-is further used to man-in-the-middle a single Tor Browser user.  Clearly, the
+attacker-controlled CT logs to pass TB's CT policy.  The resulting SFO
+is further used to man-in-the-middle a single TB user.  Clearly, the
 attacker-controlled CT logs have no intention to keep any promise of public
 logging as that would trivially imply significant impact.  The attacker's risk
 of significant exposure is instead bound by the probability that \emph{any} of
@@ -43,23 +42,23 @@ attacker's mis-issued SFO is audited further.  There are two cases to consider,
 namely, the mis-issued SFO is either larger than \texttt{ct-max-sfo-bytes} or it
 is not.
 
-If the SFO is larger than \texttt{ct-max-sfo-bytes}, Tor Browser blocks until
+If the SFO is larger than \texttt{ct-max-sfo-bytes}, TB blocks until
 the SFO is submitted and its CT circuit is closed.  As such, it is impossible to
-serve a Tor Browser exploit reactively over the man-in-the-middled connection
+serve a TB exploit reactively over the man-in-the-middled connection
 that shuts-down the submission procedure before it occurs.  Assuming that
-forensic traces in tor and Tor Browser are unreliable,\footnote{%
-	``tor'' (aka ``little-t tor'' is the tor process TB uses to interact
+forensic traces in tor and TB are unreliable,\footnote{%
+	``tor'' (aka ``little-t tor'') is the tor process TB uses to interact
         with the Tor network.
         On marking a circuit as closed in tor, tor immediately schedules the
 	associated data structures to be freed as soon as possible.
 } the sampled CTR identity also cannot be revealed with high certainty
-afterwards by compromising Tor Browser.  The attacker may know that the SFO is
+afterwards by compromising TB.  The attacker may know that the SFO is
 stored by \emph{some CTR} based on timing, i.e., blocking-behavior is likely
 measurable and distinct.  The important part is not to reveal \emph{which CTR}
 received a submission:  a single Tor relay may be subject to DoS.
 
 If the SFO is smaller or equal to \texttt{ct-max-sfo-bytes}, then there is a
-race between (i) the time it takes for Tor Browser to submit the SFO and close
+race between (i) the time it takes for TB to submit the SFO and close
 its CT circuit against (ii) the time it takes for the attacker to compromise Tor
 Browser and identify the CTR in question.  It is more advantageous to try and
 win this race rather than being in the unfruitful scenario above.  Therefore,
@@ -70,7 +69,7 @@ after use.  This makes the attack surface \emph{narrow}, limiting the number of
 reliable exploits (if any).
 
 Note that the attack surface could, in theory, be eliminated by setting
-\texttt{ct-max-sfo-bytes} to infinity.  It is too costly in terms of TLS
+\texttt{ct-max-sfo-bytes} to zero.  It is too costly in terms of TLS
 handshake latency, however.
 
 \subsubsection{Phase~2: Storage} \label{sec:analysis:pr:phase2}
@@ -98,7 +97,7 @@ Fortunately, it is not known which CTR to target.
 This means that any attempt to intervene must target all CTRs.  It is clearly
 not within Tor's threat model to DoS each and every CTR.  A less intrusive
 approach towards intervention would be to simply submit SFOs, posing as genuine
-Tor Browser clients.  If enough SFOs are submitted, CTRs could run out of memory
+TB clients.  If enough SFOs are submitted, CTRs could run out of memory
 and therefore be forced to delete at random (Section~\ref{sec:base:phase2}).
 The threat of such a flood does not apply here:
 	it is impractical to conduct with high certainty within minutes

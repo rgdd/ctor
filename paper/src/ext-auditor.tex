@@ -42,7 +42,7 @@ authorities proposed a \texttt{ct-log-info} item, which contains a log's ID,
 public key, base URL, MMD, and most recent STH.  Each directory authority
 proposes its own STH, and agrees to use the most recent STH as determined by
 timestamp and lexicographical order.  Since CTRs verify inclusion with regards
-to SCTs that Tor Browser accepts, the CT logs recognized by Tor Browser must be
+to SCTs that TB accepts, the CT logs recognized by TB must be
 in Tor's consensus.
 
 Tor's directory authorities also majority-vote on \texttt{ct-auditor} items,
@@ -109,17 +109,13 @@ and rotated that ends at a random watchdog CTR.  Given a known CT log
 $l$:
 \begin{enumerate}
 	\item\label{enm:ext:auditing:backoff} Sample a delay $d \gets
-		\mathsf{random}(\texttt{ct-backoff-dist})$.
-	\item\label{enm:ext:auditing:sleep} Schedule a timer, waiting until $d$
-		time units elapsed.
-	\item\label{enm:auditing:loop} For each pending buffer entry $(l',s,t)$:
+	\mathsf{random}(\texttt{ct-backoff-dist})$ and wait until $d$ time units
+	elapsed.
+	\item Connect to a random watchdog CTR.
+	\item\label{enm:auditing:loop} For each pending buffer entry $(l',s,t)$,
+	where $l' = l$, $t <= \mathsf{now}()$ and $t <=
+	\textrm{STH}.\mathsf{timestamp}$:
 		\begin{enumerate}
-			\item\label{enm:ext:auditing:log-check}
-				Continue the loop if $l\ne l'$.
-			\item\label{enm:ext:auditing:timestamp-check} Continue the loop if
-				$t > \mathsf{now}()$.
-			\item\label{enm:ext:auditing:sth-check} Continue the loop if $t >
-				\textrm{STH}.\mathsf{timestamp}$.
 			\item\label{enm:ext:auditing:watchdog} Share $s$ with the current
 				watchdog.
 			\item\label{enm:ext:auditing:challenge} Use \texttt{ct-log-timeout}
@@ -130,11 +126,10 @@ $l$:
 						proof: send an acknowledgment to the watchdog, then
 						cache $s$ and discard it.
 					\item\label{enm:ext:auditing:challenge:fail} On any other
-						outcome: discard $s$ and break.
+						outcome: discard $s$, close circuit to the watchdog CTR,
+						and go to step 1.
 				\end{itemize}
 		\end{enumerate}
-	\item\label{enm:ext:auditing:restart} Go back to
-		step~\ref{enm:ext:auditing:backoff}.
 \end{enumerate}
 
 An SFO is not audited for inclusion until the log's MMD elapsed \emph{and} there
@@ -223,7 +218,7 @@ the average SFO is in the order of 6~KiB.  This means that the buffer capacity
 is $n \gets 174763$ SFOs. Plugging it into Equation~\ref{eq:flush} for $p \gets
 \frac{9}{10}$, the attacker's flood must involve $k \gets 402406$ submissions.
 In other words, 2.3~GiB must be transmitted to flush a single CTR,\footnote{% As
-a corner case and implementation detail, it is important that Tor Browser and
+a corner case and implementation detail, it is important that TB and
 CTRs \emph{reject} SFOs that are bogus in terms of size: it is a trivial DoS
 vector to load data indefinitely. Analysis based on, e.g., 1~MiB SFOs also
 requires 2.3~GiB of data to flush.} which takes $7.9$--$39.3$~minutes if its
