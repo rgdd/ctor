@@ -58,7 +58,7 @@ The CT landscape provides a limited value unless it is verified that the logs
 play by the rules.  The rules are largely influenced by major browser vendors
 that define CT policies.  For example, how is CT enforced by their user agents,
 and what is required to become a recognized CT log in terms of uptime
-requirements and accepted trusted anchors.  Google's Chrome and Apple's Safari
+requirements and accepted trusted anchors.  Google Chrome and Apple's Safari
 require that a certificate chain must be accompanied by two independent
 SCTs~\cite{chrome-policy,safari-policy}.  Independence refers to the associated
 log operators.  While there are several ways that
@@ -75,8 +75,8 @@ certificates~\cite{lwm,ct-monitors}.
 
 \subsection{Tor} \label{sec:background:tor}
 
-Most of the activity of Tor's millions of daily users starts with Tor Browser
-(TB) and connects to some ordinary website via a circuit comprised of three
+Most of the activity of Tor's millions of daily users starts with TB
+and connects to some ordinary website via a circuit comprised of three
 randomly-selected Tor relays. In this way no identifying information from
 Internet protocols (such as IP address) are automatically provided to the
 destination, and no single entity can observe both the source and destination of
@@ -120,7 +120,7 @@ documentation site~\cite{tor-documentation}.
 Tor does not aim to prevent end-to-end correlation attacks. An adversary
 controlling the guard and exit, or controlling the destination and observing the
 client ISP, etc. is assumed able to confirm who is connected to whom on that
-particular circuit. The Tor adversary model assumes an adversary able to control
+particular circuit. The Tor threat model assumes an adversary able to control
 and/or observe a small to moderate fraction of Tor relays measured by both
 number of relays and by consensus weight, assumes a large number of Tor clients
 able to, for example, flood individual relays to detect traffic signatures of

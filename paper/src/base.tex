@@ -21,7 +21,7 @@ CAs accountable in a setting where some, but not all, CT logs are dishonest.  In
 other words, the starting-point is to catch misbehaving CAs by adding resilience
 against misbehaving CT logs.  The basic idea is shown in
 Figure~\ref{fig:design-ca} as three distinct phases: a \emph{submission phase}
-where SFOs are presented to Tor Browser and submitted probabilistically to CTRs,
+where SFOs are presented to TB and submitted probabilistically to CTRs,
 a \emph{storage phase} where the submitted SFOs are stored for some time to
 obfuscate real-time browsing patterns, and an \emph{auditing phase} where the
 stored SFOs are audited further by adding the underlying certificate chains to
@@ -34,7 +34,7 @@ parameters set in the Tor consensus.
 	\vspace{-5px}
 	\caption{%
 		The base design of CTor divided into three phases. A website presents an
-		SFO to Tor Browser, and Tor Browser in turn with some probability
+		SFO to TB, and TB in turn with some probability
 		submits the SFO to a random CTR (phase 1). A CTR stores the SFO a period
 		of time (phase 2). The CTR adds the certificate in the SFO to a random
 		independent CT log (phase 3).
@@ -44,17 +44,14 @@ parameters set in the Tor consensus.
 \end{figure*}
 
 \subsection{Tor Consensus} \label{sec:base:consensus}
-Our proposal extends Tor's consensus document to list CTRs, recognized CT logs,
-and other necessary parameters that can be tuned for CTor.
 
 \subsubsection{CTR Flag} \label{sec:base:consensus:ctr-flag}
-The existing \texttt{known-flags} item determines the different flags that a
-given consensus document might contain.  We add another flag named \texttt{CTR},
-which indicates that a Tor relay should support CT-auditing as described in
-Sections~\ref{sec:base:phase2}--\ref{sec:base:phase3}.  For now, assume that a
-relay qualifies as a CTR if it is flagged as \texttt{stable} and not
-\texttt{exit}, to spare relatively sparse on exit bandwidth and only use relays
-that can be expected to stay online. Section~\ref{sec:privacy} discusses
+The existing \texttt{known-flags} item determines the different flags that the
+consensus might contain.  We add another flag named \texttt{CTR}, which
+indicates that a Tor relay should support CT-auditing as described later. For
+now, assume that a relay qualifies as a CTR if it is flagged as \texttt{stable}
+and not \texttt{exit}, to spare the relatively sparse exit bandwidth and only use
+relays that can be expected to stay online. Section~\ref{sec:privacy} discusses
 trade-offs in the assignment of the \texttt{CTR} flag.
 
 \subsubsection{Recognized CT Log} \label{sec:base:consensus:log}
@@ -62,7 +59,7 @@ CTRs interact with logs in the CT landscape that Tor's consensus recognizes,
 which means that a majority of directory authorities voted for inclusion by
 proposing a \texttt{ct-log-info} entry containing a log ID, a public key, and a
 base URL~\cite{ct,ct/bis}.  While it is a natural starting point to recognize
-the same logs as Tor Browser, such overlap is not required because the base
+the same logs as TB, such overlap is not required because the base
 design only adds \emph{certificate chains} in other independent logs that accept
 them.  This simplifies the addition of community-driven logs that, for example,
 could serve the primary purpose of facilitating auditing and increasing
@@ -73,7 +70,7 @@ requirements~\cite{apple-log-policy}.  We vet this assumption further based on
 related work in Appendix~\ref{app:ct-trust-anchors}~\cite{ct-root-landscape}.
 
 \subsubsection{Other Parameters} \label{sec:base:consensus:params}
-Directory authorities influence the way in which Tor Browser and CTRs behave by
+Directory authorities influence the way in which TB and CTRs behave by
 voting on other necessary parameters. Below, the value of an item is computed as
 the median of all votes.
 \begin{description}
@@ -120,8 +117,8 @@ mixed with these.
 
 
 \subsection{Phase~1---Tor Browser} \label{sec:base:phase1}
-The first phase covers Tor Browser and how an SFO is validated in the TLS
-handshake.  We rely on Tor Browser's trust store to check certificate chains, an
+The first phase covers TB and how an SFO is validated in the TLS
+handshake.  We rely on TB's trust store to check certificate chains, an
 assumed SCT-centric CT policy similar to Chrome~\cite{chrome-policy} and
 Safari~\cite{safari-policy} to avoid breakage, and \texttt{ct-max-sfo-bytes} as
 well as \texttt{ct-submit-pr} to determine whether and how there should be any
@@ -130,9 +127,9 @@ incoming SFO $s$:
 
 \begin{enumerate}
 	\item Raise a certificate error and stop if the certificate chain of $s$
-		is not rooted in Tor Browser's trust store.
+		is not rooted in TB's trust store.
 	\item Raise a certificate transparency error and stop if the SCTs of $s$
-		fail Tor Browser's SCT-centric CT policy.
+		fail TB's SCT-centric CT policy.
 	\item Accept $s$ and conduct the remaining steps in the background if
 		$\mathsf{len}(s) \le \texttt{ct-max-sfo-bytes}$, otherwise complete
 		all steps and then accept~$s$ as valid.
@@ -173,7 +170,7 @@ With regards to some CT circuit, process an incoming SFO $s$ as follows:
 	\item\label{enm:storage:unrecognized} Stop if no CT log in the Tor consensus
 		accepts the trust anchor of the underlying certificate chain in $s$.
 	\item\label{enm:storage:cached}
-		Stop if $s$ is cached or pending to be audited already.
+		Stop if $s$ is cached (see Section~\ref{sec:base:phase3}) or already pending to be audited.
 	\item\label{enm:storage:fix-log} Sample an independent CT log $l$ that
 		issued no SCT in $s$.  If there are no independent CT logs listed in the
 		Tor consensus, sample a dependent CT log instead.
@@ -198,34 +195,28 @@ regards to some CT log.  If memory becomes a scarce resource, delete SFOs at
 random~\cite{nordberg}.
 
 \subsection{Phase 3---Auditing} \label{sec:base:phase3}
-Each CTR maintains a single Tor circuit that is used to interact with CT logs
-that have \texttt{ct-log-info} items.  At random time intervals, separate
-auditing instances are initiated for each of these logs.  Given a known CT log~%
-$l$:
+Each CTR maintains a single shared circuit that is used to interact with all CT
+logs that have \texttt{ct-log-info} items. For \emph{each} such CT log $l$, the
+CTR runs the following steps indefinitely:
 \begin{enumerate}
 	\item\label{enm:auditing:backoff} Sample a delay $d \gets
-		\mathsf{random}(\texttt{ct-backoff-dist})$.
-	\item\label{enm:auditing:sleep} Schedule a timer, waiting until $d$
-		time units elapsed.
-	\item\label{enm:auditing:loop} For each pending buffer entry $(l',s,t)$:
+		\mathsf{random}(\texttt{ct-backoff-dist})$ and wait until $d$ time units
+		elapsed.
+	\item\label{enm:auditing:loop} For each pending buffer entry $(l',s,t)$,
+	where $l' = l$ and $t <= \mathsf{now}()$:
 		\begin{enumerate}
-			\item\label{enm:auditing:log-check} Continue the loop if $l\ne l'$.
-			\item\label{enm:auditing:timestamp-check} Continue the loop if
-				$t > \mathsf{now}()$.
-			\item\label{enm:auditing:add-chain} Use \texttt{ct-log-timeout} to
-				set a timer and add the certificate chain in $s$ to $l$ using
-				the public \texttt{add-chain}~\cite{ct} or
+			\item\label{enm:auditing:add-chain} Using \texttt{ct-log-timeout} as
+				the timeout, attempt to add the certificate chain in $s$ to $l$
+				with the \texttt{add-chain}~\cite{ct} or
 				\texttt{submit-entry}~\cite{ct/bis} endpoints.
 				\begin{itemize}
 					\item\label{enm:auditing:add-chain:success} On valid
 						SCT: cache the SFO, then discard it from the buffer of
 						pending SFOs.
 					\item\label{enm:auditing:add-chain:fail} On any other
-						outcome: break the loop.
+						outcome: go to step 1.
 				\end{itemize}
 		\end{enumerate}
-	\item\label{enm:auditing:restart} Go back to
-		step~\ref{enm:auditing:backoff}.
 \end{enumerate}
 
 As shown above we take an unusual approach towards auditing SFOs.  Rather than
@@ -239,9 +230,12 @@ within a timely manner.  On any other outcome, such as invalid SCT signature or
 timeout, the SFO remains in the buffer as the loop breaks and the CTR backs-off
 in hope that the log becomes available again after wake-up.
 
-Note that the auditing instances of different CT logs are separated.  This
-assures that the unavailability of one CT log does not halt auditing of
-unrelated buffer entries.
+Each CTR keeps a least recently used cache of the SFOs it validates, e.g., by
+hashing the entire SFO or selected SCTs in it. A few megabytes should
+significantly reduce load on CT logs. Also note that the steps above are done in
+parallel for each CT log with a \texttt{ct-log-info} entry in the consensus.
+This assures that the unavailability of one CT log does not halt auditing of
+others.
 
 %If there is no independent log listed in the Tor consensus, it is
 %still valuable to resubmit to a dependent log:

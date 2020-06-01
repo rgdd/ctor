@@ -6,14 +6,14 @@
 \section{Performance} \label{sec:performance}
 Our performance evaluation estimates the expected overhead as the base design of
 CTor is instantiated.  Mani~\emph{et~al.} showed that up to 140~million websites
-are visited over Tor on a daily basis~\cite{mani}.  Our analysis also needs to
+are visited over Tor on a daily basis (upper bound of 95\% confidence interval)~\cite{mani}.  Our analysis also needs to
 know the size of a typical SFO, as well as the distribution of presented SFOs
 per website.  To this end we collected a dataset based on the most popular
 webpages submitted to Reddit (r/frontpage, all time) as of December 4, 2019.
 % \url{https://github.com/pylls/padding-machines-for-tor/commit/353bfa75e9f7d6aa0a1dff9516ff234cbf0f4562}
 An average certificate chain is 5440~bytes, and is seldom accompanied by more
 than a few SCTs.  As such, we assume that a typical SFO is 6~KiB.  No
-certificate chain exceeded 20KiB, and it is likely a conservative value for
+certificate chain exceeded 20~KiB, and it is likely a conservative value for
 \texttt{ct-max-sfo-bytes} that avoids blocking in the TLS handshake.  The
 average number of SFOs per website was seven, which might be an overestimate due
 to collecting the dataset with fresh Chromium instances and NetLog
@@ -27,7 +27,7 @@ or, viewed from a different perspective: we can already show that the incurred
 CTor overhead is acceptable and/or insignificant from basic sketching.
 
 \textbf{Circuit overhead.}
-Equation~\ref{eq:sub-oh} shows the average circuit overhead for Tor Browser
+Equation~\ref{eq:sub-oh} shows the average circuit overhead for TB
 over time, where $p$ is the submit probability and $\mathcal{D}$ a distribution
 describing how many SFOs are presented per website visit.
 
@@ -37,9 +37,10 @@ describing how many SFOs are presented per website visit.
 \end{equation}
 
 Using our submission probability and approximated $\mathcal{D}$ with $n \gets
-8858$ data points, the circuit overhead is $0.70$ on average.  In contrast to
-these short-lived circuits, each CTR also maintains a single long-lived circuit
-at all times to interact with logs in the CT landscape.
+8858$ data points, the circuit overhead is $0.70$ on average, where the circuits
+are short-lived and transport on average 6 KiB. Further, each CTR also maintains
+a single long-lived circuit at all times to interact with logs in the CT
+landscape.
 
 \textbf{Bandwidth overhead.}  An SFO that is audited further gets submitted to
 a CTR over a Tor circuit.  Later on, the underlying certificate chain is added

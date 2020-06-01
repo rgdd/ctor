@@ -4,7 +4,7 @@
 %
 We consider an attacker that controls
 	a CA,
-	enough CT logs to pass Tor Browser's SCT-centric CT policy, 
+	enough CT logs to pass TB's SCT-centric CT policy, 
 	some Tor clients, and
 	a fraction of Tor relays.
 For example, it is possible to
@@ -18,9 +18,9 @@ This includes a weaker attacker that does not \emph{control} CAs and CT logs,
 but, who \emph{gained access} to the relevant signing keys~\cite{turktrust,%
 gdca1-omission}.  A modest fraction of CTor entities can be subject to DoS, but
 not everyone at once and all the time.  In other words, we consider the threat
-model of Tor and Tor Browser as a starting point~\cite{tor,tor-browser}.  Any
+model of Tor and TB as a starting point~\cite{tor,tor-browser}.  Any
 attacker that can reliably disrupt CT and/or Tor to such a large extent is
-therefore not accounted for in our work.
+therefore not within our threat model.
 % TODO: not sure if we need to emph "it assumed that the attacker knows all Tor
 % relay configurations, e.g., available memory and setup of torlog". now (?).
 
@@ -41,27 +41,25 @@ would be deterred from engaging in such activities.
 % - Our goal: detect TB HTTPS MitM
 % - Why: it is a reasonable prerequisite to conduct attacks against TB users
 %
-We want to minimize the existence of successful man-in-the-middle attacks
-against Tor Browser where it cannot be established if
-and how they were carried out.  The property of \emph{detection} is inherited
-from CT's threat model, which aims to remedy certificate mis-issuance
-\emph{after the fact}; not prevent it~\cite{ct/a}.  We
-focus on HTTPS traffic that Tor Browser generated because Tor is used to browse
-the normal (encrypted) web~\cite{mani}.  Note that it is generally
-\emph{difficult} to target a specific Tor Browser user due to Tor's anonymity,
-circuit isolation, and use of HTTPS Everywhere.  However, targeting some or all 
-users that visit a website is an eminent threat:
-	simply intercept traffic from an exit relay or
-	upstream of the website.
-Once network traffic can be intercepted, it is trivial to serve an exploit to a
-subset of Tor Browser users and much easier to target an identifiable user.
-Such zero-day exploits are considered in our threat model because \emph{user
-exploitation} is the primary reason to attack Tor Browser.
+We want to minimize the existence of undetectable man-in-the-middle attacks
+against TB.  The goal of \emph{detection} is inherited from CT's threat
+model, which aims to remedy certificate mis-issuance \emph{after the fact}; not
+prevent it~\cite{ct/a}.  We focus on HTTPS traffic that TB generated
+because Tor is used to browse the normal (encrypted) web~\cite{mani}.  Note that
+it is generally \emph{difficult} to target a specific TB user due to
+Tor's anonymity, circuit isolation, and use of HTTPS Everywhere.  However,
+targeting some or all users that visit a website is an eminent threat: the
+attacker could intercept traffic from an exit relay or upstream of the website.
+Once network traffic is intercepted (with associated forged certificate and
+SCTs), it is possible for the attacker to attempt to to serve an exploit with
+the goal of \emph{user deanomymization}. Without the ability to intercept
+traffic (i.e., forge certificates and SCTs without detection), user
+deanomymization becomes harder.
 
 %
 % Defer introducing threats that follow from design details
 %
-We identify additional threats that follow from our adversary model and design
+We identify additional threats that follow from our threat model and design
 in the security analysis.  Namely, attack vectors related to
 	timing (Section~\ref{sec:analysis:pr:phase1}) as well as
 	Tor relay tagging and flooding (Section~\ref{sec:auditor:analysis}).
