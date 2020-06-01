@@ -10,8 +10,8 @@ to disclose those CT logs that are dishonest.  The downside is added
 complexity, which introduces additional threats that must be considered.
 
 \subsection{Design Sketch} \label{sec:auditor:design}
-Figure~\ref{fig:auditor} provides an overview of the extended design.  Tor
-Browser submits presented SFOs probabilistically to CTRs that are selected at
+Figure~\ref{fig:auditor} provides an overview of the extended design.  TB
+submits presented SFOs probabilistically to CTRs that are selected at
 random, and CTRs store the submitted SFOs before any auditing takes place.
 Here, auditing refers to inclusion verification rather than adding certificate
 chains.  The moment before auditing, the SFO in question is shared with a CTR
@@ -217,7 +217,7 @@ assumption).  Further, our dataset in Section~\ref{sec:performance} shows that
 the average SFO is in the order of 6~KiB.  This means that the buffer capacity
 is $n \gets 174763$ SFOs. Plugging it into Equation~\ref{eq:flush} for $p \gets
 \frac{9}{10}$, the attacker's flood must involve $k \gets 402406$ submissions.
-In other words, 2.3~GiB must be transmitted to flush a single CTR,\footnote{% As
+In other words, 2.3~GiB must be transmitted to flush a single CTR,\footnote{As
 a corner case and implementation detail, it is important that TB and
 CTRs \emph{reject} SFOs that are bogus in terms of size: it is a trivial DoS
 vector to load data indefinitely. Analysis based on, e.g., 1~MiB SFOs also

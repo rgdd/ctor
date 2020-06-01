@@ -20,8 +20,8 @@ Sections~\ref{sec:auditor}--\ref{sec:log} aim higher, making it possible to
 cause events of catastrophic impact.
 
 \subsection{Probability of Being Detected} \label{sec:analysis:pr}
-Suppose the attacker mis-issued a certificate chain that is rooted in Tor
-Browser's trust store, and that it is accompanied by enough SCTs from
+Suppose the attacker mis-issued a certificate chain that is rooted in TB's
+trust store, and that it is accompanied by enough SCTs from
 attacker-controlled CT logs to pass TB's CT policy.  The resulting SFO
 is further used to man-in-the-middle a single TB user.  Clearly, the
 attacker-controlled CT logs have no intention to keep any promise of public
@@ -30,8 +30,8 @@ of significant exposure is instead bound by the probability that \emph{any} of
 the three phases in our design fails to propagate the mis-issued SFO to a benign
 independent CT log.  We analyze each phase separately.
 
-In sum the risk of exposure can never be higher than the probability that Tor
-Browser submits an SFO to a genuine CTR successfully, and that risk decreases
+In sum the risk of exposure can never be higher than the probability that TB
+submits an SFO to a genuine CTR successfully, and that risk decreases
 proportionally with the attacker's increased capability to operate or DoS CTRs
 as well as independent CT logs.
 
