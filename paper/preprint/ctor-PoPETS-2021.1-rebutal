@@ -12,8 +12,8 @@ trust incrementally.  We will update the paper to emphasize this as motivation.
 Our threat model _is_ strong, significantly raising the bar when compared to
 today's Tor Browser that does no CT checking.  Several logs misbehaved by
 creating split-views [52], omitting certificates [31], and getting their secret
-signing keys compromised [50].  Combine such incidents with a compromised CA,
-and we get a modern DigiNotar-like attack.  Our attacker might be backed by a
+signing keys compromised [50].  Combine such incidents with a rogue CA, and we
+get a modern DigiNotar-like attack.  Our attacker might be backed by a
 nation-state actor or a criminal enterprise that wants to target a bulk of
 users; not a specific individual.  This nuance will be clarified in §3.
 
