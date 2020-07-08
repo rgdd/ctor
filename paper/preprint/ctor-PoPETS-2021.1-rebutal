@@ -38,9 +38,9 @@ checking STHs, the signature of an STH is checked once per consensus and then
 reused for many inclusion proofs that are verified by 20-30 hashes each.
 
 There are currently ~30 CT logs included in Chrome.  Their operators are Google,
-Cloudflare, and a few CAs.  We will add this in Appendix A, and clarify why
-Let's Encrypt is an interesting corner case.  We share the view that Let's
-Encrypt is excellent, and will fix any text that insinuates otherwise.
+Cloudflare and a few CAs, but anyone can apply to be an operator.  We will add
+this in Appendix A, and clarify why LE is an interesting corner case.  We share
+the view that LE is excellent, and will fix any text that insinuates otherwise.
 
 Good observation about adding certificates through DNS in regular web browsers.
 It is an interesting application of certificate cross-logging that goes beyond
