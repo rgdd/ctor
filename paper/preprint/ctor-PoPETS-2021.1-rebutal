@@ -34,7 +34,7 @@ derived without it using a data set that will be an open access artifact for
 reproducibility.  That said, a proof-of-concept implementation and shadow
 emulation would be valuable future work.  Regarding the overhead of checking
 SFOs towards STHs: signatures are checked once, fethed proofs are about 1KiB
-(less bandwidth than §9), and verification requires 20-30 hashes per proof.
+(less bandwidth than §9), and verification requires 20-30 hashes per SFO.
 
 There are 31 CT logs included in Chrome.  Their operators are Google, Cloudflare
 and a few CAs, but anyone can apply to be an operator.  We will add this in
