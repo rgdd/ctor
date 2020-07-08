@@ -1,48 +1,43 @@
 Dear reviewers,
 
-Thank you for your time and comments. We will address all of them
-but respond only to main ones for space.  
+Thank you for your time and comments.  We will address all of them but respond
+only to main ones for space.  
 
-Our premise is CT as
-deployed in practise: logs are trusted based on the
-enforcing web browsers' SCT-centric CT policies, which do not
-check for omitted certificates or split-views. Such a starting point
-in Tor Browser avoids breakage on the web. We consider it a win to
-incrementally reduce such trust [§4,§7] as well as eliminating it [§6].  
-We will change the paper to more clearly emphasize the gap between CT
-theory and practise.
+Our premise is CT as deployed in practise: logs are trusted based on the
+enforcing web browsers' SCT-centric CT policies, which do not check for omitted
+certificates or split-views.  Such a starting point in Tor Browser avoids
+breakage on the web.  We consider it a win to incrementally reduce such trust
+[§4,§7] as well as eliminating it [§6].  We will change the paper to more
+clearly emphasize the gap between CT theory and practise.
 
-Our threat model _is_ strong, conversely we are
-significantly raising the bar compared to today's Tor Browser that does no
-CT checking at all.  Several logs misbehaved by creating
-split-views [52], omitting certificates [31], and getting their secret signing
-keys compromised [50].  Combine such incidents with a compromised CA, and we
-get a modern DigiNotar-like attack.  Our attacker might be backed by a
-nation-state actor or a criminal enterprise that wants to target a bulk of
-users; not a specific _individual_.  This nuance will be clarified in §3.
+Our threat model _is_ strong, conversely we are significantly raising the bar
+compared to today's Tor Browser that does no CT checking at all.  Several logs
+misbehaved by creating split-views [52], omitting certificates [31], and getting
+their secret signing keys compromised [50].  Combine such incidents with a
+compromised CA, and we get a modern DigiNotar-like attack.  Our attacker might
+be backed by a nation-state actor or a criminal enterprise that wants to target
+a bulk of users; not a specific _individual_.  This nuance will be clarified in
+§3.
 
-We agree and already had plans to improve our design descriptions,
-e.g., phase renaming and explaining parameter
-selection (without going too much into CT policy, which is better left external
-to a technical design paper).  We intend to refactor accordingly, and justify
-delete-at-random better once the submission is no longer anonymous.  Then our
-data set in §8 will also be an open access artifact to allow reproducibility.
+We agree and already had plans to improve our design descriptions, e.g., phase
+renaming and explaining parameter selection (without going too much into CT
+policy, which is better left external to a technical design paper).  We intend
+to refactor accordingly, and justify delete-at-random better once the submission
+is no longer anonymous.  Then our data set in §8 will also be an open access
+artifact to allow reproducibility.
 
 Regarding watchdog: more-than-once reporting follows from CT auditors being
 unavailable.  An acknowledgment is needed to consider a report successful.
 
-Note that our evaluations span security [§5,§6.2], privacy [§9],
-and performance [§8].  We believe that no prototype or simulation is needed to
-show that the involved overhead is modest*, but agree that we should improve our
-presentation and will also add a paragraph on the expected impact of
-LRU/LFU caching.  We
+Note that our evaluations span security [§5,§6.2], privacy [§9], and performance
+[§8].  We believe that no prototype or simulation is needed to show that the
+involved overhead is modest*, but agree that we should improve our presentation
+and will also add a paragraph on the expected impact of LRU/LFU caching.  We
 simulated performance at first, but realized that the same conclusions could be
-derived without it.  That said, a full proof-of-concept implementation
-and shadow
-emulation would be valuable future work.  With regards to the overhead of
-checking STHs, the signature of an STH is checked once per consensus
-and then reused for many inclusion proofs that are verified by 20-30 hashes
-each.
+derived without it.  That said, a full proof-of-concept implementation and
+shadow emulation would be valuable future work.  With regards to the overhead of
+checking STHs, the signature of an STH is checked once per consensus and then
+reused for many inclusion proofs that are verified by 20-30 hashes each.
 
 There are currently ~30 CT logs included in Chrome.  Their operators are Google,
 Cloudflare, and a few CAs.  We will add this in Appendix A, and clarify why
