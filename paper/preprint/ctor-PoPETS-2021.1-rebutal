@@ -21,9 +21,9 @@ We agree and already had plans to improve our design descriptions, e.g., phase
 renaming and explaining parameter selection without going too much into CT
 policy (better left external to a technical design paper).  We intend to
 refactor accordingly.  Short comments:
-  -->Delete-at-random: will be justified better without anonymity.
-  -->Voting on constans: is a matter of flexibility, allows adapting to events.
-  -->Independent CT logs and checking: such info can be in the consensus.
+  -->Delete-at-random: will be justified better without anonymous submission.
+  -->Voting on constants: is a matter of flexibility, allows adapting to events.
+  -->Independent logs and checking: necessary info can be in the consensus.
 
 Note that our evaluations span security [§5,§6.2], privacy [§9], and performance
 [§8].  We believe that no prototype or simulation is needed to show that the
