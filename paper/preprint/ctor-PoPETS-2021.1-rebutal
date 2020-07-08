@@ -34,7 +34,7 @@ be derived without it using a data set that will be an open access artifact to
 allow reproducibility.  That said, a proof-of-concept implementation and shadow
 emulation would be valuable future work.  Regarding the overhead of checking
 STHs: signatures are checked once per consensus, and then reused for many
-inclusion proofs that are verified by 20-30 hashes each (no circuits involved).
+inclusion proofs (verified by 20-30 hashes each).
 
 There are currently ~30 CT logs included in Chrome.  Their operators are Google,
 Cloudflare and a few CAs, but anyone can apply to be an operator.  We will add
