@@ -5,62 +5,118 @@
 %
 \section{Performance} \label{sec:performance}
 Our performance evaluation estimates the expected overhead as the base design of
-CTor is instantiated.  Mani~\emph{et~al.} showed that up to 140~million websites
-are visited over Tor on a daily basis (upper bound of 95\% confidence interval)~\cite{mani}.  Our analysis also needs to
-know the size of a typical SFO, as well as the distribution of presented SFOs
-per website.  To this end we collected a dataset based on the most popular
-webpages submitted to Reddit (r/frontpage, all time) as of December 4, 2019.
-% \url{https://github.com/pylls/padding-machines-for-tor/commit/353bfa75e9f7d6aa0a1dff9516ff234cbf0f4562}
-An average certificate chain is 5440~bytes, and is seldom accompanied by more
-than a few SCTs.  As such, we assume that a typical SFO is 6~KiB.  No
-certificate chain exceeded 20~KiB, and it is likely a conservative value for
-\texttt{ct-max-sfo-bytes} that avoids blocking in the TLS handshake.  The
-average number of SFOs per website was seven, which might be an overestimate due
-to collecting the dataset with fresh Chromium instances and NetLog
-\emph{without} filtering SFOs related to the initial call-home on start-up
-behavior.
+CTor is instantiated based on concrete parameters and two public data sets.
+Mani~\emph{et~al.} derived a distribution of website visits over
+Tor~\cite{mani}.  We use it to reason about overhead as the Tor network is under
+heavy load, assuming 140~million daily website visits (the upper bound of a 95\%
+confidence interval).  Our analysis also requires the typical byte-size of an
+SFO, as well as the distribution of presented SFOs per website.  To this end we
+collected an SFO dataset by browsing the most popular webpages submitted to
+Reddit (r/frontpage, all time) on December 4, 2019, resulting in 8858 webpage
+visits from fresh Chromium~77 instances with NetLog enabled.  Browsing webpages
+as opposed to front-pages (such as those listed by Alexa)
+yielded more SFOs per website.  The parsed data set and all associated scripts
+are available online as an open access artifact.
+We found that an average certificate chain is 5440~bytes, and it is seldom
+accompanied by more than a few SCTs.  As such, a typical SFO is in the order of
+6~KiB.  No certificate chain exceeded 20~KiB, and the average number of SFOs per
+webpage was seven.  The latter might be an overestimate because Chromium 
+calls home on startup, adding an SFO or two per data point.
 
-Now we take a closer look at circuit, bandwidth, and memory overhead using a
-modest 10\% submission probability and an average 10~minute auditing delay at
-CTRs.  The positive effect of CTR caching is \emph{disregarded} for simplicity,
-or, viewed from a different perspective: we can already show that the incurred
-CTor overhead is acceptable and/or insignificant from basic sketching.
+We assume no abnormal CTor behavior, which means that there will be little or
+no CTR back-offs due to the high uptime requirements of today's CT logs (99\%).
+We set \texttt{ct-max-sfo-bytes} conservatively to avoid blocking in the TLS
+handshake (e.g., 20KiB), and use a 10\% submission probability as well as a
+10~minute buffer delay on average.  It is likely unwarranted to use a higher
+submission probability given that the intended attacker is risk-averse.  Shorter
+buffering times would leak finer-grained browsing patterns to the logs, while
+longer buffering times steadily introduce the threat of network-wide flushes.
+Therefore, we informally selected an average for \texttt{ct-delay-dist} that
+satisfies none of the two extremes.
+First our performance estimates show that CTor adds modest overhead
+\emph{despite} disregarding the performance boost of caching commonly submitted
+SFOs, then we discuss the expected impact of caching.
 
 \textbf{Circuit overhead.}
-Equation~\ref{eq:sub-oh} shows the average circuit overhead for TB
-over time, where $p$ is the submit probability and $\mathcal{D}$ a distribution
-describing how many SFOs are presented per website visit.
+Equation~\ref{eq:sub-oh} shows the expected circuit overhead from Tor Browser
+over time, where $p$ is the submit probability and $\bar{d}$ the average number
+of SFOs per website visit.  The involved overhead is linear as either of the two
+parameters are tuned up or down.
 
 \begin{equation} \label{eq:sub-oh}
-	%f(p,\mathcal{D}) =
-		\frac{p}{n} \sum_{i=1}^{n} c_i, \textrm{where } c_i\sample\mathcal{D}
+	p\bar{d}
 \end{equation}
 
-Using our submission probability and approximated $\mathcal{D}$ with $n \gets
-8858$ data points, the circuit overhead is $0.70$ on average, where the circuits
-are short-lived and transport on average 6 KiB. Further, each CTR also maintains
-a single long-lived circuit at all times to interact with logs in the CT
-landscape.
+Using $p\gets\frac{1}{10}$ and our approximated SFO distribution $\bar{d}\gets7$
+yields an average circuit overhead of $0.70$, i.e., for every three Tor Browser
+circuits CTor adds another two.  Such an increase might sound
+daunting at first, but these additional circuits are short-lived and
+light-weight; transporting 6KiB on average.  Each CTR also maintains a 
+long-lived circuit for CT log interactions.
 
-\textbf{Bandwidth overhead.}  An SFO that is audited further gets submitted to
-a CTR over a Tor circuit.  Later on, the underlying certificate chain is added
-to an independent CT log using another Tor circuit.  This means that the
-bandwidth of six relays are involved, one of which must be an exit.  Given the
-daily website visits of Mani~\emph{et~al.} as well as our submission probability
-and SFO distribution, this amounts to 98 million SFO submissions and thus
-560.8~GiB per day.  Converted into bits per second and taking six Tor relays
-into account yields $334.5$~Mbps in total.  Such order of overhead is small when
-compared to Tor's capacity: 450~Gbps~\cite{tor-bandwidth}.
+\textbf{Bandwidth overhead.}  Equation~\ref{eq:bw} shows the expected
+bandwidth overhead for the Tor network over time, where
+	$V$ is the number of website visits per time unit,
+	$p$ the submit probability,
+	$\bar{d}$ the average number of SFOs per website visit, and
+	$\bar{s}$ the average SFO byte-size.
+
+\begin{equation} \label{eq:bw}
+	6Vp\bar{d}\bar{s}
+\end{equation}
+
+$Vp\bar{d}$ is the average number of SFO submissions per time unit, which can be
+converted to bandwidth by weighting each submission with the size of
+a typical SFO and accounting for it being relayed six times:
+	three hops from Tor Browser to a CTR, then
+	another three hops from the CTR to a CT log.
+Using
+	$V\gets 140\textrm{M/day}$,
+	$p \gets \frac{1}{10}$,
+	$\bar{d} \gets 7$,
+	$\bar{s} \gets 6\textrm{KiB}$
+and converting the result to bps yields 334.5~Mbps in total.  Such order of
+overhead is small when compared to Tor's capacity:
+450~Gbps~\cite{tor-bandwidth}.
 
 \textbf{Memory overhead.}
-During the average storage time of 10~minutes, there are 680.6~k SFO submissions
-that are distributed randomly across more than 4000 CTRs.  This results in an
-average buffer size of 170~SFOs, which corresponds to $1.0$~MiB memory.  Such
-order of overhead is small when compared to the recommended relay configuration:
-	at least 512~MiB~\cite{relay-config}.
-Note that the expected memory overhead does not increase much even if the
-storage phase is extended for \emph{newly issued} SFOs as in
-Section~\ref{sec:auditor}.  For example, suppose that all SFOs had 90~day
-lifetimes due to being issued by Let's Encrypt~\cite{le}.  On average, 1.1\% of
-the submitted SFOs must then be stored for the order of an MMD rather than
-10~minutes.
+Equation~\ref{eq:memory} shows the expected buffering overhead, where
+	$V_m$ is the number of website visits per minute,
+	$t$ the average buffer time in minutes,
+	$R$ the number of Tor relays that qualify as CTRs, and
+	$\bar{s}$ the typical SFO size in bytes.
+
+\begin{equation} \label{eq:memory}
+	\frac{V_mt}{R} \bar{s}
+\end{equation}
+
+$V_mt$ represent incoming SFO submissions during the average buffer time, which
+are randomly distributed across $R$ CTRs.  Combined this yields the expected
+number of SFOs that await at a single CTR in phase~2, and by taking the
+byte-size of these SFOs into account we get an estimate of the resulting memory
+overhead.  Using
+	$V_m \gets \frac{140\textrm{M}}{24\cdot60}$,
+	$t \gets 10$m,
+	$R \gets 4000$ based on the CTR criteria in
+		Section~\ref{sec:base:consensus:ctr-flag}, and
+	$\bar{s} \gets 6\textrm{KiB}$
+yields 1.42MiB.  Such order of overhead is small when compared to the
+recommended relay configuration:
+	at least 512MiB~\cite{relay-config}.
+%Note that the expected memory overhead does not increase much even if the
+%storage phase is extended for \emph{newly issued} SFOs as in
+%Section~\ref{sec:auditor}.  For example, suppose that all SFOs had 90~day
+%lifetimes due to being issued by Let's Encrypt~\cite{le}.  On average, 1.1\% of
+%the submitted SFOs must then be stored for the order of an MMD rather than
+%10~minutes.
+
+Adding a cache of verified SFOs would reduce the number of SFOs that await in
+phase~2 due to cache hits, which in turn reduces bandwidth as there are fewer
+SFOs in phase~3.  In other words, buffer and bandwidth overhead reduces
+proportionally as the cache hit ratio increases.  Mani~\emph{et al.} showed that
+one third of all website visits over Tor can be attributed to Alexa's top-1k,
+and another one third to the remainder of Alexa's top-1M~\cite{mani}.\footnote{%
+	Assuming the overrepresented \texttt{torproject.org} is removed.
+} If we assume 32~byte cryptographic hashes and seven SFOs per website on
+average, a $\frac{1}{3}$ cache hit ratio could be achieved by a 256KiB LFU/LRU
+cache that eventually captures Alexa's top-1k.
