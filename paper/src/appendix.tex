@@ -1,48 +1,49 @@
-\section{CT Trust Anchors} \label{app:ct-trust-anchors}
+\section{Log Operators \& Trust Anchors} \label{app:ct-trust-anchors}
 The standardized CT protocol suggests that a log's trust anchors should
 ``usefully be the union of root certificates trusted by major browser
 vendors''~\cite{ct,ct/bis}.  Apple further claims that a log in their CT program
 ``must trust all root CA certificates included in Apple's trust
 store''~\cite{apple-log-policy}.  This bodes well for CTor:
 	we assumed that the existence of independent log operators implies the
-	ability to add certificate chains (Section~\ref{sec:base}) or complete SFOs
-	(Section~\ref{sec:log}) into logs that the attacker does not control.
-The preprint of Korzhitskii and Carlsson show that the overlap between root
-certificates that are trusted by major browser vendors and CT logs increased
-over time, but, \emph{no log} accepts all roots to
-date~\cite{ct-root-landscape}.  Let's Encrypt is likely a commonly excluded CA,
-following from the large volume of issued certificates which might deter some
-logs (or operators) from including them as a trust anchor.  All is not lost,
-however.  A few notes:
+	ability to at least add certificate chains (Section~\ref{sec:base}) and
+	possibly complete SFOs (Section~\ref{sec:log}) into logs that the attacker
+	does not control.
+Google's CT policy currently qualifies 31 logs that are hosted by
+	Cloudflare,
+	DigiCert,
+	Google,
+	Let's Encrypt, and
+	Sectigo~\cite{google-log-policy}.
+No log accepts all roots, but the overlap between root certificates that are
+trusted by major browser vendors and CT logs increased over
+time~\cite{ct-root-landscape}.  Despite relatively few independent log
+operators and an incomplete root coverage, the basic and extended
+cross-logging in CTor still provides value:
 \begin{itemize}
-	\item Even if there are no independent logs available for some CA, there is
-		still significant value in practise to (re)add the presented certificate
-		chain and SCTs to the same logs that supposedly logged them.  For
-		example, the attacker might have access to signing keys but not the
-		actual infrastructure.  In such a scenario the mis-issued certificate
-		makes it into the public.  Given SCTs, the log operators also learn that
-		their signing keys were compromised at some point.
+	\item Even if there are no independent logs available for a certificate
+		issued by some CA, adding it again \emph{to the same logs} come with
+		practical security gains.  For example, if the attacker gained access to
+		the secret signing keys but not the actual log infrastructures the
+		mis-issued certificate trivially makes it into the public.  If the full
+		SFO is added, the log operators could also notice that they were
+		compromised.
 	\item Most log operators only exclude a small fraction of widely accepted
 		root certificates: 1--5\%~\cite{ct-root-landscape}.  This narrows down
 		the possible CAs that the attacker must control by 1--2 orders of
 		magnitude.  In other words, to be entirely sure that CTor would (re)add
 		a mis-issued SFO to the attacker-controlled CT logs, this smaller group
-		of CAs must issue the underlying certificate.  It is arguably harder to
-		take control of Let's Encrypt than, say, a smaller CA that may be
-		coerced to misbehave by national law enforcement.
-	\item Given that the coverage of CT logs increased over time, such a
-		trend would likely continue if the ecosystems around CT benefit from it
-		(e.g., CTor).
-	\item The two designs that rely on independent CT logs also permit
-		community-driven CT logs that are not recognized by any major browser
-		vendor.  Such logs, if included in the Tor consensus, can be viewed as
-		parties facilitating auditing of the CT landscape.  Such interest
-		exist already, e.g., in the form of emerging CT monitoring
-		services~\cite{lwm,ct-monitors}.  It could also be an alternative for
-		CAs that, somehow, need to stay relevant in light of today's
-		\emph{freely available} certificate issuance as provided by Let's
-		Encrypt~\cite{le}.
+		of CAs must issue the underlying certificate.  It is likely harder to
+		take control of Let's Encrypt which some logs and operators exclude due
+		to the sheer volume of issued certificates than, say, a smaller CA that
+		law enforcement may coerce.
 \end{itemize}
+
+Browser-qualified or not, the availability of independent logs that accept the
+commonly accepted root certificates provides significant ecosystem value.
+Log misbehavior is mostly reported through the CT policy mailing list.  Thus, it
+requires manual intervention.  Wide support of certificate chain and SCT
+cross-logging allows anyone to \emph{casually} disclose suspected log
+misbehavior on-the-fly.
 
 \section{Trusted Auditor} \label{app:auditor}
 An trusted auditor is expected to accept SFOs at a dedicated endpoint,
