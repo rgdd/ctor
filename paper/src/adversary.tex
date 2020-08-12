@@ -1,41 +1,39 @@
 \section{Threat Model} \label{sec:adversary}
 
-We consider a strong attacker who is targeting all or a subset of users visiting a
-particular website over Tor. It is generally difficult perform a targeted attack on a
-single particular Tor user because one needs to identify the user's connection
-before performing the attack - something that Tor's anonymity properties frustrate.
-However, it is not difficult to perform an attack on all or a subset of unknown users
-of a particular service. A network vantage point to perform such an attack is easily
-obtained by operating an exit relay (for a subset of Tor users) or by compromising
-the network path of multiple exit relays or the final destination. Once so
-positioned, the network traffic can be intercepted (with associated forged
-certificate and SCTs). The subsequent attack on decrypted network traffic may be
-passive (to gather user credentials or other information) or active. Typical
-examples of active attacks are to change cryptocurrency addresses to redirect
-funds to the attacks or to serve an exploit to the user's browser for \emph{user
-deanomymization}. Without the ability to intercept traffic (i.e., forge certificates
-and SCTs without detection), all of these attacks become more difficult.
+We consider a strong attacker who is targeting all or a subset of users visiting
+a particular website over Tor. It is generally difficult to perform a targeted
+attack on a single particular Tor user because one needs to identify the user's
+connection before performing the attack:
+	something that Tor's anonymity properties frustrate.
+However, it is not difficult to perform an attack on all or a subset of unknown
+users of a particular service. A network vantage point to perform such an attack
+is easily obtained by operating an exit relay (for a subset of Tor users) or by
+compromising the network path of multiple exit relays or the final destination.
+Once so positioned, the network traffic can be intercepted (with associated
+forged certificate and SCTs). The subsequent attack on decrypted network traffic
+may be passive (to gather user credentials or other information) or active.
+Typical examples of active attacks are to change cryptocurrency addresses to
+redirect funds to the attacks or to serve an exploit to the user's browser for
+\emph{user deanomymization}. Without the ability to intercept traffic (i.e.,
+forge certificates and SCTs without detection), all of these attacks become more
+difficult.
 
 All of the components of such an attack have been seen in-the-wild numerous
 times. Untargeted attacks on visitors of a particular website include Syria's
 interception of Facebook traffic using a self-signed 512-bit RSA key in ~2012,
-Iran's interception of Bing and Google traffic using the Diginotar CA, and the 2018
-MyEtherWallet self-signed certificate that was used as part of a BGP hijack
-(https://www.theverge.com/2018/4/24/17275982/myetherwallet-hack-bgp-dns-hijacking-stolen-ethereum).
-The latter is also an example of redirecting routing as
-part of an attack (either suspected or confirmed) other examples of which are Iran
-hijacking 10 prefixes of Telegram (an encrypted messaging application) in 2018,
-another attack on cryptocurrency in 2014 this time targeting unencrypted mining
-traffic
-(https://www.secureworks.com/research/bgp-hijacking-for-cryptocurrency-profit
-https://blog.thousandeyes.com/amazon-route-53-dns-and-bgp-hijack/), and
-hijacks that may have been intelligence-gathering (or honest mistakes) including
-two hijacks by Russian ISPs 2017 and China in 2018 and 2019
-(https://en.wikipedia.org/wiki/BGP_hijacking)
- Finally, there are several examples of law
-enforcement serving exploits to Tor Browser users to de-anonymize and
-subsequently arrest individuals
-(https://www.vice.com/en_us/article/kb7kza/the-fbi-used-a-non-public-vulnerability-to-hack-suspects-on-tor).
+Iran's interception of Bing and Google traffic using the Diginotar
+CA~\cite{diginotar}, and the 2018 MyEtherWallet self-signed certificate that was
+used as part of a BGP hijack~\cite{myetherwallet}.  The latter is also an
+example of redirecting routing as part of an attack (either suspected or
+confirmed) other examples of which are Iran hijacking 10 prefixes of Telegram
+(an encrypted messaging application) in 2018, another attack on cryptocurrency
+in 2014 this time targeting unencrypted mining
+traffic~\cite{bgp-hijacking-for-crypto,bgp-hijacking-for-crypto-2}, and hijacks
+that may have been intelligence-gathering (or honest mistakes) including two
+hijacks by Russian ISPs 2017 and China in 2018 and 2019~\cite{wiki-bgp}.
+Finally, there are several examples of law enforcement serving exploits to Tor
+Browser users to de-anonymize and subsequently arrest
+individuals~\cite{de-anonymize-exploit}.
 
 With
 the attacker's goal in mind, we consider someone that controls
