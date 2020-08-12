@@ -1,0 +1,37 @@
+\section{Design} \label{sec:base}
+
+A complete design that detects misbehavior by CAs and CT Logs, performed by an adversary with the ability to drop or delay network traffic from CT Logs and a subset of Tor relays, control a subset of Tor relays, serve an exploit to targeted users' browsers and perform a Denial of Service attack on a subset of Tor relays necessitates a considerable degree of complexity. A less-complicatd subset of such a system can be deployed incrementally to provide protection against an attacker with a subset of such capabilities.
+
+\subsection{Phase~1---Tor Browser} \label{sec:base:phase1}
+
+The simplest proposal would be one where Tor Browser receives a TLS Certificate and accompanying SCTs (we will refer to this bundle as an SCT Feedback Object or SFO) and talk to the corresponding logs, over Tor, requesting an inclusion proof on the SCT. In an ordinary browser, this would be an unacceptable leak of browsing behavior tied to an IP address to the log; but performing this request over Tor leaks real-time browsing behavior but not the user's IP address.
+
+The immediate problem with this design is that a primary requirement of Tor Browser is to persist no data about browsing behavior after the application exits. If we assume a user's browser is not left open for long periods of time, the inclusion proof request can be easily circumvented by the attacker by supplying a fresh SCT whose MMD has not completed - thus no inclusion proof can be provided. A second problem is that the SCT returned from any inclusion proof exists in a trust vaccuum - there is no way to know that it is consistent with other STHs and not part of a split view.
+
+The evolved proposal adds two components: a list of STHs that the browser will receive over a trusted channel that it can request inclusion or consistency proofs to and the participation of a third party with the ability to persist data and perform auditing actions at a later time.
+
+A single third party used by all Tor Browser users would receive a considerable aggregation of browsing behavior and present both  single-point-of-failure concerns as well as the deployment of new infrastructure. These concerns do not entirely preclude the design; but they can be easily avoided by reusing relays in the Tor Network as our trusted third parties: we call the relays so designated Certificate Transparency Relays (or CTRs).
+
+Now; when the browser is completing the TLS handshake they simultaneously either pass the SFO to a CTR (if the MMD of the SCT has not elapsed) or query the log themselves asking an inclusion proof to a trusted STH. If no inclusion proof can be provided, the browser will report the SFO to a CTR or other auditor. However, if we presume the attacker can serve an exploit to the browser, the latter behavior is immediately vulnerable. The log, upon receiving an inclusion proof fetch for a SCT that it knows is malicious, will delay responding. The TLS connection, having succeeded will progress to the HTTP request and response, at which point the exploit will be served, and the SFO - containing the cryptographic evidence of CA and Log misbheavior - will be deleted by the exploit code. While blocking the TLS connection until the Log responds is an option, the failure of OCSP hard-fail indicates this notion is doomed to fail. % TODO: remove two uses of fail in that sentence.
+
+The third evolution of our proposal has the Browser submit the SFO to the CTR immediately upon recipient in all cases. To mitigate the risk of an exploit finding the CTR and disclosing its identity to the attacker (who could then target it for Denial of Service), we prepare CTR circuits ahead of time and close and discard them as soon as the SFO is sent, allowing the SFO submission to race with the TLS connection completion and HTTP request/response.  An added detail is to block the TLS connection in the situation that an SFO is unusually large, as defined by a parameter ct-large-sfo-size. A large SFO may indicate an attempt to win that race between SFO submission and exploitation, and the parameter can be chosen such that it happens extremely rarely on legitimate connections.
+
+The third evolution of our proposal exhibits all the protections we can reasonably achieve within the browser. We summarize this Phase with the following algorithm that provides more explicit steps and details, and add a parameter \texttt{ct-submit-pr} that indicates a probability a SFO is submitted to a CTR - this provides probablistic security while providing the ability to adjust submission rates to account for CTR scaling issues. Given an incoming SFO $s$, we follow the below steps: % The bit introducing \texttt{ct-submit-pr} can be better.
+
+\begin{enumerate}
+    \item Raise a certificate error and stop if the certificate chain of $s$
+        is not rooted in TB's trust store.
+    \item Raise a certificate transparency error and stop if the SCTs of $s$
+        fail TB's CT policy.
+    \item If $\mathsf{len}(s) \le \texttt{ct-large-sfo-size}$, accept $s$ and
+        conduct the remaining steps in the background while the TLS connection
+        and HTTP request/response proceed. If $\mathsf{len}(s) \gte \texttt{ct-large-sfo-size}$ pause the TLS handshake, complete the remaining steps and then
+        accept~$s$ as valid and continue the handshake and HTTP request/response.
+    \item Flip a biased coin based on \texttt{ct-submit-pr} and stop if the
+        outcome indicates no further auditing.
+    \item Submit $s$ to a random CTR's SFO-endpoint on a pre-built circuit.
+        The circuit used for submission is closed immediately after use without
+        waiting for any acknowledgment.
+\end{enumerate}
+
+\subsection{Phase 2---Storage} \label{sec:base:phase2}
