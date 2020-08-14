@@ -1,0 +1,152 @@
+\section{Design} \label{sec:base}
+
+A complete design that detects misbehavior by CAs and CT Logs, performed by an adversary with the ability to drop or delay network traffic from CT Logs and a subset of Tor relays, control a subset of Tor relays, serve an exploit to targeted users' browsers and perform a Denial of Service attack on a subset of Tor relays necessitates a considerable degree of complexity. A less-complicatd subset of such a system can be deployed incrementally to provide protection against an attacker with a subset of such capabilities.
+
+\subsection{Phase~1---Tor Browser} \label{sec:base:phase1}
+
+The simplest proposal would be one where Tor Browser receives a TLS Certificate and accompanying SCTs (we will refer to this bundle as an SCT Feedback Object or SFO) and talk to the corresponding logs, over Tor, requesting an inclusion proof on the SCT. In an ordinary browser, this would be an unacceptable leak of browsing behavior tied to an IP address to the log; but performing this request over Tor leaks real-time browsing behavior but not the user's IP address.
+
+The immediate problem with this design is that a primary requirement of Tor Browser is to persist no data about browsing behavior after the application exits. If we assume a user's browser is not left open for long periods of time, the inclusion proof request can be easily circumvented by the attacker by supplying a fresh SCT whose MMD has not completed - thus no inclusion proof can be provided. A second problem is that the SCT returned from any inclusion proof exists in a trust vaccuum - there is no way to know that it is consistent with other STHs and not part of a split view.
+
+The evolved proposal adds two components: a list of STHs that the browser will receive over a trusted channel that it can request inclusion or consistency proofs to and the participation of a third party with the ability to persist data and perform auditing actions at a later time.
+
+A single third party used by all Tor Browser users would receive a considerable aggregation of browsing behavior and present both  single-point-of-failure concerns as well as the deployment of new infrastructure. These concerns do not entirely preclude the design; but they can be easily avoided by reusing relays in the Tor Network as our trusted third parties: we call the relays so designated Certificate Transparency Relays (or CTRs).
+
+Now; when the browser is completing the TLS handshake they simultaneously either pass the SFO to a CTR (if the MMD of the SCT has not elapsed) or query the log themselves asking an inclusion proof to a trusted STH. If no inclusion proof can be provided, the browser will report the SFO to a CTR or other auditor. However, if we presume the attacker can serve an exploit to the browser, the latter behavior is immediately vulnerable. The log, upon receiving an inclusion proof fetch for a SCT that it knows is malicious, will delay responding. The TLS connection, having succeeded will progress to the HTTP request and response, at which point the exploit will be served, and the SFO - containing the cryptographic evidence of CA and Log misbheavior - will be deleted by the exploit code. While blocking the TLS connection until the Log responds is an option, the failure of OCSP hard-fail indicates this notion is doomed to fail. % TODO: remove two uses of fail in that sentence.
+
+The third evolution of our proposal has the Browser submit the SFO to the CTR immediately upon recipient in all cases. To mitigate the risk of an exploit finding the CTR and disclosing its identity to the attacker (who could then target it for Denial of Service), we prepare CTR circuits ahead of time and close and discard them as soon as the SFO is sent, allowing the SFO submission to race with the TLS connection completion and HTTP request/response.  An added detail is to block the TLS connection in the situation that an SFO is unusually large, as defined by a parameter ct-large-sfo-size. A large SFO may indicate an attempt to win that race between SFO submission and exploitation, and the parameter can be chosen such that it happens extremely rarely on legitimate connections.
+
+The third evolution of our proposal exhibits all the protections we can reasonably achieve within the browser. We summarize this Phase with the following algorithm that provides more explicit steps and details, and add a parameter \texttt{ct-submit-pr} that indicates a probability a SFO is submitted to a CTR - this provides probablistic security while providing the ability to adjust submission rates to account for CTR scaling issues. Given an incoming SFO $s$, we follow the below steps: % The bit introducing \texttt{ct-submit-pr} can be better.
+
+\begin{enumerate}
+    \item Raise a certificate error and stop if the certificate chain of $s$
+        is not rooted in TB's trust store.
+    \item Raise a certificate transparency error and stop if the SCTs of $s$
+        fail TB's CT policy.
+    \item If $\mathsf{len}(s) \le \texttt{ct-large-sfo-size}$, accept $s$ and
+        conduct the remaining steps in the background while the TLS connection
+        and HTTP request/response proceed. If $\mathsf{len}(s) \gte \texttt{ct-large-sfo-size}$ pause the TLS handshake, complete the remaining steps and then
+        accept~$s$ as valid and continue the handshake and HTTP request/response.
+    \item Flip a biased coin based on \texttt{ct-submit-pr} and stop if the
+        outcome indicates no further auditing.
+    \item Submit $s$ to a random CTR's SFO-endpoint on a pre-built circuit.
+        The circuit used for submission is closed immediately after use without
+        waiting for any acknowledgment.
+\end{enumerate}
+
+\subsection{Phase 2---Storage} \label{sec:base:phase2}
+
+We suggest that CTRs accept SFO submissions on an HTTP endpoint.\footnote{%
+    Tor's HTTP DirServer codebase can be reused as extension point to interact
+    with the tor daemon, i.e., add another listener.
+} For example, Nordberg~\emph{et~al.} defined an SCT feedback interface that can
+be reused if an array-length of one is enforced by the CTR~\cite{nordberg}.
+
+Once received, the most straightforward thing for a CTR to do is to contact the
+issuing log and request an inclusion proof relative to a trusted STH. (And if the
+SCT's MMD has not elapsed, hold the SFO until it has.) However, this proposal has
+two flaws, the first of which leads us to the final design of Phase 2.
+
+Immediately contacting the log about a SFO discloses real-time browsing behavior
+to the log. This is some amount of information leakage that can help with real-time
+traffic analysis, and because a CTR must support storing SCTs regardless, we can
+opt to effectively create a timed mix~\cite{trickle02}, though one with a
+randomized firing interval. The randomness in whether a client submits an SFO
+at all combined with the timed mixing potentially complicates leaking client
+behavior to a CT log. But we cannot reliably assume that other honest
+clients submit to the CTR between mix firings (submissions to CT
+logs). Adding a per-SFO value sampled from \texttt{ct-delay-dist}
+effectively adds stop-and-go mixing~\cite{kesdogan:ih1998} to the
+privacy protection, but where there is only one mix (CTR) between
+sender (client) and receiver (CT log). So there is no point in a
+client-specified interval-start-time such that the mix drops messages
+arriving before then, and there is no additional risk in having the
+interval end time set by the mix rather than the sender. This means
+both that some SFOs a client sends to a CTR at roughly the same time
+might be in different batches of SFOs sent to a CT log and that SFOs
+submitted to that CTR by other honest clients are more likely to be
+mixed with these.
+
+
+In addition to storing SFOs for mixing effects, we also add a layer of caching to
+alleviate stored data and unnecessary log connections and data disclosure. So with
+regards to some CT circuit, process an incoming SFO $s$ as follows:
+\begin{enumerate}
+    \item\label{enm:storage:close} Close the current circuit to enforce one-time
+        usage.
+    \item\label{enm:storage:unrecognized} Stop if no CT log in the Tor consensus
+        accepts the trust anchor of the underlying certificate chain in $s$. % I think we should remove this
+    \item\label{enm:storage:cached}
+        Stop if $s$ is cached (see Section~\ref{sec:base:phase3}) or already pending to be audited.
+    \item\label{enm:storage:fix-log} Sample an independent CT log $l$ that
+        issued no SCT in $s$.  If there are no independent CT logs listed in the
+        Tor consensus, sample a dependent CT log instead.
+    \item\label{enm:storage:audit-after} Compute an \texttt{audit\_after}
+        timestamp $\textrm{t} \gets \mathsf{now()} +
+            \mathsf{random}(\texttt{ct-delay-dist})$.
+        The former returns the current time and the latter a random delay.
+    \item\label{enm:storage:store} Add $(l,t,s)$ to a buffer of pending SFOs.
+\end{enumerate}
+
+An SFO that
+    (i) cannot be audited with regards to a CT log that the Tor consensus
+        recognizes,
+    (ii) is already audited as indicated by a \emph{cache}, or
+    (iii) is pending to be audited in a \emph{buffer} of pending SFOs,
+is discarded.  In contrast, a new SFO is stored in the CTR's buffer
+alongside an \texttt{audit\_after} timestamp and a sampled CT log.  The
+\texttt{audit\_after} timestamp specifies the earliest point in time that an SFO
+will be audited in phase~3, which adds random noise that obfuscate real-time
+browsing patterns in the Tor network.  Auditing is also fixed at this stage with
+regards to some CT log.  If memory becomes a scarce resource, delete SFOs at
+random~\cite{nordberg}.
+
+
+
+\subsection{Phase 3---Auditing} \label{sec:base:phase3}
+
+As alluded to in Phase 2, there is a second problem why the simple behavior of 'contact
+the log and request an inclusion proof' is unaccpetable. We include the ability
+to DoS an individual Tor relay in our threat model - even if a CTR contacts a log
+over a Tor circuit, a log can tag each CTR by submitting unique SFOs to them all, and
+recognize the CTR when they are submitted. Once the CTR contacts the log with evidence
+of its misbehavior, and the log recognizes its tag, the log knows which CTR it should
+attack, take offline, and erase the evidence of its misbehavior.
+
+There are at least three possible mitigations for this. A simple one is to write
+the data to disk prior to contacting the log; however, Tor relays are explicitly
+designed not to write data about user behavior to disk unless debug-level logging
+is enabled. Relay operators have expressed an explicit desire to never have any 
+user data persisted to disk, as it changes the risk profile of their servers with
+regards to search, seizure, and forensic analysis. A second simple mitigation is
+to create a new Tor circuit for each query to the log; however doing so is increasing the load on the Tor network......
+
+The more complicated mitigation is to have the CTR work with a partner CTR - we call it
+a watchdog - who they choose at random and contact over a Tor circuit. Prior to talking
+to a log, the CTR provides the watchdog with the SFO it is about to submit. After
+an appropriate response from the log, the CTR tells the watchdog that SFO has been
+adequately addressed.  
+
+Each CTR maintains a single shared circuit that is used to interact with all CT
+logs that have \texttt{ct-log-info} items. For \emph{each} such CT log $l$, the
+CTR runs the following steps indefinitely:
+\begin{enumerate}
+    \item\label{enm:auditing:backoff} Sample a delay $d \gets
+        \mathsf{random}(\texttt{ct-backoff-dist})$ and wait until $d$ time units
+        elapsed.
+    \item\label{enm:auditing:loop} For each pending buffer entry $(l',s,t)$,
+    where $l' = l$ and $t <= \mathsf{now}()$:
+        \begin{enumerate}
+            \item\label{enm:auditing:add-chain} Using \texttt{ct-log-timeout} as
+                the timeout, attempt to add the certificate chain in $s$ to $l$
+                with the \texttt{add-chain}~\cite{ct} or
+                \texttt{submit-entry}~\cite{ct/bis} endpoints.
+                \begin{itemize}
+                    \item\label{enm:auditing:add-chain:success} On valid
+                        SCT: cache the SFO, then discard it from the buffer of
+                        pending SFOs.
+                    \item\label{enm:auditing:add-chain:fail} On any other
+                        outcome: go to step 1.
+                \end{itemize}
+        \end{enumerate}
+\end{enumerate}
