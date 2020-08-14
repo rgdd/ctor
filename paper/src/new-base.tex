@@ -105,21 +105,32 @@ random~\cite{nordberg}.
 
 \subsection{Phase 3---Auditing} \label{sec:base:phase3}
 
-As alluded to in Phase 2, there is a second problem why the simple behavior of 'contact
-the log and request an inclusion proof' is unaccpetable. We include the ability
-to DoS an individual Tor relay in our threat model - even if a CTR contacts a log
-over a Tor circuit, a log can tag each CTR by submitting unique SFOs to them all, and
-recognize the CTR when they are submitted. Once the CTR contacts the log with evidence
-of its misbehavior, and the log recognizes its tag, the log knows which CTR it should
-attack, take offline, and erase the evidence of its misbehavior.
+As alluded to in Phase 2, there is a second problem why the simple behavior of
+'contact the log and request an inclusion proof' is unaccpetable. We include
+the ability to DoS an individual Tor relay in our threat model - if the log
+knows which CTR holds the evidence of its misbehavior, it can take the CTR
+offline, wiping the evidence of the log's misbheavior from its memory. 
 
-There are at least three possible mitigations for this. A simple one is to write
-the data to disk prior to contacting the log; however, Tor relays are explicitly
-designed not to write data about user behavior to disk unless debug-level logging
-is enabled. Relay operators have expressed an explicit desire to never have any 
-user data persisted to disk, as it changes the risk profile of their servers with
-regards to search, seizure, and forensic analysis. A second simple mitigation is
-to create a new Tor circuit for each query to the log; however doing so is increasing the load on the Tor network......
+We can address this concern in a few ways. The simple proposal of contacting
+the log over a Tor cicruit will not suffice, a log can tag each CTR by
+submitting unique SFOs to them all, and recognize the CTR when they are
+submitted. Unique Tor circuits per-SFO can work, however the connections
+cannot be correlated; as that could lead to CTR identification as well.
+
+% TODO HERE --------
+Because connections cannot be correlated, it is not possible for a CTR to
+temporarily pause connections to a CT log that is down or experiencing load, this
+%TODO
+
+If we want to build a more robust system, one that can handle disclosure of
+the CTR's identity to the log, there are at least three solutions. A simple one
+is to write the data to disk prior to contacting the log; however, Tor relays
+are explicitly designed not to write data about user behavior to disk unless
+debug-level logging is enabled. Relay operators have expressed an explicit desire
+to never have any user data persisted to disk, as it changes the risk profile of
+their servers with regards to search, seizure, and forensic analysis. A second
+simple architecture is to create a new Tor circuit for each query to the log; 
+however doing so is increasing the load on the Tor network......
 
 The more complicated mitigation is to have the CTR work with a partner CTR - we call it
 a watchdog - who they choose at random and contact over a Tor circuit. Prior to talking
@@ -150,3 +161,115 @@ CTR runs the following steps indefinitely:
                 \end{itemize}
         \end{enumerate}
 \end{enumerate}
+
+\subsection{Phase 4---Watchdog and Auditor Behavior}
+
+At any given time, a CTR will be reuqesting inclusion proofs from logs (we will refer to this role as the log-challenger) and may also be a watchdog for one or more other CTRs. A CTR acting as a watchdog will have at most one SFO held temporarily for each log-challenger it is interacting with. If a response from the log-challenger is not received within \texttt{ct-watchdog-timeout}, it becomes the watchdog's responsibility to submit it to an auditor.
+
+While we consider all auditors trusted - the watchdog needs to take precautions talking to them because the network is not trusted. If the watchdog contacted the auditor without a tor circuit, an adversary watching the auditors' network connections could induce a watchdog to contact the auditor, learn the watchdog's identity, and perform a Denial of Service attack. To mitigate this, the watchdog can contact an auditor as soon as it receives a SFO it should report; however it must contact the auditor over a Tor circuit. If a successful acknowlegement from the auditor is not received within \texttt{ct-auditor-timeout}, the SFO is placed into the general SFO buffer, where it will ultimately be presented to the log again, and potentially given to another watchdog. This strategy is done for simplicity, to avoid maintaining two separate buffers and handling evictions from them separately.
+
+\subsection{Additional Details}
+
+\subsubsection{CTR Flag} \label{sec:base:consensus:ctr-flag}
+Within the Tor consensus, the existing \texttt{known-flags} item determines the
+different flags that the consensus might contain.  We add another flag named
+\texttt{CTR}, which indicates that a Tor relay should support CT-auditing as
+described here. For now, assume that a relay qualifies as a CTR if it is flagged
+as \texttt{stable} and not \texttt{exit}, to spare the relatively sparse exit
+bandwidth and only use relays that can be expected to stay online.
+Section~\ref{sec:privacy} discusses trade-offs in the assignment of the
+\texttt{CTR} flag.
+
+\subsubsection{Trusted STHs}
+Tor's consensus should capture a fixed view of the CT landscape by publishing
+STHs from all recognized logs.  A CT log is recognized if a majority of directory
+authorities proposed a \texttt{ct-log-info} item, which contains a log's ID,
+public key, base URL, MMD, and most recent STH.  Each directory authority
+proposes its own STH, and agrees to use the most recent STH as determined by
+timestamp and lexicographical order.  Since CTRs verify inclusion with regards
+to SCTs that TB accepts, the CT logs recognized by TB must be
+in Tor's consensus.
+
+\subsubsection{Trusted Auditors}
+Tor's directory authorities also majority-vote on \texttt{ct-auditor} items,
+which pin base URLs and public keys of CT auditors that watchdogs contact in
+case that any log misbehavior is suspected.  A watchdog triggers if the time
+specified by \texttt{ct-watchdog-timeout} elapses without receiving any
+acknowledgment.  The following auditor submission is governed by a
+\texttt{ct-auditor-timeout}, which, if triggered, results in a resubmission
+later on.
+
+\subsubsection{Other Parameters} \label{sec:base:consensus:params}
+Directory authorities influence the way in which TB and CTRs behave by
+voting on other necessary parameters. Below, the value of an item is computed as
+the median of all votes.
+\begin{description}
+    \item[ct-submit-pr:] A floating-point in $[0,1]$ that determines Tor
+        Browser's submission probability.  For example, $0$ disables submissions
+        while $0.10$ means that every 10$^{\mathsf{th}}$ SFO is sent to a
+        random CTR on average.
+    \item[ct-large-sfo-size:] A natural number that determines how many
+        wire-bytes a normal SFO should not exceed.  As outlined in
+        Section~\ref{sec:base:phase1}, excessively large SFOs are subject
+        to stricter verification criteria.
+    \item[ct-log-timeout:] A natural number that determines how long a CTR
+        waits before concluding that a CT log is unresponsive, e.g., 10~seconds.
+        As outlined in Section~\ref{sec:base:phase3}, timeouts trigger implicit
+        resubmissions.
+    \item[ct-delay-dist:] A distribution that determines how long a CTR should
+        wait at minimum before auditing a submitted SFO\@.  As outlined in
+        Section~\ref{sec:base:phase2}, random noise is added, e.g., on the order of minutes to an hour.
+    \item[ct-backoff-dist:]
+        A distribution that determines how long a CTR should wait between two
+        auditing instances, e.g., a few minutes on average.  As outlined in
+        Section~\ref{sec:base:phase3}, CTRs audit pending SFOs in batches at
+        random time intervals to spread out log overhead.
+    \item[ct-watchdog-timeout]
+    \item[ct-auditor-timeout]
+\end{description}
+
+
+\section{Incremental Deployment} \label{sec:incremental}
+
+The design outlined in Section 4 covers an end-to-end design that - if an SFO
+is audited - ensures it will be resolved to a trusted STH and ensure it was
+included within the MMD or that it will be provided to a trusted auditor for
+human followup and publication. It requires changes to Tor Browser, the Tor
+consensus, Tor relays, and the deployment of the new trusted auditor
+infrastructure.
+
+It is possible to provide a smaller measure of protection with fewer infrastructure
+changes and less complexity.
+
+\subsection{SubDesign 1: Detecting Malicious Certificate Authorities}
+
+After a CTR receives a SFO, it can choose to log the certificate chain to alternate
+logs who have not issued SCTs for it (based on the SCTs provided in the SFO.) If
+we assume that at least one log it submits the data to is honest, the certificate will
+be published and allow detection of the malicious or compromised CA.
+
+A CTR can reuse a single tor circuit for multiple certificate submissions; however
+to address the threat of a log performing a Denial of Service attack on the CTR
+after learning it has evidence of misbehavior, the CTR must hold circuits to all of
+the logs and submit a certificate chain to all of the logs simultaneously. This
+ensures that a malicious log will not be able to take the CTR offline before the
+evidence can be submitted to an honest log. Alternately, the CTR can submit a single
+certificate chain per-circuit, and not perform coordinated submissions.
+
+Submitting the certificate to the logs, one of which is presumed to be honest, and
+omitting all subsequent auditing steps will not disclose what log(s) may have issued
+SCTs for the certificate in question and thus be malicious; but will allow detection
+of the malicious or compromised CA.
+
+\subsection{SecDesign 2: Detecting Malicious Logs}
+
+In a similar vein to SubDesign 1, after a CTR receives a SFO, it could log both the
+certificate chain and the SCTs to alternate logs.  By publishing the SCTs in addition
+to the certificate, we can see what CA was malicious or compromised, and what logs
+misbehaved by not including the SCT within the MMD.
+
+This design also relies on at least one honest log, and the same techniques for avoiding
+Denial of Service attacks in SubDesign 1 apply. While this proposal avoids the need for
+trusted auditors, submitting SCTs from other logs is not a mechanism that Certificate
+Transparency currently supports. Therefore this proposal would require a protocol
+improvement and new development on behalf of the logs.
