@@ -3,11 +3,15 @@
 \usepackage[utf8]{inputenc}%(only for the pdftex engine)
 %\RequirePackage[no-math]{fontspec}%(only for the luatex or the xetex engine)
 \usepackage[big]{dgruyter_NEW}
-\usepackage{fancyhdr}
-\renewcommand{\headrulewidth}{0pt}
-\lhead{}
-\rhead{}
-\cfoot{DISTRIBUTION A:  Approved for public release, distribution is unlimited}
+
+%%%%
+% Paul's preprint settings (1/2)
+%%%
+%\usepackage{fancyhdr}
+%\renewcommand{\headrulewidth}{0pt}
+%\lhead{}
+%\rhead{}
+%\cfoot{DISTRIBUTION A:  Approved for public release, distribution is unlimited}
 
 
 \input{src/preamble}
@@ -65,8 +69,12 @@
   \journalissue{..}
  
   \maketitle
-  \pagestyle{fancy}
-  \thispagestyle{fancy}
+  %%%%
+  % Paul's preprint settings (1/2)
+  %%%
+  %\pagestyle{fancy}
+  %\thispagestyle{fancy}
+
   \input{src/introduction}
   \input{src/background}
   \input{src/adversary}
