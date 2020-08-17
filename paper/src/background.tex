@@ -3,15 +3,34 @@
 \subsection{Certificate Transparency} \label{sec:background:ct}
 The idea to transparently log TLS certificates emerged at Google in response to
 a lack of proposals that could be deployed without drastic ecosystem changes
-and/or significant downsides~\cite{ct/a}.  In reality, CT is about logging
-certificate \emph{chains}:
-	a domain owner's certificate is signed by an intermediate CA, whose
+and/or significant downsides~\cite{ct/a}.  By making the set of issued
+certificate chains\footnote{
+	A domain owner's certificate is signed by an intermediate CA, whose
 	certificate is in turned signed by a root CA that acts as a trust
-	anchor~\cite{ca-ecosystem}.
-The resulting certificate chain is composed of the domain owner's leaf
-certificate, the intermediate CA certificate, and the root CA certificate.
-Trust anchors are shipped in software, such as web browsers and operating
-systems.
+	anchor~\cite{ca-ecosystem}.  Such a \emph{certificate chain} is valid if it
+	ends in a trusted anchor that is shipped in the user's system software.
+} transparent, anyone that inspect the logs can detect certificate
+mis-issuance \emph{after the fact}.  It would be somewhat circular to solve
+issues in the CA ecosystem by adding trusted CT logs.  Therefore, the
+cryptographic foundation of CT is engineered to avoid any such reliance.
+Google's \emph{gradual} CT rollout started in 2015, and evolved from merely
+downgrading user-interface indicators in Chrome to the current state of hard
+failures unless a certificate is accompanied by a signed \emph{promise} that it
+will appear in two independent CT logs~\cite{does-ct-break-the-web}.  Unlike
+Apple's CT enforcement~\cite{safari-policy}, one of these logs must additionally
+be operated by Google~\cite{chrome-policy}.
+
+The lack of mainstream verification, i.e., beyond checking signatures, allows an
+attacker to side-step the current CT enforcement with minimal risk of exposure
+\emph{if the required logs are controlled}.  CTor integrates into the gradual
+CT roll-out by starting on the same premise of pair-wisely trusted logs, which
+avoids the risk of bad user experience~\cite{does-ct-break-the-web}
+and significant system complexity.  For example, web pages are unlikely to
+break, TLS handshake latency stays about the same, and no robust management of
+suspected log misbehavior is needed.  It should be noted that the latter remains
+the case with CTor's cross-logging because all certificates are treated the
+same, in part motivating why it is an appealing first step before attempting to
+eliminate all trust in CT logs.
 
 \subsubsection{Cryptographic Foundation}
 The operator of a CT log maintains a tamper-evident append-only Merkle
@@ -39,7 +58,7 @@ to some entities and another to others, is said to perform a \emph{split-view
 attack}.  Split-views can be detected by STH
 gossip~\cite{chuat,dahlberg,nordberg,syta}.
 
-\subsubsection{Standardization}
+\subsubsection{Standardization and Verification}
 The standardized CT protocol defines public HTTP(S) endpoints that allow anyone
 to check the log's accepted trust anchors and added certificates, as well as
 obtaining the most recent STH and fetching proofs~\cite{ct,ct/bis}.  For
@@ -53,25 +72,30 @@ head that the log should base its inclusion proof on.  The proof is valid if it
 can be used in combination with the certificate to reconstruct the tree head of
 some STH.
 
-\subsubsection{Verification}
-The CT landscape provides a limited value unless it is verified that the logs
-play by the rules.  The rules are largely influenced by major browser vendors
-that define CT policies.  For example, how is CT enforced by their user agents,
-and what is required to become a recognized CT log in terms of uptime
-requirements and accepted trusted anchors.  Google Chrome and Apple's Safari
+The CT landscape provides limited value unless it is verified that the logs
+play by the rules.  The rules are influenced by the major browser vendors that
+define \emph{CT policies}.  For example, how is CT enforced by their user
+agents, and what is required to become a recognized CT log in terms of uptime
+requirements and accepted trust anchors.  Google Chrome and Apple's Safari
 require that a certificate chain must be accompanied by two independent
-SCTs~\cite{chrome-policy,safari-policy}.  Independence refers to the associated
-log operators.  While there are several ways that
-a log can misbehave with regards to these policy aspects, the most fundamental
-forms of cheating are omission and split-view attacks:
-	it would undermine detection of mis-issued TLS certificates.
-A party that follows-up on inclusion and consistency proofs is said to
-\emph{audit} the logs.  Wide-spread client-side auditing is a premise for CT
-logs to be untrusted, but none of the web browsers that enforce CT engage in
-such activities yet.  For example, it is difficult due privacy
-concerns~\cite{ct-with-privacy}.  CT also assumes that domain owners
-\emph{monitor} the logs for mis-issuance by inspecting the added
-certificates~\cite{lwm,ct-monitors}.
+SCTs~\cite{chrome-policy,safari-policy}, where independence refers to the
+associated log operators.  While there are several ways that a log can misbehave
+with regards to these policy aspects, the most fundamental forms of cheating are
+omission and split-view attacks.  A party that follows-up on inclusion and
+consistency proofs is said to \emph{audit} the logs.
+
+Wide-spread client-side auditing is a premise for CT logs to be untrusted, but
+none of the web browsers that enforce CT engage in such activities yet.  For
+example, requesting an inclusion proof is privacy-invasive because it leaks
+browsing patterns to the logs, and reporting suspected log misbehavior comes
+with privacy~\cite{ct-with-privacy} as well as operational challenges.
+Found log incidents are mostly reported manually to the CT policy mailing list.
+This is in contrast to automated \emph{CT monitors}, which notify domain owners
+of newly issued certificates based on what actually appeared in the public
+logs~\cite{lwm,ct-monitors}.
+
+%CT also assumes that domain owners \emph{monitor} the logs for mis-issuance by
+%inspecting the added certificates~\cite{lwm,ct-monitors}.
 
 \subsection{Tor} \label{sec:background:tor}
 
