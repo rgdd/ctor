@@ -5,7 +5,7 @@ regards to trusted STHs in the Tor consensus.  If no such proof can be provided
 the suspected evidence of log misbehavior is reported to a trusted CT auditor
 that follows-up on the incident, which involves human intervention if the issue
 persists.  The proposed solution requires modifications of Tor Browser, Tor
-Relays, and Tor's consensus, as well as the deployment of a new trusted auditor
+Relays, and Tor's consensus, as well as the development and deployment of a new trusted auditor
 infrastructure.  The current lack of the latter makes it unlikely to see
 adoption of CTor in its full potential anytime soon, and begs the question of
 reasonable increments that help us get there.  Therefore, we additionally
@@ -14,7 +14,7 @@ propose a scaled-down design that can be part of a gradual deployment.
 Without the ability to rely on CT auditors, trust needs to be shifted elsewhere
 since we cannot expect the average Tor relay operator to continuously persist
 and manually investigate SFOs that cannot be resolved.  At the same time, an
-incremental proposal that does not improve the assumption of pairwisely trusted
+incremental proposal that does not improve upon the currently deployed assumption of pairwisely trusted
 CT logs is not much of a step forward at all.  These observations lead us
 towards a balance between the two extremes:
 	\emph{collective trust in all CT logs}.
@@ -27,7 +27,7 @@ suspected certificate mis-issuance to all CT logs, simply by using the public
 \texttt{add-chain} API to make the SFO's certificate chain transparent.  This
 has the benefit of holding the CA accountable \emph{if some log operator is
 benign}.  Given that our attacker is risk-averse, reporting to a single
-independent log that issued none of the accompanied SCTs would likely be
+independent log\footnote{The independent log need not be trusted by the browser; it could be separately specified in the Tor consensus.} that issued none of the accompanied SCTs would likely be
 sufficient.  There is also room for further simplification.  For example, there
 is no point in challenging the logs to prove inclusion if the fallback behavior
 of no response only makes the issued certificate public, i.e., not SCTs.

@@ -5,7 +5,7 @@ We consider four types of impact for an attacker that conducted
 man-in-the-middle attacks on Tor Browser:
 \begin{description}
 	\item[None] the attack was undetected or detected without knowing any
-		details as to how it was carried out.
+		identification of the attacker.
 	\item[Minor] the attack was detected due to some cover-up that involved
 		network-wide actions against CTor.  This is likely hard to attribute to
 		the actual attacker, but nevertheless it draws much unwanted attention.
@@ -91,12 +91,15 @@ using a newly issued SCT, resulting in an attack window that is \emph{at least}
 
 Following from Tor's threat model, the mis-issued SFO must be stored in volatile
 memory and not to disk.  Two risks emerge due to large buffer times:
-	the CTR in question might be restarted by the operator,
-	and given enough time the attacker might find a way to delete the evidence.
-While a risk-averse attacker cannot rely on the former to avoid detection, it
-emphasizes that the CTR criteria must include the \texttt{stable} flag.
-The latter is not straight forward because the attacker does not know which CTR
-to target.  While a network-wide DoS would be effective, it is not within the
+	the CTR in question might be restarted by the operator (unrelated to the SFO in question)
+	and that given enough time the attacker might find a way to cause the evidence to be deleted.
+While a risk-averse attacker cannot rely on the former to avoid detection, we
+emphasize that the CTR criteria must include the \texttt{stable} flag to reduce the
+probability of this occurring.
+There are two ways to induce deletion of the SFO, the first of which is to perform a DoS
+attack on the CTR, causing it to shut down or restart. This is not straight forward because
+the attacker does not know which CTR
+to target.  While a network-wide DoS of all CTRs would be effective, it is not within the
 threat model of Tor.  A less intrusive type of DoS would be to \emph{flood} CTRs
 by submitting massive amounts of SFOs:
 	just enough to make memory a scarce resource, but
@@ -138,9 +141,7 @@ change to any significant degree by assuming larger success probabilities, e.g.,
 $p\gets\frac{99}{100}$ doubles the overhead by a factor of two.  This means
 that we cannot avoid early signals to the logs and at the same time rely only on
 the finite memory of CTRs to manage network-wide flushes.  The fact that we can
-detect this in the extra-info document makes it a minor impact scenario.  On the
-flip-side, \emph{not observing any flushing} adds a large degree of confidence
-that no mis-issued SFOs were encountered.
+detect this in the extra-info document makes it a minor impact scenario.
 
 TODO: discuss possible \emph{reactions} to network-wide flushes.  For example,
 Tor's directory authorities could artificially lower MMDs on-the-fly to, say, 30
@@ -163,9 +164,9 @@ This leaves two options: the attacker either responds to the query with an
 invalid inclusion proof or
 	not at all.
 The former is detected immediately and starts phase~4, whereas the latter forces
-the CTR to first wait for \texttt{ct-watchdog-timeout} to trigger (a few seconds
+the CTR to first wait for \texttt{ct-watchdog-timeout} to trigger (which is a few seconds
 to avoid premature auditor reports).  A rational attacker prefers the second
-option to win time.
+option to gain more time.
 
 Clearly, the attacker knows that \emph{some} CTR holds evidence of log
 misbehavior as it is being audited.  The relevant question is whether the
