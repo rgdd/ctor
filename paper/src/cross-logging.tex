@@ -1,47 +1,97 @@
 \section{Incremental Deployment} \label{sec:incremental}
+Section~\ref{sec:base} covered a full end-to-end design that places zero-trust
+in the CT landscape by challenging the logs to prove certificate inclusion with
+regards to trusted STHs in the Tor consensus.  If no such proof can be provided
+the suspected evidence of log misbehavior is reported to a trusted CT auditor
+that follows-up on the incident, which involves human intervention if the issue
+persists.  The proposed solution requires modifications of Tor Browser, Tor
+Relays, and Tor's consensus, as well as the deployment of a new trusted auditor
+infrastructure.  The current lack of the latter makes it unlikely to see
+adoption of CTor in its full potential anytime soon, and begs the question of
+reasonable increments that help us get there.  Therefore, we additionally
+propose a scaled-down design that can be part of a gradual deployment.
 
-The design outlined in Section 4 covers an end-to-end design that - if an SFO
-is audited - ensures it was included in the log within the MMD and that it will be
-resolved to a trusted STH or that it will be provided to a trusted auditor for
-human followup and publication. It requires changes to Tor Browser, the Tor
-consensus, Tor relays, and the deployment of the new trusted auditor
-infrastructure.
+Without the ability to rely on CT auditors, trust needs to be shifted elsewhere
+since we cannot expect the average Tor relay operator to continuously persist
+and manually investigate SFOs that cannot be resolved.  At the same time, an
+incremental proposal that does not improve the assumption of pairwisely trusted
+CT logs is not much of a step forward at all.  These observations lead us
+towards a balance between the two extremes:
+	\emph{collective trust in all CT logs}.
+Such an assumption is suboptimal on paper, but provides real-world security
+improvements by raising the bar of unnoticed certificate mis-issuance from
+weakest-link(s) to quite the opposite.
 
-It is possible to provide a smaller measure of protection with fewer infrastructure
-changes and less complexity.
+The smallest change of the full design would be for watchdogs to report
+suspected certificate mis-issuance to all CT logs, simply by using the public
+\texttt{add-chain} API to make the SFO's certificate chain transparent.  This
+has the benefit of holding the CA accountable \emph{if some log operator is
+benign}.  Given that our attacker is risk-averse, reporting to a single
+independent log that issued none of the accompanied SCTs would likely be
+sufficient.  There is also room for further simplification.  For example, there
+is no point in challenging the logs to prove inclusion if the fallback behavior
+of no response only makes the issued certificate public, i.e., not SCTs.
+Thus, CTRs could opt to cross-log immediately \emph{without ever distinguishing
+between certificates that are benign and possibly fraudulent}.  This results in
+the scaled-down design shown in Figure~\ref{fig:cross-log}, which initially
+removes several system complexities (such as watchdog collaborations and
+fetching inclusion proofs against trusted STHs).
 
-\subsection{SubDesign 1: Detecting Malicious Certificate Authorities}
+\begin{figure*}
+    \centering
+	\includegraphics[width=0.8\textwidth]{img/design-ca}
+	\vspace{-8px}
+	\caption{%
+		Scaled-down design that can be deployed incrementally without any
+		trusted CT auditors.  Tor Browser still submits SFOs to CTRs on
+		independent Tor circuits for the sake of privacy and security.  After
+		CTR buffering, the submitted certificates are \emph{cross-logged} by
+		adding them to independent CT logs (selected at random) that the
+		attacker does not control (inferred from accompanied SCTs).
+	}
+	\label{fig:cross-log}
+	\vspace{-10px}
+\end{figure*}
 
-After a CTR receives a SFO, it can choose to log the certificate chain to alternate
-logs who have not issued SCTs for it (based on the SCTs provided in the SFO.) If
-we assume that at least one log it submits the data to is honest, the certificate will
-be published and allow detection of the malicious or compromised CA.
+The drawback of certificate cross-logging is that the misbehaving CT logs cannot
+be exposed.  There is also a discrepancy between cross-logging and encouraging
+the CT landscape to deploy reliable CT auditors.  We therefore suggest a
+minimal change to the basic cross-logging design that addresses both of these
+concerns.  This change is unfortunately to the API of CT logs and not Tor.  The
+proposed change is to allow cross-logging of a certificate's issued SCTs, e.g.,
+in the form of an \texttt{add-sfo} API that would replace \texttt{add-chain}
+in Figure~\ref{fig:cross-log}.
+This means that CTRs could expose both the mis-issued certificate and the logs
+that violated their promises of public logging.  At the same time, the
+infrastructural part of a CT auditor is built directly into existing
+CT logs:
+	accepting SFOs that need further investigation.
+Such an API would be an ecosystem improvement in itself, providing a
+well-defined place to report suspected log misbehavior on-the-fly
+\emph{casually}, i.e., without first trying to resolve an SFO for en extended
+time period from many different vantage point and then ultimately reporting it
+manually on the CT policy mailing list.
 
-A CTR can reuse a single tor circuit for multiple certificate submissions; however
-to address the threat of a log performing a Denial of Service attack on the CTR
-after learning it has evidence of misbehavior, the CTR must hold circuits to all of
-the logs and submit a certificate chain to all of the logs simultaneously. This
-ensures that a malicious log will not be able to take the CTR offline before the
-evidence can be submitted to an honest log. Alternately, the CTR can submit a single
-certificate chain per-circuit, and not perform coordinated submissions.
+TODO: short paragraph on appendix nuance + ref
 
-Submitting the certificate to the logs, one of which is presumed to be honest, and
-omitting all subsequent auditing steps will not disclose what log(s) may have issued
-SCTs for the certificate in question and thus be malicious; but will allow detection
-of the malicious or compromised CA.
+\textbf{Security sketch.} 
+There are no changes to phase~1 because cross-logging is instantiated at CTRs.
+Phases~3--4 are now merged, such that the encountered certificates are added to
+independent CT logs that the attacker does not control.  This means that the
+attacker does not learn anything from phase~3, which motivates why watchdogs are
+only needed in the full design.  The other main difference takes place in
+phase~2, during which CTRs buffer SFOs.  The buffer time used to be lengthy due
+to taking early signals and MMDs into account, but it is now a moot point as the
+logs are not held accountable.  The expected buffer time can therefore be
+shortened down to \emph{minutes} that follow only from the randomness in the
+\texttt{audit\_after} timestamp, making network-wide flushes impractical while
+at the same time reducing the time that a mis-issued certificate stays unnoticed
+(a benign log is likely to add an entry before all MMDs elapsed).
 
-This design omits the trusted auditor infrastructure and the necessity for watchdog
-CTRs.
-
-\subsection{SubDesign 2: Detecting Malicious Logs}
-
-In a similar vein to SubDesign 1, after a CTR receives a SFO, it could log both the
-certificate chain and the SCTs to alternate logs.  By publishing the SCTs in addition
-to the certificate, we can see what CA was malicious or compromised, and what logs
-misbehaved by not including the SCT within the MMD.
-
-This design also relies on at least one honest log, and the same techniques for avoiding
-Denial of Service attacks in SubDesign 1 apply. While this proposal avoids the need for
-trusted auditors and watchdogs, submitting SCTs from other logs is not a mechanism
-that Certificate Transparency currently supports. Therefore this proposal would require
-a protocol improvement and new development on behalf of the logs.
+Extended cross-logging differs in that early signals and MMDs \emph{do matter}.
+One way to keep the buffer times short (to benefit from no minor impact
+scenarios) would be to operate the \texttt{add-sfo} endpoint with the
+expectation that an entry should not be published until all MMDs elapsed
+and the issuing logs produced STHs that captured their violations.  The other
+option is to detect and reactively manage network-wide flushes by tuning CTor
+parameters, as already discussed in Section~\ref{sec:analysis:pr:phase2}.
