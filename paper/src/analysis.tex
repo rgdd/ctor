@@ -15,11 +15,10 @@ these impact types are:
 \end{description}
 
 Our design leads to significant and catastrophic impact events, but does
-not preclude minor ones due to Tor's requirement of disk avoidance.  It is
-possible to overcome this shortcoming at different trade-offs, e.g., by
-tuning CTor parameters reactively (Section~\ref{sec:analysis:pr:phase3}) or by
-relying on the scaled-down cross-logging designs in
-Section~\ref{sec:incremental}.
+unfortunately not preclude minor ones.  It is possible to overcome this
+shortcoming at different trade-offs, e.g., by tuning CTor parameters reactively
+(Section~\ref{sec:analysis:pr:phase3}) or relying on different trust assumptions
+as in the scaled-down cross-logging designs in Section~\ref{sec:incremental}.
 
 \subsection{Probability of Detection} \label{sec:analysis:pr}
 Suppose the attacker mis-issued a certificate that Tor Browser trusts, and that
@@ -32,6 +31,10 @@ CT logs plan to keep any promise of public logging:
 The risk of exposure is instead bound by the probability that \emph{any} of the
 four phases in our design fail to propagate the mis-issued SFO to a pinned CT
 auditor that is benign.
+
+%In sum the probability of detection cannot exceed the likelihood that Tor
+%Browser submits an SFO to a genuine CTR, which in turn must initiate a report to
+%a trusted CT auditor through a genuine watchdog.
 
 \subsubsection{Phase~1: Submission} \label{sec:analysis:pr:phase1}
 The probability of detection cannot exceed the value of \texttt{ct-submit-pr}.
@@ -50,7 +53,7 @@ forensic traces in tor and Tor Browser are unreliable,\footnote{%
 	possible.
 } the sampled CTR identity also cannot be revealed with high certainty
 afterwards by compromising Tor Browser.  The attacker may know that the SFO is
-buffered by \emph{some CTR} based on timing, i.e., blocking-behavior might be 
+buffered by \emph{some CTR} based on timing, i.e., blocking-behavior could be 
 measurable and distinct.  The important part is not to reveal \emph{which CTR}
 received a submission:  a single Tor relay may be subject to DoS.
 
@@ -79,77 +82,65 @@ The time that an SFO is buffered depends on if the log's MMD elapsed or not.
 The earliest point in time that a newly issued SCT can be audited (and the log
 is expected to respond) is an MMD later, whereas the normal buffer time is
 otherwise only governed by smaller randomness in the \texttt{audit\_after}
-timestamp.  A rational attacker would therefore maximize the buffer time by
-using a newly issued SCT, resulting in an attack window that is \emph{at least}
-24~hours for today's CT logs~\cite{google-log-policy}.
+timestamp (minutes).  A rational attacker would therefore maximize the buffer
+time by using a newly issued SCT, resulting in an attack window that is \emph{at
+least} 24~hours for today's CT logs~\cite{google-log-policy}.
 %\footnote{%
 %	This could be increased further by delaying issuance of an STH that would
 %	capture the omission: a log must produce an STH every MMD~\cite{ct,ct/bis}.
 %}
 
-
 Following from Tor's threat model, the mis-issued SFO must be stored in volatile
 memory and not to disk.  Two risks emerge due to large buffer times:
-	the CTR in question might be restarted by the operator (unrelated to the SFO in question)
-	and that given enough time the attacker might find a way to cause the evidence to be deleted.
+	the CTR in question might be restarted by the operator independently of the
+		attacker's mis-issued SFO being buffered,
+	and given enough time the attacker might find a way to cause the evidence to
+		be deleted.
 While a risk-averse attacker cannot rely on the former to avoid detection, we
-emphasize that the CTR criteria must include the \texttt{stable} flag to reduce the
-probability of this occurring.
-There are two ways to induce deletion of the SFO, the first of which is to perform a DoS
-attack on the CTR, causing it to shut down or restart. This is not straight forward because
-the attacker does not know which CTR
-to target.  While a network-wide DoS of all CTRs would be effective, it is not within the
-threat model of Tor.  A less intrusive type of DoS would be to \emph{flood} CTRs
-by submitting massive amounts of SFOs:
+emphasize that the CTR criteria must include the \texttt{stable} flag to reduce
+the probability of this occurring.
+
+The latter is more difficult to evaluate.  It depends on the attacker's
+knowledge as well as capabilities.  Phase~1 ensured that the attacker \emph{does
+not know which CTR to target}.  As such, any attempt to intervene needs to
+target all CTRs.  While a network-wide DoS against Tor would be effective, it is
+not within our threat model.  A less intrusive type of DoS would be to
+\emph{flood} CTRs by submitting massive amounts of SFOs:
 	just enough to make memory a scarce resource, but
 	without making Tor unavailable.
-This could potentially \emph{flush} a target SFO from the CTR's finite memory
-at random (recall Section~\ref{TODO}).  Appendix~\ref{app:flush} shows that the
-number of SFO submissions~$k$ that the attacker needs to flush a buffer of $n>2$
-entries with some probability~$p\in[0,1)$ is:
-\begin{equation} \label{eq:flush}
-	k = \frac{\log(1-p)}{\log(1 - \frac{1}{n})}
-\end{equation}
+This could potentially \emph{flush} a target SFO from the CTR's finite memory,
+following from the delete-at-random strategy in Section~\ref{sec:base:phase2}.
+Appendix~\ref{app:flush} shows that the attacker's flood must involve at least
+$2.3$GiB per CTR to accomplish a 90\% success certainty.  This means that it
+takes $7.9$--$39.3$~minutes if the relay bandwidth is between 8 and 40~Mbps.
+In other words, it is impractical to flush all CTRs within a few minutes, and
+quicker than an hour likely makes Tor unavailable.
 
-It is recommended that a non-exit relay should have at least 512MB of memory.
-If the available bandwidth exceeds 40Mbps, it should have at least
-1GB~\cite{relay-config}.  Given that these recommendations are lower bounds,
-suppose the average memory available to store SFOs is 1GiB (a conservative
-assumption).  Further, Section~\ref{sec:performance} shows that the average SFO
-size is roughly 6KiB.  This means that the buffer capacity is $n \gets 174763$
-SFOs. Plugging it into Equation~\ref{eq:flush} for $p \gets
-\frac{9}{10}$, the attacker's flood must involve $k \gets 402406$ submissions.
-In other words, 2.3GiB must be transmitted to flush a single CTR with 90\%
-success probability,\footnote{%
-	As a corner case and implementation detail, it is important that Tor Browser
-	and CTRs \emph{reject} SFOs that are bogus in terms of size: it is a trivial
-	DoS vector to load data indefinitely. Analysis based on, e.g., 1~MiB SFOs
-	also requires 2.3~GiB of data to flush.
-} which takes $7.9$--$39.3$~minutes if the relay bandwidth is between 8 and
-40~Mbps.  Thus, it is definitely impractical to flush all CTRs within
-\emph{minutes}.
+The CTR criteria set in Section~\ref{sec:base:consensus:ctr-flag} matches over
+4000 Tor relays~\cite{relay-by-flag}.  A network-wide flush that succeeds with
+90\% certainty therefore involves 8.99TiB.  It might sound daunting at
+first, but distributed throughout an entire day it only requires
+0.91Gbps.
+Such an attack is within our threat model because it does not make Tor
+unavailable.  Notably the ballpark of these numbers do not change to any
+significant degree by assuming larger success probabilities~$p$, e.g.,
+$p\gets\frac{99}{100}$ doubles the overhead by a factor of two.  This means that
+we cannot avoid early signals to the logs by buffering SFOs throughout an entire
+MMD \emph{and} at the same time rely only on the finite memory of CTRs to manage
+network-wide flushes.  The fact that we can detect this in the extra-info
+document makes it a minor impact scenario.
 
-Metrics reported by the Tor project show that there are over 4000 relays that
-match our CTR criteria set in
-Section~\ref{sec:base:consensus:ctr-flag}~\cite{relay-by-flag}.  As such, a
-network-wide flush involves the transmission of at least 8.99TiB.  It might
-sound daunting at first, but distributed throughout an entire day it only
-requires 0.91Gbps.  Such an attack is within our threat model because it does
-not make Tor unavailable.  Notably the ballpark of these numbers do not
-change to any significant degree by assuming larger success probabilities, e.g.,
-$p\gets\frac{99}{100}$ doubles the overhead by a factor of two.  This means
-that we cannot avoid early signals to the logs and at the same time rely only on
-the finite memory of CTRs to manage network-wide flushes.  The fact that we can
-detect this in the extra-info document makes it a minor impact scenario.
-
-TODO: discuss possible \emph{reactions} to network-wide flushes.  For example,
-Tor's directory authorities could artificially lower MMDs on-the-fly to, say, 30
-minutes if this is an event that keeps occurring in the network.  Most logs
-likely included the legit SFOs by this time so there wouldn't be that much of an
-open pipe to the auditors (but logs can save face due to early signals).
-Another option would be to have a flag that says submit newly issued SCTs
-directly to auditors; would affect ~1\% of all web pages if we assume LE world
-and that certificates expire on uniform times.
+Once detected, there are several possible \emph{reactions}.  For example, Tor's
+directory authorities could lower MMDs on-the-fly to, say, 30~minutes, so that
+the SFO is reported to an auditor before it is flushed with high
+probability.  This has the benefit of implying significant impact because the
+the mis-issued certificate is detected, but also the drawback of allowing the
+logs to merge the certificate before there is any MMD violation to speak of.
+Another option that avoids early signals to the logs would be to toggle a
+flag in the Tor consensus, such that newly issued SFOs are reported to the
+auditors directly (i.e., without a failed query).  What is most appropriate
+is circumstantial and depends on which trade-offs one is willing to accept.
+Therefore, we leave it at examples.
 
 \subsubsection{Phase~3: Auditing} \label{sec:analysis:pr:phase3}
 By the time an SFO enters the audit phase the log in question is expected to
@@ -159,13 +150,13 @@ certificate in time because the CTR's view is already fixed by an STH in the
 Tor consensus that captured the log's misbehavior.  In fact, creating any
 split-view within Tor is impractical because it requires that the consensus is
 forged or that nobody ever checks whether the trusted STHs are consistent.
-This leaves two options: the attacker either responds to the query with an
-invalid inclusion proof or
+This leaves two options:
+	the attacker either responds to the query with an invalid inclusion proof or
 	not at all.
-The former is detected immediately and starts phase~4, whereas the latter forces
-the CTR to first wait for \texttt{ct-watchdog-timeout} to trigger (which is a few seconds
-to avoid premature auditor reports).  A rational attacker prefers the second
-option to gain more time.
+The former is immediately detected and starts phase~4, whereas the latter forces
+the CTR to wait for \texttt{ct-watchdog-timeout} to trigger (which is a
+few seconds to avoid premature auditor reports).  A rational attacker prefers
+the second option to gain time.
 
 Clearly, the attacker knows that \emph{some} CTR holds evidence of log
 misbehavior as it is being audited.  The relevant question is whether the
@@ -190,7 +181,7 @@ initiates the process of reporting the SFO in question to a random CT auditor in
 the Tor consensus.  Clearly, the probability of detection cannot exceed
 $1-f_{\mathsf{auditor}}$, where $f_{\mathsf{auditor}}$ is the fraction of
 malicious CT auditors.  The attacker may attempt to (micro)DoS all CT auditors
-to win time as the first report takes place at a deterministic point in time
+to gain time as the first report takes place at a deterministic point in time
 (after the timeout), but besides being outside of our threat model that would
 only result in (re)reporting later on \emph{to the same CT auditor}.
 While gaining time at this stage is of limited help because the CTR identity is

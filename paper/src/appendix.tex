@@ -80,6 +80,32 @@ points using Tor, VPN services, DoH resolvers, and RIPE Atlas (to mention a few
 options).  This goes back to the point of general ecosystem value.
 
 \section{Flushing a Single CTR} \label{app:flush}
+TODO: elaborate as details were removed from the analysis section
+%Appendix~\ref{app:flush} shows that the
+%Number of SFO submissions~$k$ that the attacker needs to flush a buffer of $n>2$
+%Entries with some probability~$p\in[0,1)$ is:
+%\begin{equation} \label{eq:flush}
+%	k = \frac{\log(1-p)}{\log(1 - \frac{1}{n})}
+%\end{equation}
+%
+%It is recommended that a non-exit relay should have at least 512MB of memory.
+%If the available bandwidth exceeds 40Mbps, it should have at least
+%1GB~\cite{relay-config}.  Given that these recommendations are lower bounds,
+%Suppose the average memory available to store SFOs is 1GiB (a conservative
+%Assumption).  Further, Section~\ref{sec:performance} shows that the average SFO
+%Size is roughly 6KiB.  This means that the buffer capacity is $n \gets 174763$
+%SFOs. Plugging it into Equation~\ref{eq:flush} for $p \gets
+%\frac{9}{10}$, the attacker's flood must involve $k \gets 402406$ submissions.
+%In other words, 2.3GiB must be transmitted to flush a single CTR with 90\%
+%Success probability,\footnote{%
+%	As a corner case and implementation detail, it is important that Tor Browser
+%	and CTRs \emph{reject} SFOs that are bogus in terms of size: it is a trivial
+%	DoS vector to load data indefinitely. Analysis based on, e.g., 1~MiB SFOs
+%	also requires 2.3~GiB of data to flush.
+%} which takes $7.9$--$39.3$~minutes if the relay bandwidth is between 8 and
+%40~Mbps.  Thus, it is definitely impractical to flush all CTRs within
+%\emph{minutes}.
+
 Let $n$ be the number of SFOs that a CTR can store in its buffer.  The
 probability to sample a target SFO is thus $\frac{1}{n}$, and the probability to
 not sample a target SFO is $q = 1 - \frac{1}{n}$.  The probability to not sample
