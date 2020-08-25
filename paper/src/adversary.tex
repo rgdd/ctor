@@ -3,8 +3,8 @@
 We consider a strong attacker who is targeting all or a subset of users visiting
 a particular website over Tor. It is generally difficult to perform a targeted
 attack on a single particular Tor user because one needs to identify the user's
-connection before performing the attack:
-	something that Tor's anonymity properties frustrate.
+connection before performing the attack---something that Tor's
+anonymity properties frustrate.
 However, it is not difficult to perform an attack on all or a subset of unknown
 users of a particular service. A network vantage point to perform such an attack
 is easily obtained by operating an exit relay (for a subset of Tor users) or by
@@ -25,7 +25,7 @@ Iran's interception of Bing and Google traffic using the Diginotar
 CA~\cite{diginotar}, and the 2018 MyEtherWallet self-signed certificate that was
 used as part of a BGP hijack~\cite{myetherwallet}.  The latter is also an
 example of redirecting routing as part of an attack (either suspected or
-confirmed) other examples of which are Iran hijacking 10 prefixes of Telegram
+confirmed). Other examples of this are Iran hijacking 10 prefixes of Telegram
 (an encrypted messaging application) in 2018, another attack on cryptocurrency
 in 2014 this time targeting unencrypted mining
 traffic~\cite{bgp-hijacking-for-crypto,bgp-hijacking-for-crypto-2}, and hijacks
@@ -53,8 +53,8 @@ but, who \emph{gained access} to the relevant signing keys~\cite{turktrust,%
 gdca1-omission}.  A modest fraction of CTor entities can be subject to DoS, but
 not everyone at once and all the time.  In other words, we consider the threat
 model of Tor and TB as a starting point~\cite{tor,tor-browser}.  Any
-attacker that can reliably disrupt CT and/or Tor to such a large extent is
-therefore not within our threat model.
+attacker that can reliably disrupt CT and/or Tor well beyond Tor's threat
+model is therefore not within our threat model either.
 % TODO: not sure if we need to emph "it assumed that the attacker knows all Tor
 % relay configurations, e.g., available memory and setup of torlog". now (?).
 
@@ -86,4 +86,6 @@ prevent it~\cite{ct/a}.
 We identify additional threats that follow from our threat model and design
 in the security analysis.  Namely, attack vectors related to
 	timing (Section~\ref{sec:analysis:pr:phase1}) as well as
-	Tor relay tagging and flooding (Section~\ref{sec:auditor:analysis}).
+	Tor relay flooding (Section~\ref{sec:analysis:pr:phase2}) and
+        tagging (Section~\ref{sec:analysis:pr:phase3}).
+        

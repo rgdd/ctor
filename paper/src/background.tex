@@ -22,8 +22,9 @@ be operated by Google~\cite{chrome-policy}.
 
 The lack of mainstream verification, i.e., beyond checking signatures, allows an
 attacker to side-step the current CT enforcement with minimal risk of exposure
-\emph{if the required logs are controlled}.  CTor integrates into the gradual
-CT roll-out by starting on the same premise of pairwisely trusted logs, which
+\emph{if the required logs are controlled by the attacker}.  
+CTor integrates into the gradual CT roll-out by starting on the same
+premise of pairwise-independently trusted logs, which
 avoids the risk of bad user experience~\cite{does-ct-break-the-web}
 and significant system complexity.  For example, web pages are unlikely to
 break, TLS handshake latency stays about the same, and no robust management of
@@ -61,16 +62,19 @@ gossip~\cite{chuat,dahlberg,nordberg,syta}.
 \subsubsection{Standardization and Verification}
 The standardized CT protocol defines public HTTP(S) endpoints that allow anyone
 to check the log's accepted trust anchors and added certificates, as well as
-obtaining the most recent STH and fetching proofs~\cite{ct,ct/bis}.  For
+to obtain the most recent STH and to fetch proofs~\cite{ct,ct/bis}.  For
 example, the \texttt{add-chain} endpoint returns an SCT if the added certificate
 chain ends in a trust anchor returned by the \texttt{get-roots} endpoint.  We
 use the \texttt{add-chain} endpoint in Section~\ref{sec:base}, and the
 \texttt{get-proof-by-hash} as well as the \texttt{get-sth} endpoints in
-Section~\ref{sec:auditor}.  The \texttt{get-proof-by-hash} endpoint takes as
+Section~\ref{sec:auditor}.  
+{\bf \color{red} This is not explicitly referred to anywhere later in
+  the paper.}\\
+The \texttt{get-proof-by-hash} endpoint takes as
 input a leaf certificate hash and an STH's tree size, which indicates the tree
 head that the log should base its inclusion proof on.  The proof is valid if it
 can be used in combination with the certificate to reconstruct the tree head of
-some STH.
+some STH\@.
 
 The CT landscape provides limited value unless it is verified that the logs
 play by the rules.  The rules are influenced by the major browser vendors that
@@ -81,10 +85,12 @@ require that a certificate chain must be accompanied by two independent
 SCTs~\cite{chrome-policy,safari-policy}, where independence refers to the
 associated log operators.  While there are several ways that a log can misbehave
 with regards to these policy aspects, the most fundamental forms of cheating are
-omission and split-view attacks.  A party that follows-up on inclusion and
+omission and split-view attacks.
+{\bf \color{red} Redundant with the first paragraph of Section~\ref{sec:background:ct}. Consolidate? Or accept that a little redundancy reinforces reader understanding?}\\
+A party that follows-up on inclusion and
 consistency proofs is said to \emph{audit} the logs.
 
-Wide-spread client-side auditing is a premise for CT logs to be untrusted, but
+Widespread client-side auditing is a premise for CT logs to be untrusted, but
 none of the web browsers that enforce CT engage in such activities yet.  For
 example, requesting an inclusion proof is privacy-invasive because it leaks
 browsing patterns to the logs, and reporting suspected log misbehavior comes
@@ -127,8 +133,9 @@ shortly after a circuit is closed.
 
 Tor clients use this information when choosing relays with which to build a
 circuit. They receive the information via an hourly updated \emph{consensus}.
-The consensus assigns weight as well as flags such as \texttt{guard} or
-\texttt{exit} along with auxiliary flags such as \texttt{stable}, which, e.g.,
+The consensus assigns weights as well as flags such as \texttt{guard} or
+\texttt{exit}. It also assigns auxiliary flags such as
+\texttt{stable}, which, e.g.,
 is necessary to obtain the \texttt{guard} flag since guards must have good
 availability. Self-reported information by relays in their \emph{extra-info
 document}, such as statistics on their read and written bytes, are also part of
@@ -146,7 +153,8 @@ controlling the guard and exit, or controlling the destination and observing the
 client ISP, etc. is assumed able to confirm who is connected to whom on that
 particular circuit. The Tor threat model assumes an adversary able to control
 and/or observe a small to moderate fraction of Tor relays measured by both
-number of relays and by consensus weight, assumes a large number of Tor clients
+number of relays and by consensus weight, and it assumes a large
+number of Tor clients
 able to, for example, flood individual relays to detect traffic signatures of
 honest traffic on a given circuit~\cite{long-paths}. Also, the adversary can
 knock any small number of relays offline via either attacks from clients or
