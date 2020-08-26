@@ -9,9 +9,10 @@ incremental versions of the full design that are less complicated but at the
 cost of either only achieving a weaker security goal or by having a weaker
 threat model.
 
-A simple design is one that only validates SCTs, which is how CT in Google
+A too simple design is one that only validates SCTs, which is how CT in Google
 Chrome and other browsers is currently deployed. However, such a design does not
-stand up against a malicious CA and logs working in concert; auditing is needed.
+stand up against a malicious CA and logs working in concert; \emph{auditing} of
+the SCTs is needed.
 
 \begin{figure*}
     \centering
@@ -30,87 +31,84 @@ stand up against a malicious CA and logs working in concert; auditing is needed.
 \subsection{Phase~1---Tor Browser} \label{sec:base:phase1}
 
 The least complicated auditing design would be one where Tor Browser receives a
-TLS Certificate and accompanying SCTs (we will refer to this bundle as an SCT
-Feedback Object or SFO) and talks to the corresponding logs, over Tor,
-requesting an inclusion proof for the SCT. In an ordinary browser, this would be
-an unacceptable leak to the log of browsing behavior associated with an IP
-address; performing this request over Tor leaks real-time browsing behavior but
-not the user's IP address.
+TLS certificate and accompanying SCTs (we will refer to this bundle as an SCT
+Feedback Object, or SFO for short) and talks to the corresponding logs, over
+Tor, requesting an inclusion proof for each SCT. In an ordinary browser, this
+would be an unacceptable privacy leak to the log of browsing behavior associated
+with an IP address; performing this request over Tor hides the user's IP address
+but still leaks real-time browsing behavior.
 
 An immediate problem with this design is that a primary requirement of Tor
 Browser is to persist no data about browsing behavior after the application
-exits. If we assume a user's browser is not left open for long periods of time,
-the inclusion proof request can be easily circumvented by the attacker by
-supplying a fresh SCT whose MMD has not completed---thus no inclusion proof can
-be provided as per the CT standard. A second problem is that the STH returned
-from any inclusion proof exists in a trust vacuum---there is no way to know that
-it is consistent with other STHs and not part of a split view.
+exits. If we assume that browsers are not left running for long periods of time,
+the inclusion proof request can be easily circumvented by the attacker by using
+a fresh SCT whose MMD has not completed---thus no inclusion proof can be
+provided by the log as per the CT standard. A second problem is that the STH
+returned from any inclusion proof exists in a \emph{trust vacuum}: there is no
+way to know that it is consistent with other STHs and not part of a split view.
 
-The evolved proposal adds two components: a list of STHs that the browser will
-receive over a trusted channel and the participation of a third party with the
-ability to persist data and perform auditing actions at a later time.
+We can evolve the design by adding two components: a list of STHs that Tor
+Browser receives over a trusted channel and the participation of a trusted third
+party with the ability to persist data and perform auditing actions at a later
+point in time.
 
-A single third party used by all Tor Browser users would receive a considerable
-aggregation of browsing behavior and would need to scale in-line with the entire
-Tor network. A small number of auditors presents privacy and
+A single third party used by all users of Tor Browser would receive a
+considerable aggregation of browsing behavior and would need to scale in-line
+with the entire Tor network. A small number of auditors presents privacy and
 single-point-of-failure concerns. A large number would be ideal but presents
 difficulties in curation and independent management and still requires scaling
 independent of the Tor network. These concerns do not entirely preclude the
 design, but they can be easily avoided by reusing relays in the Tor Network as
 our trusted third parties: we call the relays so designated Certificate
-Transparency Relays (CTR).
+Transparency Relays (CTRs).
 
-Now, when the browser is completing the TLS handshake they simultaneously either
-pass the SFO to a CTR (if the MMD of the SCT has not elapsed) or query the log
-themselves asking for an inclusion proof to a trusted STH\@.  However, if we
-presume the attacker can serve an exploit to the browser, the latter behavior is
-immediately vulnerable. The log, upon receiving an inclusion proof fetch for an
-SCT that it knows is malicious, will delay responding. The TLS connection in the
-browser, having succeeded, will progress to the HTTP request and response, at
-which point the exploit will be served, and the SFO (containing the
+Now, when the browser is completing the TLS handshake, it simultaneously either
+passes the SFO to a CTR (if the MMD of the SCT has not elapsed) or queries the
+log itself for an inclusion proof to a trusted STH\@.  However, if we presume
+the attacker can serve an exploit to the browser, the latter behavior is
+immediately vulnerable. The log, upon receiving an inclusion proof request for
+an SCT that it knows is malicious, can delay its response. The TLS connection in
+the browser, having succeeded, will progress to the HTTP request and response,
+at which point the exploit will be served, and the SFO (containing the
 cryptographic evidence of CA and log misbehavior) will be deleted by the exploit
 code. While blocking the TLS connection until the CT log responds is an option,
 experience related to OCSP hard-fail indicates that this notion is doomed to
 fail~\cite{no-hard-fail}.
 
-The third evolution of our proposal has the Browser submit the SFO to the CTR
-immediately upon receipt in all cases. A consequence of this shift is that the
-trusted STH list no longer needs to be delivered to the browser but rather the
-CTRs. To mitigate the risk of an exploit finding the CTR and disclosing its
-identity to the attacker (who could then target it for Denial of Service), we
-prepare CTR circuits ahead of time and close and discard them as soon as the SFO
-is sent, allowing the SFO submission to race with the TLS connection completion
-and HTTP request/response.  An added detail is to block the TLS connection in
-the situation that an SFO is unusually large, as defined by a parameter
-\texttt{ct-large-sfo-size}. A large SFO may indicate an attempt to win that race
-between SFO submission and exploitation, and the parameter can be chosen such
-that it happens extremely rarely on legitimate connections.
+The final change of the design has Tor Browser submit the SFO to the CTR
+immediately upon receipt (with some probability) in all cases. A consequence of
+this shift is that the trusted STH list no longer needs to be delivered to the
+browser but rather the CTRs. To mitigate the risk of a browser exploit being
+able to identify the CTR to the attacker (who could then target it), we prepare
+\emph{CTR circuits} ahead of time that are closed and discarded as soon as the
+SFO is sent. This allows the SFO submission to race with the TLS connection
+completion and HTTP request/response. An added detail is to block the TLS
+connection in the case that an SFO is unusually large, as defined by a parameter
+\texttt{ct-large-sfo-size}. A large SFO may indicate an attempt to win the race
+between SFO submission and exploitation. The parameter can be set such that it
+happens extremely rarely on legitimate connections, as shown in
+Section~\ref{sec:performance}.
 
-The third evolution of our proposal exhibits all the protections we can
-reasonably achieve within the browser. We summarize this phase with the
-following algorithm that provides more explicit steps and details, and add a
-parameter \texttt{ct-submit-pr} that indicates a probability that an SFO is
-submitted to a CTR---this provides probabilistic security while providing the
-ability to adjust submission rates to account for CTR scaling issues. Given an
-incoming SFO $s$, we follow the below steps: % The bit introducing
-\texttt{ct-submit-pr} can be better.
-
+We summarize this phase with the following algorithm that provides more explicit
+steps and details, and adds a parameter \texttt{ct-submit-pr} that indicates a
+probability that an SFO is submitted to a CTR---this provides probabilistic
+security while providing the ability to adjust submission rates to account for
+CTR scaling issues. Given an incoming SFO $s$, Tor Browser should:
 \begin{enumerate}
     \item Raise a certificate error and stop if the certificate chain of $s$
-        is not rooted in TB's trust store.
+        is not rooted in Tor Browser's trust store.
     \item Raise a certificate transparency error and stop if the SCTs of $s$
-        fail TB's CT policy.
+        fail Tor Browser's CT policy.
     \item If $\mathsf{len}(s) < \texttt{ct-large-sfo-size}$, accept $s$ and
         conduct the remaining steps in the background while the TLS connection
-        and HTTP request/response proceed. If $\mathsf{len}(s) \geq
+        and subsequent HTTP request/response proceed. If $\mathsf{len}(s) \geq
         \texttt{ct-large-sfo-size}$ pause the TLS handshake, complete the
-        remaining steps and then accept~$s$ as valid and continue the handshake
-        and HTTP request/response.
+        remaining steps, accept~$s$ as valid and then continue the handshake.
     \item Flip a biased coin based on \texttt{ct-submit-pr} and stop if the
         outcome indicates no further auditing.
-    \item Submit $s$ to a random CTR's SFO-endpoint on a pre-built circuit.
-        The circuit used for submission is closed immediately after use without
-        waiting for any acknowledgment.
+    \item Submit $s$ to a random CTR on a pre-built circuit. The circuit used
+        for submission is closed immediately without waiting for any
+        acknowledgment.
 \end{enumerate}
 
 \subsection{Phase 2---Buffering} \label{sec:base:phase2}
