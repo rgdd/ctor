@@ -9,18 +9,19 @@ performance estimates from concrete parameter properties and two public data
 sets.
 
 \subsection{Setup}
-Mani~\emph{et~al.} derived a distribution of website visits over
-Tor~\cite{mani}.  We use it to reason about overhead as the Tor network is under
-heavy load, assuming 140~million daily website visits (the upper bound of a 95\%
-confidence interval).  Our analysis also requires a distribution that captures
-typical SFO properties per website visit.  Therefore, we collected an SFO data
-set by browsing the most popular webpages submitted to Reddit (r/frontpage, all
-time) on December 4, 2019.  The parsed data set contains 8858 data points, each
-of which correspond to the encountered SFOs.  It is available online as an open
+Mani~\emph{et~al.} derived a distribution of website visits over Tor and an
+estimation of the number of circuits through the network~\cite{mani}.  We use
+their results to reason about overhead as the Tor network is under heavy load,
+assuming 140~million daily website visits (the upper bound of a 95\% confidence
+interval).  Our analysis also requires a distribution that captures typical SFO
+properties per website visit.  Therefore, we collected an SFO data set by
+browsing the most popular webpages submitted to Reddit (r/frontpage, all time)
+on December 4, 2019.  The parsed data set contains 8858 data points, each of
+which correspond to the encountered SFOs.  It is available online as an open
 access artifact together with the associated scripts.  Note that browsing
 web\emph{pages} as opposed to front-pages (such as Alexa's list) yielded more
-SFOs per website visit, making it less likely that our analysis is an
-underestimate.
+SFOs per website visit (we measured), making it less likely that our analysis is
+an underestimate.
 
 We found that an average certificate chain is 5440~bytes, and it is seldom
 accompanied by more than a few SCTs.  As such, a typical SFO is in the order of
@@ -116,7 +117,7 @@ recommended relay configuration:
 
 A cache of processed SFOs reduces the CTR's buffering memory and log
 interactions proportionally to the cache hit ratio.  Mani~\emph{et al.} showed
-that one third of all website visits over Tor can be attributed to Alexa's
+that about one third of all website visits over Tor can be attributed to Alexa's
 top-1k, and another one third to the top-1M~\cite{mani}.\footnote{%
 	Assuming the overrepresented
 	\texttt{torproject.org} is removed.

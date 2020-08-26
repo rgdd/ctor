@@ -42,37 +42,33 @@ like PIR could.
 % The same consistent view
 %%%
 Inclusion proofs are only meaningful if everyone observes the same consistent
-STHs.
-One option is to configure client software with a list of entities that they
-should gossip with, e.g., CT monitors~\cite{chase}, or,
-browser vendors could push a verified view~\cite{sth-push}.
-Such trusted auditor relationships may work for some but not
-others~\cite{nordberg}.
-Chuat~\emph{et~al.} proposed that HTTPS clients and HTTPS servers could pool
-STHs and consistency proofs which are gossiped on website visits~\cite{chuat}.
-Nordberg~\emph{et~al.} suggested a similar variant, reducing the risk of user
-tracking by pooling fewer and recent STHs~\cite{nordberg}.
-Dahlberg~\emph{et~al.} noted that such privacy-insensitive STHs need not be
-encrypted, which could enable network operators to use programmable data planes
-to provide gossip as-a-service~\cite{dahlberg}.
-Syta~\emph{et~al.} proposed an alternative to reactive gossip mechanisms by
-showing how an STH can be cosigned efficiently by many independent
-witnesses~\cite{syta}.
-A scaled-down version of witness cosigning could be instantiated by
-cross-logging STHs in other CT logs~\cite{minimal-gossip},
-or, in other append-only ledgers~\cite{catena}.
-CTor's extended design in Section~\ref{sec:auditor} ensures that anyone
-connected to the Tor network is on the same view by making STHs public in the
-Tor consensus.  In contrast, the base design is not about catching log
-misbehavior, and the extended design in Section~\ref{sec:log} exposes logs
-that misbehave \emph{without} fetching inclusion proofs.
+STHs. One option is to configure client software with a list of entities that
+they should gossip with, e.g., CT monitors~\cite{chase}, or, browser vendors
+could push a verified view~\cite{sth-push}. Such trusted auditor relationships
+may work for some but not others~\cite{nordberg}. Chuat~\emph{et~al.} proposed
+that HTTPS clients and HTTPS servers could pool STHs and consistency proofs
+which are gossiped on website visits~\cite{chuat}. Nordberg~\emph{et~al.}
+suggested a similar variant, reducing the risk of user tracking by pooling fewer
+and recent STHs~\cite{nordberg}. Dahlberg~\emph{et~al.} noted that such
+privacy-insensitive STHs need not be encrypted, which could enable network
+operators to use programmable data planes to provide gossip
+as-a-service~\cite{dahlberg}. Syta~\emph{et~al.} proposed an alternative to
+reactive gossip mechanisms by showing how an STH can be cosigned efficiently by
+many independent witnesses~\cite{syta}. A scaled-down version of witness
+cosigning could be instantiated by cross-logging STHs in other CT
+logs~\cite{minimal-gossip}, or, in other append-only ledgers~\cite{catena}.
+CTor's full design ensures that anyone connected to the Tor network is on the
+same view by making STHs public in the Tor consensus.  In contrast, the first
+incremental design is not concerned with catching log misbehavior, while the
+second incremental design exposes misbehaving logs \emph{without} inclusion
+proofs.
 
 %%%
 % Other work that is closely related to our approach
 %%%
 Nordberg proposed that Tor clients could enforce public logging of consensus
 documents and votes~\cite{consensus-transparency}.  Such an initiative is
-mostly orthogonal to CTor, as it strenghtens the assumption of a secure Tor
+mostly orthogonal to CTor, as it strengthens the assumption of a secure Tor
 consensus by enabling detection of compromised signing keys rather than
 mis-issued TLS certificates.  Winter~\emph{et~al.} proposed that TB
 could check self-signed TLS certificates for extact matches on independent Tor

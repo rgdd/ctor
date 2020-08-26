@@ -1,12 +1,12 @@
-\section{Incremental Deployment} \label{sec:incremental}
-Section~\ref{sec:base} covered a full end-to-end design that places zero-trust
-in the CT landscape by challenging the logs to prove certificate inclusion with
-regards to trusted STHs in the Tor consensus.  If no such proof can be provided
-the suspected evidence of log misbehavior is reported to a trusted CT auditor
-that follows-up on the incident, which involves human intervention if an issue
-persists.  The proposed solution modifies the Tor consensus, Tor Relays, and Tor
-Browser.  It also requires development and deployment of a new trusted auditor
-infrastructure.  The current lack of the latter makes it unlikely to see
+\section{Incremental Deployment} \label{sec:incremental} Section~\ref{sec:base}
+covered a full end-to-end design that places zero-trust in the CT landscape by
+challenging the logs to prove certificate inclusion with regards to trusted STHs
+in the Tor consensus.  If no such proof can be provided the suspected evidence
+of log misbehavior is reported to a trusted CT auditor that follows-up on the
+incident, which involves human intervention if an issue persists.  The proposed
+solution modifies the Tor consensus, Tor relays (including little-t tor), and
+Tor Browser.  It also requires development and deployment of a new trusted
+auditor infrastructure.  The current lack of the latter makes it unlikely to see
 adoption of CTor in its full potential anytime soon, and begs the question of
 increments that help us get there in the future.  Therefore, we additionally
 propose a scaled-down design that can be part of a gradual deployment.
