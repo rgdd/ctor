@@ -313,7 +313,10 @@ consensus and the newer. If consistency can be established, the older STH can be
 discarded. If consistency cannot be established after some threshold of time,
 the auditor software should raise the details to a human operator for
 investigation. An auditor could also monitor a log's uptime and report on
-excessive downtime.
+excessive downtime. Finally, it is paramount that the auditor continuously
+monitors its own availability from fresh Tor-circuits by submitting known SFOs
+to itself to ensure that an attacker is not keeping watchdogs from connecting to
+it.
 
 \subsection{Additional Details} \label{sec:base:consensus}
 
