@@ -12,31 +12,16 @@ Given the constraints of the existing CT ecosystem, CTor is made
 privacy-preserving thanks to the distributed nature of Tor with its anonymity
 properties and high-uptime relays that make up the Tor network. First, all
 communication between TB, CTRs, CT logs, and auditors are made over full
-<<<<<<< HEAD
-circuits. This is a significant privacy-gain, not available, e.g., to browsers
-like Chrome that in their communications would reveal their public IP-address
-(among a number of other potentially identifying metadata). Secondly, the use of
-CTRs as intermediaries probabilistically delays the interaction with the CT
-logs---making correlating TB user browsing with CT log interaction harder for
-attackers---and safely maintain a dynamic cache of the most commonly already
-verified SFOs. While regular browsers like Chrome could maintain a cache, TB and
-its security and privacy goals (see Section~\ref{sec:background:tor}) prohibit
-such shared (persisted) dynamic state.
-=======
 Tor-circuits. This is a significant privacy-gain, not available, e.g., to
 browsers like Chrome that in their communications would reveal their public
 IPv4-address (among a number of other potentially identifying metadata).
 Secondly, the use of CTRs as intermediaries probabilistically delays the
 interaction with the CT logs---making correlating TB user browsing with CT log
 interaction harder for attackers---and safely maintains a dynamic cache of the
-most commonly already verified SFOs\footnote{Note that the long-tail nature of
-website popularity---over the Tor network as well as the regular
-web~\cite{mani}---means that even a relatively small cache of the most
-frequently observed SFOs will lead to a significant reduction of queries to the
-CT logs.}. {\bf \color{red} Paul doesn't understand this footnote. Wouldn't a short-tail distribution mean that the cache is more effective?}\\
-While regular browsers like Chrome could maintain a cache, TB's
-security and privacy goals (see Section~\ref{sec:background:tor}) 
-prohibit such shared (persisted) dynamic state.
+most commonly already verified SFOs. While regular browsers like Chrome could
+maintain a cache, TB's security and privacy goals (see
+Section~\ref{sec:background:tor}) prohibit such shared (persisted) dynamic
+state.
 
 CTRs are also essential for security in the setting of the auditor extension. A
 rational attacker will produce SFOs with SCT timestamps that are too new to have
@@ -48,7 +33,6 @@ days (as required, see analysis in Section~\ref{sec:auditor:analysis})
 but rather minutes~\cite{DBLP:conf/pam/AmannS16}. Further, buffering
 at TB is not an option, since an attacker could compromise TB shortly
 after presenting the forged SFO.
->>>>>>> 2ea5bea54c733b2acbf202d4ebd3f4b2513ced61
 
 The main limitation of CTor in terms of privacy is that CTor continuously leaks
 to CT logs---and to a \emph{lesser extent} auditors (depending on design)--a
@@ -70,13 +54,7 @@ design, see Section~\ref{sec:base:consensus:ctr-flag}---then this might
 discourage some from running Tor relays unless it is possible to opt out.
 Another option is to give the CTR flag only to exit relays, but this \emph{might
 be} undesirable for overall network performance despite the modest overhead of
-<<<<<<< HEAD
-CTor (Section~\ref{sec:performance}). Depending on the health of the network and
-the exact incremental deployment of CTor, there are different trade-offs. For
-example, fewer CTRs with higher bandwidth and less memory combined makes it
-=======
 CTor (Section~\ref{sec:performance}). Depending on the health of the network
 and the exact incremental deployment of CTor, there are different trade-offs.
 For example, fewer CTRs with higher bandwidth and less memory combined make it
->>>>>>> 2ea5bea54c733b2acbf202d4ebd3f4b2513ced61
 easier to perform flooding attacks that flush the entire network.
