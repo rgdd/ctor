@@ -1,19 +1,16 @@
 \section{Design} \label{sec:base}
 
-A complete design---a design that detects misbehavior by CAs and CT logs,
-performed by an adversary with the ability to drop or delay network traffic from
-CT logs and a subset of Tor relays, control a subset of Tor relays, serve an
-exploit to targeted users' browsers and perform a Denial of Service attack on a
-subset of Tor relays---necessitates a considerable degree of complexity. A
-less-complicated subset of such a system can be deployed incrementally to
-provide protection against an attacker with a subset of such capabilities.
+A complete design---a design that detects misbehavior by both CAs and CT logs
+within our strong threat model---necessitates a considerable degree of
+complexity. In this section, we present such a full design by breaking it up
+into phases, demonstrating the need for the complexity in each step.
+Section~\ref{sec:incremental} later presents two incremental versions of the
+full design that are less complicated but at the cost of either only achieving a
+weaker security goal or by having a weaker threat model.
 
-We build the complete system in phases, demonstrating the need for the
-complexity, and then present incremental deployments in
-Section~\ref{sec:incremental}. The simplest proposal is one that only validates
-SCT, which is how CT in Google Chrome and other browsers is currently deployed.
-This design does not stand up against a malicious CA and logs working in
-concert, so it is necessary to perform an auditing function.
+A simple design is one that only validates SCTs, which is how CT in Google
+Chrome and other browsers is currently deployed. However, such a design does not
+stand up against a malicious CA and logs working in concert; auditing is needed.
 
 \subsection{Phase~1---Tor Browser} \label{sec:base:phase1}
 
