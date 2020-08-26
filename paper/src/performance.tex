@@ -5,7 +5,7 @@
 %
 \section{Performance} \label{sec:performance}
 Our performance evaluation estimates the expected overhead as the base design of
-CTor is instantiated based on concrete parameters and two public data sets.
+CTor is instantiated, based on concrete parameters and two public data sets.
 Mani~\emph{et~al.} derived a distribution of website visits over
 Tor~\cite{mani}.  We use it to reason about overhead as the Tor network is under
 heavy load, assuming 140~million daily website visits (the upper bound of a 95\%
@@ -92,7 +92,7 @@ Equation~\ref{eq:memory} shows the expected buffering overhead, where
 
 $V_mt$ represent incoming SFO submissions during the average buffer time, which
 are randomly distributed across $R$ CTRs.  Combined this yields the expected
-number of SFOs that await at a single CTR in phase~2, and by taking the
+number of SFOs that await at a single CTR in Phase~2, and by taking the
 byte-size of these SFOs into account we get an estimate of the resulting memory
 overhead.  Using
 	$V_m \gets \frac{140\textrm{M}}{24\cdot60}$,
@@ -111,8 +111,8 @@ recommended relay configuration:
 %10~minutes.
 
 Adding a cache of verified SFOs would reduce the number of SFOs that await in
-phase~2 due to cache hits, which in turn reduces bandwidth as there are fewer
-SFOs in phase~3.  In other words, buffer and bandwidth overhead reduces
+Phase~2 due to cache hits, which in turn reduces bandwidth as there are fewer
+SFOs in Phase~3.  In other words, buffer and bandwidth overhead reduces
 proportionally as the cache hit ratio increases.  Mani~\emph{et al.} showed that
 one third of all website visits over Tor can be attributed to Alexa's top-1k,
 and another one third to the remainder of Alexa's top-1M~\cite{mani}.\footnote{%

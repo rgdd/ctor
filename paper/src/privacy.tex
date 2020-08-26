@@ -17,24 +17,26 @@ browsers like Chrome that in their communications would reveal their public
 IPv4-address (among a number of other potentially identifying metadata).
 Secondly, the use of CTRs as intermediaries probabilistically delays the
 interaction with the CT logs---making correlating TB user browsing with CT log
-interaction harder for attackers---and safely maintain a dynamic cache of the
+interaction harder for attackers---and safely maintains a dynamic cache of the
 most commonly already verified SFOs\footnote{Note that the long-tail nature of
 website popularity---over the Tor network as well as the regular
 web~\cite{mani}---means that even a relatively small cache of the most
 frequently observed SFOs will lead to a significant reduction of queries to the
-CT logs.}. While regular browsers like Chrome could maintain a cache, TB and its
-security and privacy goals (see Section~\ref{sec:background:tor}) prohibit such
-shared (persisted) dynamic state.
+CT logs.}. {\bf \color{red} Paul doesn't understand this footnote. Wouldn't a short-tail distribution mean that the cache is more effective?}\\
+While regular browsers like Chrome could maintain a cache, TB's
+security and privacy goals (see Section~\ref{sec:background:tor}) 
+prohibit such shared (persisted) dynamic state.
 
 CTRs are also essential for security in the setting of the auditor extension. A
 rational attacker will produce SFOs with SCT timestamps that are too new to have
 to be part of CT logs at the time of the attack. TB cannot store SFOs for any
 extended time period without violating its security and privacy goals, not to
 mention that presumably most TB sessions are not maintained for
-days (as required, see analysis in Section~\ref{sec:auditor:analysis}) but
-rather minutes~\cite{DBLP:conf/pam/AmannS16}. Further, buffering at TB is not an
-option, since an attacker could compromise TB shortly after presenting the
-forged SFO.
+days (as required, see analysis in Section~\ref{sec:auditor:analysis}) 
+{\bf \color{red} What analysis is this pointing at?}\\
+but rather minutes~\cite{DBLP:conf/pam/AmannS16}. Further, buffering
+at TB is not an option, since an attacker could compromise TB shortly
+after presenting the forged SFO.
 
 The main limitation of CTor in terms of privacy is that CTor continuously leaks
 to CT logs---and to a \emph{lesser extent} auditors in one of our extensions due
@@ -60,5 +62,5 @@ Another option is to give the CTR flag only to exit relays, but this \emph{might
 be} undesirable for overall network performance despite the modest overhead of
 CTor (Section~\ref{sec:performance}). Depending on the health of the network
 and the exact incremental deployment of CTor, there are different trade-offs.
-For example, fewer CTRs with higher bandwidth and less memory combined makes it
+For example, fewer CTRs with higher bandwidth and less memory combined make it
 easier to perform flooding attacks that flush the entire network.

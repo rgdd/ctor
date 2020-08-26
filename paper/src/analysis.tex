@@ -17,8 +17,9 @@ these impact types are:
 Our design leads to significant and catastrophic impact events, but does
 unfortunately not preclude minor ones.  It is possible to overcome this
 shortcoming at different trade-offs, e.g., by tuning CTor parameters reactively
-(Section~\ref{sec:analysis:pr:phase3}) or relying on different trust assumptions
-as in the scaled-down cross-logging designs in Section~\ref{sec:incremental}.
+(Section~\ref{sec:analysis:pr:phase3}) or relying on different trust
+assumptions, as in the scaled-down cross-logging designs in
+Section~\ref{sec:incremental}.
 
 \subsection{Probability of Detection} \label{sec:analysis:pr}
 Suppose the attacker mis-issued a certificate that Tor Browser trusts, and that
@@ -76,7 +77,7 @@ latency, however.
 The probability of detection cannot exceed $1-(f_{\mathsf{ctr}} +
 f_{\mathsf{dos}})$, where $f_{\mathsf{ctr}}$ is the fraction of
 malicious CTRs and $f_{\mathsf{dos}}$ the fraction of CTRs that suffer from
-DoS.  We analyze the outcome of SFO reception at a genuine CTR.
+DoS.  We analyze the outcome of SFO reception at a genuine CTR\@.
 
 The time that an SFO is buffered depends on if the log's MMD elapsed or not.
 The earliest point in time that a newly issued SCT can be audited (and the log
@@ -114,7 +115,10 @@ Appendix~\ref{app:flush} shows that the attacker's flood must involve at least
 $2.3$GiB per CTR to accomplish a 90\% success certainty.  This means that it
 takes $7.9$--$39.3$~minutes if the relay bandwidth is between 8 and 40~Mbps.
 In other words, it is impractical to flush all CTRs within a few minutes, and
-quicker than an hour likely makes Tor unavailable.
+quicker than an hour likely makes Tor unavailable. {\bf \color{red}
+  Should that be `longer than na hour', i.e., sustained for longer
+  than an hour, or does this mean that the load needed for flushing time
+  quicker than an hour likely makes Tor unavailable?}
 
 The CTR criteria set in Section~\ref{sec:base:consensus:ctr-flag} matches over
 4000 Tor relays~\cite{relay-by-flag}.  A network-wide flush that succeeds with
@@ -133,7 +137,7 @@ document makes it a minor impact scenario.
 Once detected, there are several possible \emph{reactions}.  For example, Tor's
 directory authorities could lower MMDs on-the-fly to, say, 30~minutes, so that
 the SFO is reported to an auditor before it is flushed with high
-probability.  This has the benefit of implying significant impact because the
+probability.  This has the benefit of implying significant impact because
 the mis-issued certificate is detected, but also the drawback of allowing the
 logs to merge the certificate before there is any MMD violation to speak of.
 Another option that avoids early signals to the logs would be to toggle a
@@ -143,7 +147,7 @@ is circumstantial and depends on which trade-offs one is willing to accept.
 Therefore, we leave it at examples.
 
 \subsubsection{Phase~3: Auditing} \label{sec:analysis:pr:phase3}
-By the time an SFO enters the audit phase the log in question is expected to
+By the time an SFO enters the audit phase, the log in question is expected to
 respond with a valid inclusion proof.  There is no such proof if the log
 violated its MMD, and it is too late to create a split-view that merged the
 certificate in time because the CTR's view is already fixed by an STH in the
@@ -153,7 +157,7 @@ forged or that nobody ever checks whether the trusted STHs are consistent.
 This leaves two options:
 	the attacker either responds to the query with an invalid inclusion proof or
 	not at all.
-The former is immediately detected and starts phase~4, whereas the latter forces
+The former is immediately detected and starts Phase~4, whereas the latter forces
 the CTR to wait for \texttt{ct-watchdog-timeout} to trigger (which is a
 few seconds to avoid premature auditor reports).  A rational attacker prefers
 the second option to gain time.
@@ -163,16 +167,16 @@ misbehavior as it is being audited.  The relevant question is whether the
 \emph{exact CTR identity} can be inferred, in which case the attacker could
 knock it offline (DoS).  Motivated by the threat of \emph{tagging}, where the
 attacker sends unique SFOs to all CTRs so that their identities are revealed
-once queried for, we erred on the safe side and built watchdog into our design:
+once queried for, we erred on the safe side and built watchdogs into our design:
 	it is already too late to DoS the querying CTR because the evidence is
 	already replicated somewhere else, ready to be reported unless there is a
 	timely acknowledgement.
 The attacker would have to \emph{break into an arbitrary CTR within seconds} to
 cancel the watchdog, which cannot be identified later on (same premise as
-the sampled CTR in phase~1).  Such an attacker is not in Tor's threat model.
+the sampled CTR in Phase~1).  Such an attacker is not in Tor's threat model.
 
 In other words, the probability that the attacker can intervene by reliable
-means in phase~3 is negligible.
+means in Phase~3 is negligible.
 
 \subsubsection{Phase~4: Reporting} \label{sec:analysis:pr:phase4}
 As noted in Section~\ref{sec:analysis:pr:phase3}, the watchdog identity is not
@@ -186,9 +190,9 @@ to gain time as the first report takes place at a deterministic point in time
 only result in (re)reporting later on \emph{to the same CT auditor}.
 While gaining time at this stage is of limited help because the CTR identity is
 unknown and network-wide attacks are already more likely to succeed in the
-buffer phase, fixating the sampled CT auditor is important to avoid the threat
-of eventually succeeding a (re)report only if it is destined to the attacker's
+buffer phase, fixing on the sampled CT auditor is important to avoid the threat
+of an eventually successful (re)report only if it is destined to the attacker's
 auditor.
 
-Similar to the buffer phase, the detect probability cannot exceed the chance
-that a genuine watchdog is sampled to do the reporting on another CTR's behalf.
+Similar to the buffer phase, the detection probability cannot exceed the chance
+that an honest watchdog is sampled to do the reporting on another CTR's behalf.
