@@ -199,70 +199,47 @@ certificate chain to avoid any MMD violation.
 
 \subsection{Phase 3---Auditing} \label{sec:base:phase3}
 
-As alluded to in Phase 2, there is a second problem why the simple behavior of
-`contact the log and request an inclusion proof' is unacceptable. We include the
-ability to DoS an individual Tor relay in our threat model---if the log knows
-which CTR holds the evidence of its misbehavior, it can take the CTR offline,
-wiping the evidence of the log's misbehavior from its memory. 
+As alluded to in phase 2, there is a second problem why the simple behavior of
+``contact the log and request an inclusion proof'' is unacceptable. We include
+the ability to DoS an individual Tor relay in our threat model---if the log
+knows which CTR holds the evidence of its misbehavior, it can take the CTR
+offline, wiping the evidence of the log's misbehavior from its memory. 
 
 We can address this concern in a few ways. The simple proposal of contacting the
 log over a Tor circuit will not suffice---a log can tag each CTR by submitting
-unique SFOs to them all, and recognize the CTR when they are submitted. Even
-using a unique Tor circuit for each SFO might not suffice to prevent effective
-tagging attacks. For example, after tagging all CTRs, a malicious log could
-ignore all but innocuous untagged requests and tagged requests matching tags for
-whichever CTR it responds to first. If exponential backoff is supported, the
-rest of the CTRs will backoff repeated attempts to fetch a proof until the first
-CTR has emptied itself of pending SFOs. Then the log can repeat this process
-until it receives the offending SFO\@. With high probability this will come in
-the midst of a string circuits with tags from a particular CTR (as opposed to
-being requested on the first circuit from some CTR). This might result in many
-CTRs reporting the log as inaccessible for days, but that is not the same as
-direct evidence of misbehavior.
-
-{\bf \color{red} Paul did not understand this
-  despite-one-SFO-per-circuit tagging attack as it was written and had
-  to write it up differently till he did. I think I've captured the
-  attack, which is the most important thing. Let me know.\\ \\
-  I still don't see how this is likely to be effective given (a) how long it
-  will take CTRs to send all their currently pending SFOs, (b) that the log
-  won't be able to tell when a given CTR has finished sending all the SFOs it
-  has pending for that log, so OK to move to the next one, (c) the expected
-  number of CTRs to run through till the offending SFO pops up (if ever
-  depending on coin flips), and (d) with the randomized delay, there is a fair
-  chance that the offending SFO won't come up the first time a CTR is the
-  current target.\\ \\
-  Totally making numbers up: if there are 25 CTRs in the network, and
-  it takes an hour to be reasonably sure the current target has run
-  through its whole current pending pile, and expected iterations till
-  an offending SFO comes up is 2, then many CTRs will have noticed
-  the log as unavailable for days. I guess this is a much lesser
-  offense and tried to note it, though on top of everything else
-  it would seem to make likely that the attack can't be conducted
-  more than once or twice since being repeatedly unavailable broadly
-  might be an issue.}
-
+unique SFOs to them all, and recognize the CTR when they are submitted (see
+Section~\ref{sec:analysis:pr:phase3}). Even using a unique Tor circuit for each
+SFO might not suffice to prevent effective tagging attacks. For example, after
+tagging all CTRs, a malicious log could ignore all but innocuous untagged
+requests and tagged requests matching tags for whichever CTR it decides to
+respond to first. If exponential backoff is supported, the rest of the CTRs will
+backoff repeated attempts to fetch a proof while the probability that the first
+CTR is the one fetching proofs significantly increases. The log can repeat this
+process---alternating tagged CTRs it replies to---until it receives the
+offending SFO from a CTR with higher probability than others. This might result
+in many CTRs reporting the log as inaccessible for days, but that is not the
+same as direct evidence of misbehavior.
 
 While there are ways to detect this attack after-the-fact, and there may be ways
 to mitigate it, a more robust design would tolerate the disclosure of a CTRs
-identity to the log without allowing a Denial-of-Service attack to erase
-evidence of misbehavior.  The simple approach is to write the data to disk prior
+identity to the log during the auditing phase without significant security
+implications.  Aa simple appealing approach is to write the data to disk prior
 to contacting the log; however, Tor relays are explicitly designed not to write
 data about user behavior to disk unless debug-level logging is enabled. Relay
 operators have expressed an explicit desire to never have any user data
 persisted to disk, as it changes the risk profile of their servers with regards
 to search, seizure, and forensic analysis.
 
-The evolved design is to have the CTR work with a partner CTR---we call it a
-watchdog---whom they choose at random and contact over a Tor circuit. Prior to
-talking to a log, the CTR provides the watchdog with the SFO it is about to
-submit. After an appropriate response from the log, the CTR tells the watchdog
-that SFO has been adequately addressed.
+The final design is to have the CTR work with a partner CTR---we call it a
+\emph{watchdog}---that they choose at random and contact over a circuit. Prior
+to attempting to fetch a proof from a log, the CTR provides the watchdog with
+the SFO it is about to audit. After an appropriate response from the log, the
+CTR tells the watchdog that SFO has been adequately addressed.
 
-Each CTR maintains a single shared circuit that is used to interact with all CT
-logs known to the CTR\@. (We are not using one circuit per SFO given the
-overhead and the unclear security benefit noted above.) For \emph{each} such CT
-log $l$, the CTR runs the following steps indefinitely:
+In more detail, each CTR maintains a single shared circuit that is used to
+interact with all CT logs known to the CTR\@. (We are not using one circuit per
+SFO given the overhead and the unclear security benefit noted above.) For
+\emph{each} such CT log $l$, the CTR runs the following steps indefinitely:
 \begin{enumerate}
     \item\label{enm:auditing:backoff} Sample a delay $d \gets
         \mathsf{random}(\texttt{ct-backoff-dist})$ and wait until $d$ time units
@@ -274,14 +251,16 @@ log $l$, the CTR runs the following steps indefinitely:
 			\item\label{enm:ext:auditing:watchdog} Share $s$ with the current
 				watchdog.
 			\item\label{enm:ext:auditing:challenge} Challenge the log to prove
-                                  inclusion to a known STH, waiting for
-                                  \texttt{ct-log-timeout} before timing out.
+                                  inclusion to a known STH, waiting at most
+                                  \texttt{ct-log-timeout} time units for the
+                                  complete proof to be delivered before timing
+                                  out.
 				\begin{itemize}
 					\item\label{enm:ext:auditing:challenge:success} On valid
-						proof: send an acknowledgment to the watchdog, then
-						cache $s$ and discard it.
+						proof: send an acknowledgment to the watchdog, cache $s$
+						and then discard it.
 					\item\label{enm:ext:auditing:challenge:fail} On any other
-						outcome: discard $s$, close circuit to the watchdog CTR,
+						outcome: close circuit to the watchdog CTR, discard $s$,
 						and go to step~1.
 				\end{itemize}
 		\end{enumerate}
