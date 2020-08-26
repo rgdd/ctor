@@ -4,38 +4,46 @@
 % storage, i.e., success 50\% not enough.
 %
 \section{Performance} \label{sec:performance}
-Our performance evaluation estimates the expected overhead as the base design of
-CTor is instantiated, based on concrete parameters and two public data sets.
+The following analysis shows that CTor's overhead is modest based on computing
+performance estimates from concrete parameter properties and two public data
+sets.
+
+\subsection{Setup}
 Mani~\emph{et~al.} derived a distribution of website visits over
 Tor~\cite{mani}.  We use it to reason about overhead as the Tor network is under
 heavy load, assuming 140~million daily website visits (the upper bound of a 95\%
-confidence interval).  Our analysis also requires the typical byte-size of an
-SFO, as well as the distribution of presented SFOs per website.  To this end we
-collected an SFO dataset by browsing the most popular webpages submitted to
-Reddit (r/frontpage, all time) on December 4, 2019, resulting in 8858 webpage
-visits from fresh Chromium~77 instances with NetLog enabled.  Browsing webpages
-as opposed to front-pages (such as those listed by Alexa)
-yielded more SFOs per website.  The parsed data set and all associated scripts
-are available online as an open access artifact.
+confidence interval).  Our analysis also requires a distribution that captures
+typical SFO properties per website visit.  Therefore, we collected an SFO data
+set by browsing the most popular webpages submitted to Reddit (r/frontpage, all
+time) on December 4, 2019.  The parsed data set contains 8858 data points, each
+of which correspond to the encountered SFOs.  It is available online as an open
+access artifact together with the associated scripts.  Note that browsing
+web\emph{pages} as opposed to front-pages (such as Alexa's list) yielded more
+SFOs per website visit, making it less likely that our analysis is an
+underestimate.
+
 We found that an average certificate chain is 5440~bytes, and it is seldom
 accompanied by more than a few SCTs.  As such, a typical SFO is in the order of
 6~KiB.  No certificate chain exceeded 20~KiB, and the average number of SFOs per
-webpage was seven.  The latter might be an overestimate because Chromium 
-calls home on startup, adding an SFO or two per data point.
+webpage was seven.  The latter includes 1--2 SFOs per data point that followed
+from our client software calling home on start-up (Chromium~77).
 
 We assume no abnormal CTor behavior, which means that there will be little or
-no CTR back-offs due to the high uptime requirements of today's CT logs (99\%).
-We set \texttt{ct-max-sfo-bytes} conservatively to avoid blocking in the TLS
+no CTR back-offs due to the high uptime requirements of today's CT logs: 99\%.
+We set \texttt{ct-large-sfo-size} conservatively to avoid blocking in the TLS
 handshake (e.g., 20KiB), and use a 10\% submission probability as well as a
-10~minute buffer delay on average.  It is likely unwarranted to use a higher
-submission probability given that the intended attacker is risk-averse.  Shorter
-buffering times would leak finer-grained browsing patterns to the logs, while
-longer buffering times steadily introduce the threat of network-wide flushes.
-Therefore, we informally selected an average for \texttt{ct-delay-dist} that
-satisfies none of the two extremes.
-First our performance estimates show that CTor adds modest overhead
-\emph{despite} disregarding the performance boost of caching commonly submitted
-SFOs, then we discuss the expected impact of caching.
+10~minute random buffer delay on average.  It is likely unwarranted to use a
+higher submission probability given that the intended attacker is risk-averse.
+Shorter buffer times would leak finer-grained browsing patterns to the logs,
+while longer ones increase the attack surface in phase~2.  Therefore, we
+selected an average for \texttt{ct-delay-dist} that satisfies none of the two
+extremes.  The remaining CTor parameters are timeouts, which have little or no
+performance impact if set conservatively (few seconds).
+
+\subsection{Estimates}
+The incremental cross-logging designs are analyzed first without any caching.
+Caching is then considered, followed by overhead that appears only in the full
+design.
 
 \textbf{Circuit overhead.}
 Equation~\ref{eq:sub-oh} shows the expected circuit overhead from Tor Browser
@@ -69,7 +77,9 @@ $Vp\bar{d}$ is the average number of SFO submissions per time unit, which can be
 converted to bandwidth by weighting each submission with the size of
 a typical SFO and accounting for it being relayed six times:
 	three hops from Tor Browser to a CTR, then
-	another three hops from the CTR to a CT log.
+	another three hops from the CTR to a CT log.\footnote{%
+		Assuming that a Tor relay's available bandwidth is symmetric.
+	}
 Using
 	$V\gets 140\textrm{M/day}$,
 	$p \gets \frac{1}{10}$,
@@ -103,20 +113,31 @@ overhead.  Using
 yields 1.42MiB.  Such order of overhead is small when compared to the
 recommended relay configuration:
 	at least 512MiB~\cite{relay-config}.
-%Note that the expected memory overhead does not increase much even if the
-%storage phase is extended for \emph{newly issued} SFOs as in
-%Section~\ref{sec:auditor}.  For example, suppose that all SFOs had 90~day
-%lifetimes due to being issued by Let's Encrypt~\cite{le}.  On average, 1.1\% of
-%the submitted SFOs must then be stored for the order of an MMD rather than
-%10~minutes.
 
-Adding a cache of verified SFOs would reduce the number of SFOs that await in
-Phase~2 due to cache hits, which in turn reduces bandwidth as there are fewer
-SFOs in Phase~3.  In other words, buffer and bandwidth overhead reduces
-proportionally as the cache hit ratio increases.  Mani~\emph{et al.} showed that
-one third of all website visits over Tor can be attributed to Alexa's top-1k,
-and another one third to the remainder of Alexa's top-1M~\cite{mani}.\footnote{%
-	Assuming the overrepresented \texttt{torproject.org} is removed.
-} If we assume 32~byte cryptographic hashes and seven SFOs per website on
-average, a $\frac{1}{3}$ cache hit ratio could be achieved by a 256KiB LFU/LRU
-cache that eventually captures Alexa's top-1k.
+A cache of processed SFOs reduces the CTR's buffering memory and log
+interactions proportionally to the cache hit ratio.  Mani~\emph{et al.} showed
+that one third of all website visits over Tor can be attributed to Alexa's
+top-1k, and another one third to the top-1M~\cite{mani}.\footnote{%
+	Assuming the overrepresented
+	\texttt{torproject.org} is removed.
+} If we assume 32~byte cryptographic hashes and seven SFOs per website visit,
+a cache hit ratio of $\frac{1}{3}$ could be achieved by a 256KiB LFU/LRU cache
+that eventually captures Alexa's top-1k.  Given that the cache requires
+memory as well, this is best viewed as a bandwidth optimization.
+
+\textbf{Full design.}
+For each CTR and CT log pair, there is an additional watchdog circuit that
+transports the full SFO upfront before fetching an inclusion proof.  The
+expected bandwidth overhead is at most $9Vp\bar{d}\bar{s}$, i.e., now
+also accounting for the three additional hops that an SFO is subject to.  In
+practise the overhead is slightly less, because an inclusion query and its
+returned proof is smaller than an SFO.  We expect little or no
+watchdog-to-auditor overhead if the logs are available, and otherwise one
+light-weight circuit that reports a single SFO for each CTR that goes into
+back-off.  Such overhead is small when compared to all Tor Browser submissions.
+Finally, the required memory increases because newly issued SFOs are buffered
+for at least an MMD.  Only a small portion of SFOs are newly issued, however:
+	the short-lived certificates of Let's Encrypt are valid for
+	90~days~\cite{le}, which is in contrast to 24~hour
+	MMDs~\cite{google-log-policy}.
+
