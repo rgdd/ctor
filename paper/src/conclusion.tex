@@ -1,11 +1,11 @@
 \section{Conclusion} \label{sec:conclusion} 
 
-We proposed a design for privacy-preserving and incrementally-deployable support
-for CT in Tor: CTor. Our design is composed of a base that discloses mis-issued
+We have proposed CTor, privacy-preserving and incrementally-deployable support
+for CT in Tor.  Our design is composed of a base that discloses mis-issued
 certificates to public scrutiny by using the CT landscape against the attacker,
 and two orthogonal extensions that additionally catch misbehaving CT logs.  The
 use of Tor relays that cache TB-observed SFOs and add random auditing delays is
-central within our setting, both for privacy and security.  Our analysis shows
+central within our setting, for both privacy and security.  Our analysis shows
 that the attacker's best bet to break the base design and the following log
 extension is to control and/or DoS a large majority of the entire CTor system,
 or, access a reliable TB zero-day that escalates privileges within a tiny time
@@ -23,13 +23,14 @@ HTTPS application-layer data to counter zero-days, and the submit probability
 \texttt{ct-submit-pr} could be increased if ongoing attacks are suspected.  When
 it comes to the storage phase, the consensus can minimize or maximize the
 storage time by tuning a log's MMD in the \texttt{ct-log-info} item, as well as
-updating the distributions that add random auditing delays.  The behavior of the
+by updating the distributions that add random auditing delays.  
+The behavior of the
 auditing phase can also be tuned, e.g., by updating log operator relationships.
 
 Our base design lets Tor play a vital role in CT's overall goal of detecting
-certificate mis-issuance.  It also exemplified an new style of auditing, where
+certificate mis-issuance.  It also exemplifies a new style of auditing, where
 certificate chains are cross-logged rather verified for inclusion.  The extended
-versions of CTor involve increased deployment burdens, either within Tor or the
+versions of CTor involves increased deployment burdens, either within Tor or the
 CT landscape.  The wider web could greatly benefit from both, however.  The log
 extension provides a single coherent place to report suspected log misbehavior,
 making it similar to a well-known auditor.  The auditor extension turns Tor into
