@@ -113,50 +113,49 @@ CTR scaling issues. Given an incoming SFO $s$, Tor Browser should:
 
 \subsection{Phase 2---Buffering} \label{sec:base:phase2}
 
-Once received, the most straightforward thing for a CTR to do is to contact the
-issuing log and request an inclusion proof relative to a trusted STH\@. (And if
-the SCT's MMD has not elapsed, hold the SFO until it has.) However, this
-proposal has two flaws, the first of which leads us to the design of Phase 2.
+Once received, the most straightforward thing for a CTR to do would be to
+contact the issuing log and request an inclusion proof relative to a trusted
+STH\@. (And if the SCT's MMD has not elapsed, hold the SFO until it has.)
+However, this proposal has two flaws, the first of which leads us to the actual
+design of phase 2.
 
-Immediately contacting the log about an SFO (a) allows the log to predict when
-exactly it will receive a request about an SFO and (b) discloses real-time
+Immediately contacting the log about an SFO (i) allows the log to predict when
+exactly it will receive a request about an SFO and (ii) discloses real-time
 browsing behavior to the log. The former problem means that an attacker can
 position resources for perpetuating an attack ahead-of-time, as well as letting
 it know with certainty whether a connection was audited (based on
 \texttt{ct-submit-pr}). The latter is some amount of information leakage that
-can help with real-time traffic analysis. 
+can help with real-time traffic analysis.
 
-Because a CTR must support storing SCTs regardless, we can schedule an event in
-the future for when each SFO would be sent. Adding a per-SFO value sampled from
-\texttt{ct-delay-dist} effectively adds stop-and-go
+Because a CTR must support buffering SCTs regardless (due to the MMD), we can
+schedule an event in the future for when each SFO would be audited. Adding a
+per-SFO value sampled from \texttt{ct-delay-dist} effectively adds stop-and-go
 mixing~\cite{kesdogan:ih1998} to the privacy protection, but where there is only
 one mix (CTR) between sender (client) and receiver (CT log). So there is no
 point in a client-specified interval-start-time such that the mix drops messages
 arriving before then, and there is no additional risk in having the interval end
 time set by the mix rather than the sender. This means both that some SFOs a
-client sends to a CTR at roughly the same time might be in different batches of
-SFOs sent to a CT log and that SFOs submitted to that CTR by other honest
-clients are more likely to be mixed with these.
+client sends to a CTR at roughly the same time might be audited at different
+times and that SFOs submitted to that CTR by other honest clients are more
+likely to be mixed with these.
 
-
-In addition to storing SFOs for mixing effects, we also add a layer of caching
-to alleviate stored data {\bf \color{red} Does ``to alleviate stored data'' just
-mean ``to reduce the overhead of storing data''?}\\
-and unnecessary log connections and data disclosure. So with
-regards to some CT circuit, an incoming SFO $s$ is processed as follows:
+In addition to buffering SFOs for mixing effects, we also add a layer of caching
+to reduce the storage overhead, prevent unnecessary log connections, and limit
+the disclosure to logs. With regards to some CT circuit, an incoming SFO $s$ is
+processed as follows by a CTR:
 \begin{enumerate}
-    \item\label{enm:storage:close} Close the current circuit to enforce one-time
-        usage.
-    \item\label{enm:storage:unrecognized} Discard all SCTs in the SFO for logs the
-        CTR is not aware of; if no SCTs remain then discard the entire SFO\@.
-    \item\label{enm:storage:cached}
-        Stop if $s$ is cached (see Section~\ref{sec:base:phase3}) or already
-        pending to be audited.
+    \item\label{enm:storage:close} Close the circuit to enforce one-time use.
+    \item\label{enm:storage:unrecognized} Discard all SCTs in the SFO for logs
+        the CTR is not aware of; if no SCT remains then discard the SFO\@.
+    \item\label{enm:storage:cached} Stop if $s$ is cached (see
+        Section~\ref{sec:performance}) or already pending to be audited (in the
+        buffer).
     \item\label{enm:storage:fix-log} Sample a CT log $l$ that issued a
         remaining SCT in~$s$.
     \item\label{enm:storage:audit-after} Compute an \texttt{audit\_after}
 		time~$t$, see Figure~\ref{fig:audit-after}.
-    \item\label{enm:storage:store} Add $(l,t,s)$ to a buffer of pending SCTs to audit.
+    \item\label{enm:storage:store} Add $(l,t,s)$ to a buffer of pending SFOs to
+    audit.
 \end{enumerate}
 
 Recall from Section~\ref{sec:background:ct} that an inclusion proof is fetched
@@ -166,23 +165,9 @@ issued an SCT in the submitted SFO, and it will be challenged to prove inclusion
 in phase~3 sometime after the \texttt{audit\_after} timestamp $t$ elapsed. We
 can choose one SCT (and therefore log) at random from the SFO, because it is
 sufficient to catch only one misbehaving log so long as we report the entire
-SFO, allowing for other malicious logs to be identified. (And if one log is
+SFO, allowing for other malicious logs to be identified. (If one log is
 malicious and others are honest; the honest logs will have ensured publication
 of the malicious certificate.)
-
-
-The \texttt{audit\_after} timestamp specifies the earliest point in time that an
-SCT from an SFO will be audited in Phase~3, which adds random noise that
-obfuscates real-time browsing patterns in the Tor network and complicates
-predictions of when it is safe to assume no audit will take place.  If memory
-becomes a scarce resource, pending triplets should be deleted at
-random~\cite{nordberg}. Figure~\ref{fig:audit-after} shows that $t$ takes the
-log's MMD into account.  This is one of two parts that prevent \emph{early
-signals} to the issuing CT logs that an SFO is being audited.  For example, if
-an SFO is audited before the MMD elapsed, the issuing CT log could simply merge
-the underlying certificate chain to avoid any MMD violation.
-
-% TODO: If we're going to say 'one of two early signals' we need to clearly identify the other one. And it's not clear to me what else specifically is considered such an early signal.
 
 \begin{figure}
 	\centering
@@ -200,6 +185,17 @@ the underlying certificate chain to avoid any MMD violation.
 	}
 	\label{fig:audit-after}
 \end{figure}
+
+The \texttt{audit\_after} timestamp specifies the earliest point in time that an
+SCT from an SFO will be audited in phase~3, which adds random noise that
+obfuscates real-time browsing patterns in the Tor network and complicates
+predictions of when it is safe to assume no audit will take place.  If memory
+becomes a scarce resource, pending triplets should be deleted at
+random~\cite{nordberg}. Figure~\ref{fig:audit-after} shows that $t$ takes the
+log's MMD into account.  This prevents an \emph{early signal} to the issuing CT
+logs that an SFO is being audited.  For example, if an SFO is audited before the
+MMD elapsed, then the issuing CT log could simply merge the underlying
+certificate chain to avoid any MMD violation.
 
 \subsection{Phase 3---Auditing} \label{sec:base:phase3}
 
