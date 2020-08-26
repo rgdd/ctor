@@ -58,10 +58,8 @@ browser, having succeeded, will progress to the HTTP request and response, at
 which point the exploit will be served, and the SFO (containing the
 cryptographic evidence of CA and Log misbehavior) will be deleted by the exploit
 code. While blocking the TLS connection until the CT Log responds is an option,
-the failure of OCSP hard-fail indicates this notion is doomed to fail.\\ % TODO:
-remove two uses of fail in that sentence. {\bf \color{red}This sentence at least
-needs a citation, but maybe should be dropped since it requires too much
-background for the average reader to understand.}
+experience related to OCSP hard-fail indicates that this notion is doomed to
+fail~\cite{no-hard-fail}.
 
 The third evolution of our proposal has the Browser submit the SFO to the CTR
 immediately upon receipt in all cases. A consequence of this shift is that the
