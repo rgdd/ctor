@@ -273,7 +273,8 @@ a watchdog for one or more other CTRs. A CTR acting as a watchdog will have at
 most one SFO held temporarily for each other CTR it is interacting with. If an
 acknowledgement from the other CTR is not received within
 \texttt{ct-watchdog-timeout}, it becomes the watchdog's responsibility to report
-the SFO for human review. This end-stage process that begins with the watchdog's
+the SFO for human review. In such a case, the watchdog immediately closes the
+circuit to the CTR. This end-stage process that begins with the watchdog's
 receipt of a suspicious SFO and culminates in human review is referred to as
 auditing, and left mostly-unspecified.
 
@@ -348,32 +349,10 @@ acknowledgment.  The following auditor submission is governed by a
 \texttt{ct-auditor-timeout}, which, if triggered, results in a resubmission
 later on.
 
-\subsubsection{Other Parameters} \label{sec:base:consensus:params} Directory
-authorities influence the way in which TB and CTRs behave by voting on other
-necessary parameters. Below, the value of an item is computed as the median of
-all votes.
-\begin{description}
-    \item[ct-submit-pr:] A floating-point in $[0,1]$ that determines Tor
-        Browser's submission probability.  For example, $0$ disables submissions
-        while $0.10$ means that every 10$^{\mathsf{th}}$ SFO is sent to a random
-        CTR on average.
-    \item[ct-large-sfo-size:] A natural number that determines how many
-        wire-bytes a normal SFO should not exceed.  As outlined in
-        Section~\ref{sec:base:phase1}, excessively large SFOs are subject to
-        stricter verification criteria.
-    \item[ct-log-timeout:] A natural number that determines how long a CTR waits
-        before concluding that a CT log is unresponsive, e.g., 10~seconds. As
-        outlined in Section~\ref{sec:base:phase3}, timeouts trigger implicit
-        resubmissions.
-    \item[ct-delay-dist:] A distribution that determines how long a CTR should
-        wait at minimum before auditing a submitted SFO\@.  As outlined in
-        Section~\ref{sec:base:phase2}, random noise is added, e.g., on the order
-        of minutes to an hour.
-    \item[ct-backoff-dist:]
-        A distribution that determines how long a CTR should wait between two
-        auditing instances, e.g., a few minutes on average.  As outlined in
-        Section~\ref{sec:base:phase3}, CTRs audit pending SFOs in batches at
-        random time intervals to spread out log overhead.
-    \item[ct-watchdog-timeout]
-    \item[ct-auditor-timeout]
-\end{description}
+\subsubsection{Other Consensus Parameters} \label{sec:base:consensus:params}
+Directory authorities influence the way in which TB and CTRs behave by voting on
+necessary parameters, such as the probability of submission of a SFO
+(\texttt{ct-submit-pr}) and the timeout used by CTRs when auditing CT logs
+(\texttt{ct-log-timeout}), as introduced earlier as part of the design. See
+Appendix~\ref{app:consensus-params} for details on these parameters and their
+values.
