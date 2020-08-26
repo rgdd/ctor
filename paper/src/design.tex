@@ -3,14 +3,29 @@
 A complete design---a design that detects misbehavior by both CAs and CT logs
 within our strong threat model---necessitates a considerable degree of
 complexity. In this section, we present such a full design by breaking it up
-into phases, demonstrating the need for the complexity in each step.
-Section~\ref{sec:incremental} later presents two incremental versions of the
-full design that are less complicated but at the cost of either only achieving a
-weaker security goal or by having a weaker threat model.
+into four phases as shown in Figure~\ref{fig:design}, demonstrating the need for
+the complexity in each step. Later, Section~\ref{sec:incremental} presents two
+incremental versions of the full design that are less complicated but at the
+cost of either only achieving a weaker security goal or by having a weaker
+threat model.
 
 A simple design is one that only validates SCTs, which is how CT in Google
 Chrome and other browsers is currently deployed. However, such a design does not
 stand up against a malicious CA and logs working in concert; auditing is needed.
+
+\begin{figure*}
+    \centering
+	\includegraphics[width=0.8\textwidth]{img/design}
+	\vspace{-8px}
+	\caption{%
+		An overview of the four phases of the full CTor design. In phase 1 Tor
+	Browser submits a SFO (SCT Feedback Object) to a Certificate Transparency
+	Relay (CTR), followed by phase 2 where the CTR buffers the SFO. In phase 3
+	the relays attempts to audit the SFO, and in case of failure, it reports the
+	SFO to an auditor with the help of a watchdog CTR in phase 4.}
+	\label{fig:design}
+	\vspace{-10px}
+\end{figure*}
 
 \subsection{Phase~1---Tor Browser} \label{sec:base:phase1}
 
