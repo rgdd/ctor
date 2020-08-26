@@ -64,21 +64,14 @@ model is therefore not within our threat model either.
 Given that we are in the business of enforcing CT, the attacker needs to hide
 mis-issued TLS certificates and SCTs from entities that audit the CT landscape.
 As described in Section~\ref{sec:background:ct}, this can either be achieved by
-omission or split-view attacks.  Our intended attacker is clearly powerful and may
-successfully issue a certificate chain and associated SCTs without detection
+omission or split-view attacks.  Our intended attacker is clearly powerful and
+may successfully issue a certificate chain and associated SCTs without detection
 some of the time, but a CA caught in mis-issuance or a CT log that violated an
 MMD promise will no longer be regarded as trusted.  Therefore, we assume a
 \emph{risk-averse} attacker that above a relatively low probability of detection
-would be deterred from engaging in such activities.
-
-%
-% - Our goal: detect TB HTTPS MitM
-% - Why: it is a reasonable prerequisite to conduct attacks against TB users
-%
-We want to minimize the existence of undetectable man-in-the-middle attacks
-against TB.  The goal of \emph{detection} is inherited from CT's threat
-model, which aims to remedy certificate mis-issuance \emph{after the fact}; not
-prevent it~\cite{ct/a}.
+would be deterred from engaging in such activities. Note that the goal of
+\emph{detection} is inherited from CT's threat model, which aims to remedy
+certificate mis-issuance \emph{after the fact}; not prevent it~\cite{ct/a}.
 
 %
 % Defer introducing threats that follow from design details
