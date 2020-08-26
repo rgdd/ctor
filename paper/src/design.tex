@@ -1,8 +1,8 @@
 \section{Design} \label{sec:base}
 
-A complete design---a design that detects misbehavior by CAs and CT Logs,
+A complete design---a design that detects misbehavior by CAs and CT logs,
 performed by an adversary with the ability to drop or delay network traffic from
-CT Logs and a subset of Tor relays, control a subset of Tor relays, serve an
+CT logs and a subset of Tor relays, control a subset of Tor relays, serve an
 exploit to targeted users' browsers and perform a Denial of Service attack on a
 subset of Tor relays---necessitates a considerable degree of complexity. A
 less-complicated subset of such a system can be deployed incrementally to
@@ -56,8 +56,8 @@ immediately vulnerable. The log, upon receiving an inclusion proof fetch for an
 SCT that it knows is malicious, will delay responding. The TLS connection in the
 browser, having succeeded, will progress to the HTTP request and response, at
 which point the exploit will be served, and the SFO (containing the
-cryptographic evidence of CA and Log misbehavior) will be deleted by the exploit
-code. While blocking the TLS connection until the CT Log responds is an option,
+cryptographic evidence of CA and log misbehavior) will be deleted by the exploit
+code. While blocking the TLS connection until the CT log responds is an option,
 experience related to OCSP hard-fail indicates that this notion is doomed to
 fail~\cite{no-hard-fail}.
 
