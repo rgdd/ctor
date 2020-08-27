@@ -28,7 +28,7 @@ the SCTs is needed.
 	\vspace{-10px}
 \end{figure*}
 
-\subsection{Phase~1---Tor Browser} \label{sec:base:phase1}
+\subsection{Phase~1: Submission} \label{sec:base:phase1}
 
 The least complicated auditing design would be one where Tor Browser receives a
 TLS certificate and accompanying SCTs (we will refer to this bundle as an SCT
@@ -111,7 +111,7 @@ CTR scaling issues. Given an incoming SFO $s$, Tor Browser should:
         acknowledgment.
 \end{enumerate}
 
-\subsection{Phase 2---Buffering} \label{sec:base:phase2}
+\subsection{Phase 2: Buffering} \label{sec:base:phase2}
 
 Once received, the most straightforward thing for a CTR to do would be to
 contact the issuing log and request an inclusion proof relative to a trusted
@@ -197,7 +197,7 @@ logs that an SFO is being audited.  For example, if an SFO is audited before the
 MMD elapsed, then the issuing CT log could simply merge the underlying
 certificate chain to avoid any MMD violation.
 
-\subsection{Phase 3---Auditing} \label{sec:base:phase3}
+\subsection{Phase 3: Auditing} \label{sec:base:phase3}
 
 As alluded to in phase 2, there is a second problem why the simple behavior of
 ``contact the log and request an inclusion proof'' is unacceptable. We include
@@ -266,7 +266,7 @@ SFO given the overhead and the unclear security benefit noted above.) For
 		\end{enumerate}
 \end{enumerate}
 
-\subsection{Phase 4---Reporting}
+\subsection{Phase 4: Reporting}
 
 At any given time, a CTR may be requesting inclusion proofs from logs and act as
 a watchdog for one or more other CTRs. A CTR acting as a watchdog will have at
