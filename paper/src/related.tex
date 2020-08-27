@@ -1,5 +1,3 @@
-%Paul: mixing?
-% cite does-ct-break-the-web somewhere as motivation of Tor Browser's SCT CT policy
 \section{Related Work} \label{sec:related}
 Google Chrome and Apple's Safari enforce CT by mandating that every TLS
 certificate must be accompanied by two independent
@@ -22,21 +20,19 @@ additional privacy leaks, i.e., a user's browsing patterns are already exposed
 to the DNS resolver but not the logs in the CT landscape~\cite{ct-over-dns}.
 CT/bis provides the option of serving stapled inclusion proofs as part of the
 TLS handshake in an extension, an OCSP response, or the certificate
-itself~\cite{ct/bis}.
-Lueks and Goldberg proposed that a separate database of inclusion proofs could
-be maintained that supports information-theoretic PIR~\cite{lueks-and-goldberg}.
-Kales~\emph{et~al.} improved scalability by reducing the size of each entry
-in the PIR database at the cost of transforming logs into multi-tier Merkle
-trees, and additionally, showed how the upper tier could be expressed as
-a two-server computational PIR database to ensure that any inclusion proof can
-be computed privately on-the-fly~\cite{kales}.
+itself~\cite{ct/bis}. Lueks and Goldberg proposed that a separate database of
+inclusion proofs could be maintained that supports information-theoretic
+PIR~\cite{lueks-and-goldberg}. Kales~\emph{et~al.} improved scalability by
+reducing the size of each entry in the PIR database at the cost of transforming
+logs into multi-tier Merkle trees, and additionally, showed how the upper tier
+could be expressed as a two-server computational PIR database to ensure that any
+inclusion proof can be computed privately on-the-fly~\cite{kales}.
 Nordberg~\emph{et~al.} avoid inclusion proof fetching by hanging on to presented
-SFOs, handing them back to the same origin at a later time~\cite{nordberg}.
-In contrast, CTor protects the user's privacy without any persistent browser state
+SFOs, handing them back to the same origin at a later time~\cite{nordberg}. In
+contrast, CTor protects the user's privacy without any persistent browser state
 by submitting SFOs on independent Tor circuits to CTRs, which in turn add random
-noise before there is any log interaction to speak of.  The use of CTRs
-enable caching similar to CT-over-DNS, but it does not put the logs in the dark
-like PIR could.
+noise before there is any log interaction.  The use of CTRs enable caching
+similar to CT-over-DNS, but it does not put the logs in the dark like PIR could.
 
 %%%
 % The same consistent view
@@ -57,27 +53,26 @@ reactive gossip mechanisms by showing how an STH can be cosigned efficiently by
 many independent witnesses~\cite{syta}. A scaled-down version of witness
 cosigning could be instantiated by cross-logging STHs in other CT
 logs~\cite{minimal-gossip}, or, in other append-only ledgers~\cite{catena}.
-CTor's extended design in Section~\ref{sec:auditor} ensures that anyone
-connected to the Tor network is on the same view by making STHs public in the
-Tor consensus.  In contrast, the first incremental design is not concerned with
-catching log misbehavior, while the second incremental design exposes
-misbehaving logs \emph{without} inclusion proofs.
-{\bf \color{red} Errmm again not sure if these are pointing at Section~6
-or at some of the things said in Section~4, so can't fix broken references.}
+CTor's full design (Section~\ref{sec:base}) ensures that anyone connected to the
+Tor network is on the same view by making STHs public in the Tor consensus.  In
+contrast, the first incremental design (Section~\ref{sec:incremental}) is not
+concerned with catching log misbehavior, while the second incremental design
+(also Section~\ref{sec:incremental}) exposes misbehaving logs \emph{without}
+inclusion proofs.
 
 %%%
 % Other work that is closely related to our approach
 %%%
 Nordberg proposed that Tor clients could enforce public logging of consensus
-documents and votes~\cite{consensus-transparency}.  Such an initiative is
-mostly orthogonal to CTor, as it strengthens the assumption of a secure Tor
-consensus by enabling detection of compromised signing keys rather than
-mis-issued TLS certificates.  Winter~\emph{et~al.} proposed that Tor Browser
-could check self-signed TLS certificates for exact matches on independent Tor
-circuits~\cite{spoiled-onions}.  Alicherry~\emph{et~al.} proposed that any web browser could
-double-check TLS certificates on first encounter using alternative paths and
-Tor, again, looking for certificate mismatches and generating warnings of
-possible man-in-the-middle attacks~\cite{doublecheck}.  The submission phase in
-CTor is similar to such double-checking, except that there are no
-normal-case TLS handshake blockings, browser warnings, or strict
-assumptions regarding the attacker's location.
+documents and votes~\cite{consensus-transparency}.  Such an initiative is mostly
+orthogonal to CTor, as it strengthens the assumption of a secure Tor consensus
+by enabling detection of compromised signing keys rather than mis-issued TLS
+certificates.  Winter~\emph{et~al.} proposed that Tor Browser could check
+self-signed TLS certificates for exact matches on independent Tor
+circuits~\cite{spoiled-onions}.  Alicherry~\emph{et~al.} proposed that any web
+browser could double-check TLS certificates on first encounter using alternative
+paths and Tor, again, looking for certificate mismatches and generating warnings
+of possible man-in-the-middle attacks~\cite{doublecheck}.  The submission phase
+in CTor is similar to double-checking, except that there are normally no TLS
+handshake blocking, browser warnings, or strict assumptions regarding the
+attacker's location.
