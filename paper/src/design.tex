@@ -327,40 +327,36 @@ monitors its own availability from fresh Tor-circuits by submitting known SFOs
 to itself to ensure that an attacker is not keeping watchdogs from connecting to
 it.
 
-\subsection{Additional Details} \label{sec:base:consensus}
+\subsection{Phase 0: Setup} \label{sec:base:consensus}
 
-\subsubsection{CTR Flag} \label{sec:base:consensus:ctr-flag} Within the Tor
-consensus, the existing \texttt{known-flags} item determines the different flags
-that the consensus might contain.  We add another flag named \texttt{CTR}, which
-indicates that a Tor relay should support CT-auditing as described here. For
-now, assume that a relay qualifies as a CTR if it is flagged as \texttt{stable}
-and not \texttt{exit}, to spare the relatively sparse exit bandwidth and only
-use relays that can be expected to stay online. Section~\ref{sec:privacy}
-discusses trade-offs in the assignment of the \texttt{CTR} flag.
+There are a number of additional details missing to setup phases 1--4 for the
+design. Most of these details relate to the Tor consensus. Directory authorities
+influence the way in which Tor Browser and CTRs behave by voting on necessary
+parameters, such as the probability of submission of a SFO
+(\texttt{ct-submit-pr}) and the timeout used by CTRs when auditing CT logs
+(\texttt{ct-log-timeout}), as introduced earlier as part of the design. See
+Appendix~\ref{app:consensus-params} for details on these parameters and their
+values that were previously used. Next, we briefly introduce a number of
+implicitly used parts from our design that should also be part of the consensus.
 
-\subsubsection{Trusted STHs}
-Tor's consensus should capture a fixed view of the CT landscape by publishing
+In the consensus, the existing \texttt{known-flags} item determines the
+different flags that the consensus might contain for relays.  We add another
+flag named \texttt{CTR}, which indicates that a Tor relay should support
+CT-auditing as described here. A relay qualifies as a CTR if it is flagged as
+\texttt{stable} and not \texttt{exit}, to spare the relatively sparse exit
+bandwidth and only use relays that can be expected to stay online.
+Section~\ref{sec:privacy} discusses trade-offs in the assignment of the
+\texttt{CTR} flag.
+
+The consensus should also capture a fixed view of the CT landscape by publishing
 STHs from all recognized logs.  A CT log is recognized if a majority of
 directory authorities proposed a \texttt{ct-log-info} item, which contains a
 log's ID, public key, base URL, MMD, and most recent STH\@.  Each directory
 authority proposes its own STH, and agrees to use the most recent STH as
 determined by timestamp and lexicographical order.  Since CTRs verify inclusion
-with regards to SCTs that Tor Browser accepts, the CT logs recognized by Tor Browser must be in
-Tor's consensus.
+with regards to SCTs that Tor Browser accepts, the CT logs recognized by Tor
+Browser must be in Tor's consensus.
 
-\subsubsection{Trusted Auditors}
 Tor's directory authorities also majority-vote on \texttt{ct-auditor} items,
 which pin base URLs and public keys of CT auditors that watchdogs contact in
-case that any log misbehavior is suspected.  A watchdog triggers if the time
-specified by \texttt{ct-watchdog-timeout} elapses without receiving any
-acknowledgment.  The following auditor submission is governed by a
-\texttt{ct-auditor-timeout}, which, if triggered, results in a resubmission
-later on.
-
-\subsubsection{Other Consensus Parameters} \label{sec:base:consensus:params}
-Directory authorities influence the way in which Tor Browser and CTRs behave by voting on
-necessary parameters, such as the probability of submission of a SFO
-(\texttt{ct-submit-pr}) and the timeout used by CTRs when auditing CT logs
-(\texttt{ct-log-timeout}), as introduced earlier as part of the design. See
-Appendix~\ref{app:consensus-params} for details on these parameters and their
-values.
+case that any log misbehavior is suspected. 

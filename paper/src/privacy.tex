@@ -40,9 +40,9 @@ Another significant limitation is that relays with the CTR flag learn real-time
 browser behavior of Tor users. Relays without the \texttt{exit} flag primarily
 only transport encrypted Tor-traffic between clients and other relays, never to
 destinations. If such relays are given the CTR flag---as we stated in the full
-design, see Section~\ref{sec:base:consensus:ctr-flag}---then this might
-discourage some from running Tor relays unless it is possible to opt out.
-Another option is to give the CTR flag only to exit relays, but this \emph{might
-be} undesirable for overall network performance despite the modest overhead of
-CTor (Section~\ref{sec:performance}). Depending on the health of the network and
-the exact incremental deployment of CTor, there are different trade-offs.
+design, see Section~\ref{sec:base:consensus}---then this might discourage some
+from running Tor relays unless it is possible to opt out. Another option is to
+give the CTR flag only to exit relays, but this \emph{might be} undesirable for
+overall network performance despite the modest overhead of CTor
+(Section~\ref{sec:performance}). Depending on the health of the network and the
+exact incremental deployment of CTor, there are different trade-offs.
