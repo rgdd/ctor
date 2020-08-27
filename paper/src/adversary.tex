@@ -18,27 +18,30 @@ redirect funds to the attacker or to serve an exploit to the user's browser for
 forge certificates and SCTs without detection), all of these attacks become more
 difficult as the web moves further towards deprecating plaintext HTTP.
 
-All of the components of such an attack have been seen in-the-wild numerous
-times. Untargeted attacks on visitors of a particular website include Syria's
-interception of Facebook traffic using a self-signed 512-bit RSA key in ~2012,
-Iran's interception of Bing and Google traffic using the Diginotar
-CA~\cite{diginotar}, and the 2018 MyEtherWallet self-signed certificate that was
-used as part of a BGP hijack~\cite{myetherwallet}.  The latter is also an
-example of redirecting routing as part of an attack (either suspected or
-confirmed). Other examples of this are Iran hijacking 10 prefixes of Telegram
-(an encrypted messaging application) in 2018, another attack on cryptocurrency
-in 2014 this time targeting unencrypted mining
-traffic~\cite{bgp-hijacking-for-crypto,bgp-hijacking-for-crypto-2}, and hijacks
-that may have been intelligence-gathering (or honest mistakes) including two
-hijacks by Russian ISPs 2017 and China in 2018 and 2019~\cite{wiki-bgp}.
-Finally, there are several examples of law enforcement serving exploits to Tor
-Browser users to de-anonymize and subsequently arrest
-individuals~\cite{de-anonymize-exploit}.
+All of the components of such an attack have been seen in-the-wild
+numerous times. Untargeted attacks on visitors of a particular website
+include Syria's interception of Facebook traffic using a self-signed
+512-bit RSA key in ~2011~\cite{syria-facebook-mitm}, Iran's
+interception of Bing and Google traffic using the Diginotar
+CA~\cite{diginotar,ct/a}, and the 2018 MyEtherWallet
+self-signed certificate that was used as part of a BGP
+hijack~\cite{ethereum-hijack-isoc}.  The latter is also an example of
+redirecting routing as part of an attack (either suspected or
+confirmed). Other examples of this are Iran hijacking prefixes of
+Telegram (an encrypted messaging application) in
+2018~\cite{iran-telegram-bgp}, another attack on cryptocurrency in
+2014 this time targeting unencrypted mining
+traffic~\cite{bgp-hijacking-for-crypto},
+and hijacks that may have been intelligence-gathering (or honest
+mistakes) including two hijacks by Russian ISPs 2017 and China in 2018
+and 2019~\cite{wiki-bgp}.  Finally, there are several examples of law
+enforcement serving exploits to Tor Browser users to de-anonymize and
+subsequently arrest individuals~\cite{forbes-fbi-tor,doj-fbi-tor}.
 
 With
 the attacker's goal in mind, we consider someone that controls
 	a CA,
-	enough CT logs to pass TB's SCT-centric CT policy, 
+	enough CT logs to pass Tor Browser's SCT-centric CT policy, 
 	some Tor clients, and
 	a fraction of Tor relays.
 For example, it is possible to
@@ -52,7 +55,7 @@ This includes a weaker attacker that does not \emph{control} CAs and CT logs,
 but, who \emph{gained access} to the relevant signing keys~\cite{turktrust,%
 gdca1-omission}.  A modest fraction of CTor entities can be subject to DoS, but
 not everyone at once and all the time.  In other words, we consider the threat
-model of Tor and TB as a starting point~\cite{tor,tor-browser}.  Any
+model of Tor and Tor Browser as a starting point~\cite{tor,tor-browser}.  Any
 attacker that can reliably disrupt CT and/or Tor well beyond Tor's threat
 model is therefore not within our threat model either.
 % TODO: not sure if we need to emph "it assumed that the attacker knows all Tor

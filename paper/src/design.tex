@@ -28,7 +28,7 @@ the SCTs is needed.
 	\vspace{-10px}
 \end{figure*}
 
-\subsection{Phase~1---Tor Browser} \label{sec:base:phase1}
+\subsection{Phase~1: Submission} \label{sec:base:phase1}
 
 The least complicated auditing design would be one where Tor Browser receives a
 TLS certificate and accompanying SCTs (we will refer to this bundle as an SCT
@@ -111,7 +111,7 @@ CTR scaling issues. Given an incoming SFO $s$, Tor Browser should:
         acknowledgment.
 \end{enumerate}
 
-\subsection{Phase 2---Buffering} \label{sec:base:phase2}
+\subsection{Phase 2: Buffering} \label{sec:base:phase2}
 
 Once received, the most straightforward thing for a CTR to do would be to
 contact the issuing log and request an inclusion proof relative to a trusted
@@ -189,15 +189,23 @@ of the malicious certificate.)
 The \texttt{audit\_after} timestamp specifies the earliest point in time that an
 SCT from an SFO will be audited in phase~3, which adds random noise that
 obfuscates real-time browsing patterns in the Tor network and complicates
-predictions of when it is safe to assume no audit will take place.  If memory
-becomes a scarce resource, pending triplets should be deleted at
-random~\cite{nordberg}. Figure~\ref{fig:audit-after} shows that $t$ takes the
-log's MMD into account.  This prevents an \emph{early signal} to the issuing CT
-logs that an SFO is being audited.  For example, if an SFO is audited before the
-MMD elapsed, then the issuing CT log could simply merge the underlying
-certificate chain to avoid any MMD violation.
+predictions of when it is safe to assume no audit will take place.
+Figure~\ref{fig:audit-after} shows that $t$ takes the log's MMD into account.
+This prevents an \emph{early signal} to the issuing CT logs that an SFO is being
+audited.  For example, if an SFO is audited before the MMD elapsed, then the
+issuing CT log could simply merge the underlying certificate chain to avoid any
+MMD violation. However, by taking the MMD into account, this results in a
+relatively large time window during which the attacker can attempt to
+\emph{flood} all CTRs in hope that they delete the omitted SFO at random before
+it is audited. We discuss the threat of flooding further in
+Section~\ref{sec:analysis:pr:phase2}, noting that such an attack can be
+detected if CTRs publish two new metrics in the extra-info document:
+\texttt{ct-receive-bytes} and \texttt{ct-delete-bytes}. These metrics indicate
+how many SFO bytes were received and deleted throughout different time
+intervals, which is similar to other extra-info metrics such as
+\texttt{read-history}.
 
-\subsection{Phase 3---Auditing} \label{sec:base:phase3}
+\subsection{Phase 3: Auditing} \label{sec:base:phase3}
 
 As alluded to in phase 2, there is a second problem why the simple behavior of
 ``contact the log and request an inclusion proof'' is unacceptable. We include
@@ -266,7 +274,7 @@ SFO given the overhead and the unclear security benefit noted above.) For
 		\end{enumerate}
 \end{enumerate}
 
-\subsection{Phase 4---Reporting}
+\subsection{Phase 4: Reporting}
 
 At any given time, a CTR may be requesting inclusion proofs from logs and act as
 a watchdog for one or more other CTRs. A CTR acting as a watchdog will have at
@@ -337,7 +345,7 @@ directory authorities proposed a \texttt{ct-log-info} item, which contains a
 log's ID, public key, base URL, MMD, and most recent STH\@.  Each directory
 authority proposes its own STH, and agrees to use the most recent STH as
 determined by timestamp and lexicographical order.  Since CTRs verify inclusion
-with regards to SCTs that TB accepts, the CT logs recognized by TB must be in
+with regards to SCTs that Tor Browser accepts, the CT logs recognized by Tor Browser must be in
 Tor's consensus.
 
 \subsubsection{Trusted Auditors}
@@ -350,7 +358,7 @@ acknowledgment.  The following auditor submission is governed by a
 later on.
 
 \subsubsection{Other Consensus Parameters} \label{sec:base:consensus:params}
-Directory authorities influence the way in which TB and CTRs behave by voting on
+Directory authorities influence the way in which Tor Browser and CTRs behave by voting on
 necessary parameters, such as the probability of submission of a SFO
 (\texttt{ct-submit-pr}) and the timeout used by CTRs when auditing CT logs
 (\texttt{ct-log-timeout}), as introduced earlier as part of the design. See
