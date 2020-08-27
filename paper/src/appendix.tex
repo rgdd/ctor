@@ -1,3 +1,36 @@
+\section{Detailed Consensus Parameters} \label{app:consensus-params} 
+
+Below, the value of an item is computed as the median of all votes.
+\begin{description}
+    \item[ct-submit-pr:] A floating-point in $[0,1]$ that determines Tor
+        Browser's submission probability.  For example, $0$ disables submissions
+        while $0.10$ means that every 10$^{\mathsf{th}}$ SFO is sent to a random
+        CTR on average.
+    \item[ct-large-sfo-size:] A natural number that determines how many
+        wire-bytes a normal SFO should not exceed.  As outlined in
+        Section~\ref{sec:base:phase1}, excessively large SFOs are subject to
+        stricter verification criteria.
+    \item[ct-log-timeout:] A natural number that determines how long a CTR waits
+        before concluding that a CT log is unresponsive, e.g., 10~seconds. As
+        outlined in Section~\ref{sec:base:phase3}, a timeout causes the watchdog
+        to send a SFO to the auditor.
+    \item[ct-delay-dist:] A distribution that determines how long a CTR should
+        wait at minimum before auditing a submitted SFO\@.  As outlined in
+        Section~\ref{sec:base:phase2}, random noise is added, e.g., on the order
+        of minutes to an hour.
+    \item[ct-backoff-dist:]
+        A distribution that determines how long a CTR should wait between two
+        auditing instances, e.g., a few minutes on average.  As outlined in
+        Section~\ref{sec:base:phase3}, CTRs audit pending SFOs in batches at
+        random time intervals to spread out log overhead.
+    \item[ct-watchdog-timeout:] A natural number that determines how long time
+    at most a watchdog waits before considering a SFO for reporting. Prevents
+    the watchdog from having to wait for a circuit timeout caused by an
+    unresponsive CTR. Should be set with \texttt{ct-backoff-dist} in mind.
+    \item[ct-auditor-timeout] A natural number that determines how long time at
+    most a watchdog waits for an auditor to acknowledge the submission of a SFO.
+\end{description}
+
 \section{Log Operators \& Trust Anchors} \label{app:ct-trust-anchors}
 The standardized CT protocol suggests that a log's trust anchors should
 ``usefully be the union of root certificates trusted by major browser
