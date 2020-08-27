@@ -32,7 +32,7 @@ from our client software calling home on start-up (Chromium~77).
 We assume no abnormal CTor behavior, which means that there will be little or
 no CTR back-offs due to the high uptime requirements of today's CT logs: 99\%.
 We set \texttt{ct-large-sfo-size} conservatively to avoid blocking in the TLS
-handshake (e.g., 20KiB), and use a 10\% submission probability as well as a
+handshake (e.g., 20~KiB), and use a 10\% submission probability as well as a
 10~minute random buffer delay on average.  It is likely unwarranted to use a
 higher submission probability given that the intended attacker is risk-averse.
 Shorter buffer times would leak finer-grained browsing patterns to the logs,
@@ -60,7 +60,7 @@ Using $p\gets\frac{1}{10}$ and our approximated SFO distribution $\bar{d}\gets7$
 yields an average circuit overhead of $0.70$, i.e., for every three Tor Browser
 circuits CTor adds another two.  Such an increase might sound
 daunting at first, but these additional circuits are short-lived and
-light-weight; transporting 6KiB on average.  Each CTR also maintains a 
+light-weight; transporting 6~KiB on average.  Each CTR also maintains a 
 long-lived circuit for CT log interactions.
 
 \textbf{Bandwidth overhead.}  Equation~\ref{eq:bw} shows the expected
@@ -82,10 +82,10 @@ a typical SFO and accounting for it being relayed six times:
 		Assuming that a Tor relay's available bandwidth is symmetric.
 	}
 Using
-	$V\gets 140\textrm{M/day}$,
+	$V\gets 140\textrm{~M/day}$,
 	$p \gets \frac{1}{10}$,
 	$\bar{d} \gets 7$,
-	$\bar{s} \gets 6\textrm{KiB}$
+	$\bar{s} \gets 6\textrm{~KiB}$
 and converting the result to bps yields 334.5~Mbps in total.  Such order of
 overhead is small when compared to Tor's capacity:
 450~Gbps~\cite{tor-bandwidth}.
@@ -106,14 +106,14 @@ are randomly distributed across $R$ CTRs.  Combined this yields the expected
 number of SFOs that await at a single CTR in Phase~2, and by taking the
 byte-size of these SFOs into account we get an estimate of the resulting memory
 overhead.  Using
-	$V_m \gets \frac{140\textrm{M}}{24\cdot60}$,
-	$t \gets 10$m,
+	$V_m \gets \frac{140\textrm{~M}}{24\cdot60}$,
+	$t \gets 10$~m,
 	$R \gets 4000$ based on the CTR criteria in
 		Section~\ref{sec:base:consensus:ctr-flag}, and
-	$\bar{s} \gets 6\textrm{KiB}$
-yields 1.42MiB.  Such order of overhead is small when compared to the
+	$\bar{s} \gets 6\textrm{~KiB}$
+yields 1.42~MiB.  Such order of overhead is small when compared to the
 recommended relay configuration:
-	at least 512MiB~\cite{relay-config}.
+	at least 512~MiB~\cite{relay-config}.
 
 A cache of processed SFOs reduces the CTR's buffering memory and log
 interactions proportionally to the cache hit ratio.  Mani~\emph{et al.} showed
@@ -122,7 +122,7 @@ top-1k, and another one third to the top-1M~\cite{mani}.\footnote{%
 	Assuming the overrepresented
 	\texttt{torproject.org} is removed.
 } If we assume 32~byte cryptographic hashes and seven SFOs per website visit,
-a cache hit ratio of $\frac{1}{3}$ could be achieved by a 256KiB LFU/LRU cache
+a cache hit ratio of $\frac{1}{3}$ could be achieved by a 256~KiB LFU/LRU cache
 that eventually captures Alexa's top-1k.  Given that the cache requires
 memory as well, this is best viewed as a bandwidth optimization.
 
