@@ -1,6 +1,6 @@
 \section{Privacy} \label{sec:privacy}
 There is an inherent privacy problem in the setting due to how CT is designed
-and deployed. A browser, like TB, that wishes to validate that SFOs presented to
+and deployed. A browser, like Tor Browser, that wishes to validate that SFOs presented to
 it are \emph{consistent} and \emph{included} in CT logs must directly or
 indirectly interact with CT logs wrt. its observed SFOs. Without protections
 like Private Information Retrieval~\cite{PIR} that require server-side support
@@ -11,38 +11,38 @@ leaking (partial) information about the browsing activities of the user.
 Given the constraints of the existing CT ecosystem, CTor is made
 privacy-preserving thanks to the distributed nature of Tor with its anonymity
 properties and high-uptime relays that make up the Tor network. First, all
-communication between TB, CTRs, CT logs, and auditors are made over full
+communication between Tor Browser, CTRs, CT logs, and auditors are made over full
 Tor-circuits. This is a significant privacy-gain, not available, e.g., to
 browsers like Chrome that in their communications would reveal their public
 IPv4-address (among a number of other potentially identifying metadata).
 Secondly, the use of CTRs as intermediaries probabilistically delays the
-interaction with the CT logs---making correlating TB user browsing with CT log
+interaction with the CT logs---making correlating Tor Browser user browsing with CT log
 interaction harder for attackers---and safely maintains a dynamic cache of the
 most commonly already verified SFOs. While regular browsers like Chrome could
-maintain a cache, TB's security and privacy goals (see
+maintain a cache, Tor Browser's security and privacy goals (see
 Section~\ref{sec:background:tor}) prohibit such shared (persisted) dynamic
 state.
 
 CTRs are also essential for security in the setting of the auditor extension. A
 rational attacker will produce SFOs with SCT timestamps that are too new to have
-to be part of CT logs at the time of the attack. TB cannot store SFOs for any
+to be part of CT logs at the time of the attack. Tor Browser cannot store SFOs for any
 extended time period without violating its security and privacy goals, not to
-mention that presumably most TB sessions are not maintained for
+mention that presumably most Tor Browser sessions are not maintained for
 days (as required, see analysis in Section~\ref{sec:auditor:analysis}) 
 {\bf \color{red} What analysis is this pointing at?}\\
 but rather minutes~\cite{DBLP:conf/pam/AmannS16}. Further, buffering
-at TB is not an option, since an attacker could compromise TB shortly
+at Tor Browser is not an option, since an attacker could compromise Tor Browser shortly
 after presenting the forged SFO.
 
 The main limitation of CTor in terms of privacy is that CTor continuously leaks
 to CT logs---and to a \emph{lesser extent} auditors (depending on design)--a
-fraction of certificates of websites visited using TB to those that operate CT
+fraction of certificates of websites visited using Tor Browser to those that operate CT
 logs. This provides to a CT log a partial list of websites visited via the Tor
 network over a period of time (determined by \texttt{ct-delay-dist}), together
 with some indication of distribution based on the number of active CTRs. It does
 not, however, provide even pseudonymously any information about which sites
 individual users visit, much less with which patterns or timing. As such it
-leaks significantly less information than does OCSP validation by TB or DNS
+leaks significantly less information than does OCSP validation by Tor Browser or DNS
 resolution at exit-relays~\cite{TorDNS}, both of which indicate visit activity
 in real time to a comparably small number of entities.
 

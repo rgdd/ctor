@@ -4,11 +4,11 @@ We have proposed CTor, privacy-preserving and incrementally-deployable support
 for CT in Tor.  Our design is composed of a base that discloses mis-issued
 certificates to public scrutiny by using the CT landscape against the attacker,
 and two orthogonal extensions that additionally catch misbehaving CT logs.  The
-use of Tor relays that cache TB-observed SFOs and add random auditing delays is
+use of Tor relays that cache Tor Browser-observed SFOs and add random auditing delays is
 central within our setting, for both privacy and security.  Our analysis shows
 that the attacker's best bet to break the base design and the following log
 extension is to control and/or DoS a large majority of the entire CTor system,
-or, access a reliable TB zero-day that escalates privileges within a tiny time
+or, access a reliable Tor Browser zero-day that escalates privileges within a tiny time
 window.  Our auditor extension does not rely on trust in the CT landscape, but
 at the cost of making flooding attacks that flush the network practical.
 Network-wide flushes are trivially detectable but not necessarily attributable.
@@ -17,7 +17,7 @@ Mitigation of network-wide attacks take us outside of Tor's threat model and
 therefore outside of ours too.  That said, we cannot ignore such attacks given
 the strong attacker we consider, namely, one that controls a trusted CA and
 CT logs.  To this end, CTor is designed so that Tor can \emph{adapt} in response
-to interference.  For example, in TB the \texttt{ct-max-sfo-bytes} could
+to interference.  For example, in Tor Browser the \texttt{ct-max-sfo-bytes} could
 reactively be set such that all SFOs must be sent to a CTR before accepting any
 HTTPS application-layer data to counter zero-days, and the submit probability
 \texttt{ct-submit-pr} could be increased if ongoing attacks are suspected.  When

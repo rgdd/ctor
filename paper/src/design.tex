@@ -337,7 +337,7 @@ directory authorities proposed a \texttt{ct-log-info} item, which contains a
 log's ID, public key, base URL, MMD, and most recent STH\@.  Each directory
 authority proposes its own STH, and agrees to use the most recent STH as
 determined by timestamp and lexicographical order.  Since CTRs verify inclusion
-with regards to SCTs that TB accepts, the CT logs recognized by TB must be in
+with regards to SCTs that Tor Browser accepts, the CT logs recognized by Tor Browser must be in
 Tor's consensus.
 
 \subsubsection{Trusted Auditors}
@@ -350,7 +350,7 @@ acknowledgment.  The following auditor submission is governed by a
 later on.
 
 \subsubsection{Other Consensus Parameters} \label{sec:base:consensus:params}
-Directory authorities influence the way in which TB and CTRs behave by voting on
+Directory authorities influence the way in which Tor Browser and CTRs behave by voting on
 necessary parameters, such as the probability of submission of a SFO
 (\texttt{ct-submit-pr}) and the timeout used by CTRs when auditing CT logs
 (\texttt{ct-log-timeout}), as introduced earlier as part of the design. See
