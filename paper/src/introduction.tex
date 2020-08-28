@@ -73,11 +73,9 @@ to a service linking an identity.
 
 \subsection{Introducing CTor}
 We propose an incrementally deployable and privacy-preserving design that is
-henceforth referred to as CTor.  CTor is composed of a base design and two
-possible extensions, bringing CT to Tor by modifying how Tor Browser and
-relays in the Tor network work.  The goal is to detect HTTPS-based
-man-in-the-middle attacks \emph{after the fact} when conducted by an attacker
-that:
+henceforth referred to as CTor.  By bring CT to Tor, HTTPS-based
+man-in-the-middle attacks against Tor Browser can be detected \emph{after the
+fact} when conducted by a powerful attacker that:
 \begin{enumerate}
 	\item can acquire any certificate from a trusted CA,
 	\item with the necessary cryptographic proofs from CT logs so that
@@ -88,38 +86,40 @@ that:
 \end{enumerate}
 
 The first and third capabilities are motivated directly by shortcomings in the
-CA ecosystem as well as how the anonymity of Tor Browser is known to be attacked.
-The second capability assumes the same starting point as Google Chrome and
-Apple's Safari, namely, that the logs are trusted to \emph{promise} public
-logging, which is in contrast to being untrusted and thus forced to \emph{prove}
-it.  This is part of the gradual CT deployment that avoided breakage on the
-web~\cite{does-ct-break-the-web}.  CTor therefore follows suit, starting
-by relaxing and ultimately eliminating the trust which is currently (mis)placed
-in browser-recognized logs.  For example, an attacker that controls two
-independent CT logs trivially bypasses Apple's CT enforcement.  This is not
-to say that simply using trusted logs would be an insignificant Tor Browser
-improvement when compared to no CT at all, but CTor takes it several steps
-further by protecting against increasingly powerful attackers.
+CA ecosystem as well as how the anonymity of Tor Browser is known to be
+attacked.  The second capability assumes the same starting point as Google
+Chrome and Apple's Safari, namely, that the logs are trusted to \emph{promise}
+public logging, which is in contrast to being untrusted and thus forced to
+\emph{prove} it.  This is part of the gradual CT deployment that avoided
+breakage on the web~\cite{does-ct-break-the-web}.  Therefore, we start
+from the assumption that Tor Browser accepts a certificate as valid if 
+accompanied by two independent promises of public logging.  The limitation of
+such CT enforcement is that it is trivially bypassed by an attacker that
+controls two seemingly independent CT logs.  This is not to say that trusting
+the log ecosystem would be an insignificant Tor Browser improvement when
+compared to no CT at all, but CTor takes us several steps further by relaxing
+and ultimately eliminating the trust which is currently (mis)placed in today's
+browser-recognized CT logs.
 
-Our base design uses the CT landscape against the attacker to ensure a non-zero
-(tweakable) probability of public disclosure \emph{each time} a fraudulent
-certificate is used against Tor Browser.  This is done by randomly adding a
-subset of presented certificates to CT logs that the attacker may not control
-(inferred from the accompanied promises of public logging).  Such
-\emph{certificate cross-logging} distributes trust across all CT logs,
-raising the bar towards unnoticed certificate mis-issuance.
-Motivated by deployability, performance, security and privacy implications,
-Tor Browser uses Tor relays as intermediates to cache and interact with CT logs
-on its behalf.  For example, it ensures that log operators like Google and
-Cloudflare get less information regarding browsing activities from Tor (in
-addition to what their privileged Internet positions already
-provide~\cite{1mtrack,TorDNS}).
+The initial design increment uses the CT landscape against the attacker to
+ensure a non-zero (tweakable) probability of public disclosure \emph{each time}
+a fraudulent certificate is used against Tor Browser.  This is done by randomly
+adding a subset of presented certificates to CT logs that the attacker may not
+control (inferred from the accompanied promises of public logging).  Such
+\emph{certificate cross-logging} distributes trust across all CT logs, raising
+the bar towards unnoticed certificate mis-issuance.  Motivated by factors such
+as privacy, security and deployability, Tor Browser uses Tor relays as
+intermediates to cache and interact with CT logs on its behalf.  For example, it
+ensures that log operators like Google and Cloudflare get less information
+regarding browsing activities from Tor (in addition to what their privileged
+Internet positions already provide~\cite{1mtrack,TorDNS}).
 
-The extended CTor designs have in common that their goal is to make violated
-promises of public logging transparent, which can otherwise be used to silently trick
-today's CT-enforcing web browsers into accepting malicious HTTPS connections.
-Disclosing such proofs would likely disqualify each of the offending CT logs and
-thus come at great cost to the attacker in terms of lost capabilities:
+The next increment and the full CTor design have in common that their goal is
+to make violated promises of public logging transparent, which can otherwise be
+used to silently trick today's CT-enforcing web browsers into accepting
+malicious HTTPS connections.  If such proofs are disclosed it would likely
+disqualify all offending CT logs and thus come at great cost to the
+attacker in terms of lost capability:
 	even a small probability of detection might entail unacceptable risk of
 	exposure.
 We already observed instances of CT logs that happened to
@@ -128,62 +128,60 @@ We already observed instances of CT logs that happened to
 		parties~\cite{izenpe-disqualified,venafi-disqualified}, and
 	get their secret signing keys compromised due to disclosed remote
 		code-execution vulnerabilities~\cite{digicert-log-compromised}. 
-While there was little or no real-world impact from these incidents, they
+While there was little real-world impact from these incidents, they
 showcase that full trust in CT logs is likely a mistake.
 
 \subsection{Contribution and Structure}
-Section~\ref{sec:background} introduces necessary background on CT and Tor.
-Section~\ref{sec:adversary} motivates the intended attacker further and presents
-our threat model.
-Section~\ref{sec:base} describes the base CTor design that enables
-\emph{Tor Browser to probabilistically provide evidence to multiple
-  independent CT logs that fraudulent certificates were presented
-  while preserving privacy}.
-This greatly impacts risk-averse attackers because one part of their malicious
-behavior become transparent in the CT landscape \emph{if some log operators are
-benign}.  For example, the domain name in question is disclosed as part of the
-cross-logged certificate, and awareness of the event may draw unwanted
-attention.  The security analysis in Section~\ref{sec:analysis} shows that one
-of the attacker's best bets would be to attack the entire Tor network and/or all
-CT logs:
-	an act that would likely draw much unwanted attention.
+Section~\ref{sec:background} introduces background on the theory and
+practise of CT, as well as the anonymity network Tor.
+Section~\ref{sec:adversary} motivates the intended attacker and presents a
+unified threat model for CT and Tor.
+Section~\ref{sec:base} describes the full CTor design that \emph{eliminates
+all trust in the browser-recognized CT logs} by challenging them to prove
+certificate inclusion cryptographically, and would
+result in a \emph{single probabilistically-verified view of the CT log ecosystem
+available from Tor's consensus}.  This view could be used by other browsers as
+the basis of trust, \emph{greatly improving the security posture of the entire
+web}.  The security analysis in Section~\ref{sec:analysis} shows that one of the
+best bets for the attacker would be to take network-wide actions against Tor to
+avoid public disclosure of certificate mis-issuance and log misbehavior.  Such
+an attack is trivially detected, but it is hard to attribute unless reactive
+defenses are enabled at the cost of trade-offs.
 
-{\bf \color{red} Hmmm. This description no longer at all reflects the
-  structure as presented.}\\
-Sections~\ref{sec:auditor}--\ref{sec:incremental} present two design extensions that
-aim to make any violated promise of public logging even more transparent.  The
-deployment of either extension
-	\emph{would greatly contribute to the open question of how to reduce trust
-	in CT log operators},
-which is caused by the lack of an appropriate gossip mechanism as well as
-privacy issues while interacting with the
-logs~\cite{minimal-gossip,nordberg,ct-with-privacy}.
-The extended auditing in Section~\ref{sec:auditor}
-	\emph{eliminates all trust in the browser-accepted CT logs}
-by challenging them to prove certificate inclusion cryptographically, and would
-result in a
-	\emph{single probabilistically-verified view of the CT log ecosystem
-	available from Tor's consensus}.
-This view could be used by other browsers as the basis of trust,
-	\emph{greatly improving the security posture of the entire web}.
-The extended cross-logging in Section~\ref{sec:incremental} involves only a minor tweak
-to the base design, but it is unfortunately to the API of CT logs and not Tor.
-Similar changes were already proposed in the context of CT
+The full design involves many different components that add deployment burdens,
+such as the requirement of reliable CT auditors that investigate suspected log
+misbehavior further.  Therefore, we additionally propose two initial increments
+that place \emph{some trust in the CT log ecosystem}.  The first increment
+\emph{provides evidence to independent CT logs that fraudulent certificates were
+presented while preserving privacy}.  This greatly impacts risk-averse attackers
+because one part of their malicious behavior becomes transparent \emph{if the
+randomly selected log operator is benign}.  For example, the targeted domain
+name is disclosed as part of the cross-logged certificate, and awareness of the
+event draws unwanted attention.
+
+The next increment is minor from the perspective of Tor, but requires CT logs to
+support an additional API.  Similar changes were proposed in the context of CT
 gossip~\cite{minimal-gossip}.  If supported, Tor relays could expose both the
-mis-issued certificates and the logs that promised to include them \emph{without
-the complexity of distinguishing between benign and fraudulent certificates}.
-We argue that CTor \emph{can be deployed incrementally}:
-	complete Firefox's CT support~\cite{ffct},
-	add the base CTor design, and finally,
-	pick CTor extensions depending on how CT evolves.
+mis-issued certificates and the operators that promised to log them publicly
+\emph{without the complexity of ever distinguishing between what is benign and
+fraudulent}.
+This API change happens to also build auditor infrastructure
+directly into CT log software, paving the path towards the missing component of
+the full design.  We argue that CTor \emph{can be deployed incrementally}:
+	complete Firefox's CT enforcement~\cite{ffct},
+	deploy certificate cross-logging, and
+	eventually the full design can be put into operation.
+Each CTor increment would \emph{greatly contribute to the open question of how
+to reduce and/or eliminate trust in browser-recognized log operators}, which is
+caused by the lack of an appropriate gossip mechanism as well as privacy issues
+while interacting with the logs~\cite{minimal-gossip,nordberg,ct-with-privacy}.
 
 We show that circuit-, bandwidth- and memory-\emph{overheads are modest} by
-computing such estimates in Section~\ref{sec:performance}.  Therefore, we
-do not investigate performance further in any experimental setting.
-Section~\ref{sec:privacy} discusses privacy aspects of our design choices,
-focusing on the essential role of the Tor network's distributed nature
-to preserve user privacy as well as the overall security of our designs.  Note
-that \emph{a similar approach would be privacy-invasive without Tor}, e.g.,
-if adopted by Google Chrome.
-Section~\ref{sec:related} outlines related work.
+computing such estimates in Section~\ref{sec:performance}.  Therefore, we do not
+investigate performance further in any experimental setting.
+Section~\ref{sec:privacy} discusses privacy aspects of our design choices with
+a focus on the essential role of the Tor network's distributed nature to
+preserve user privacy as well as the overall security.  In gist,
+\emph{a similar approach would be privacy-invasive without Tor}, e.g., if
+adopted by Google Chrome.  Section~\ref{sec:related} outlines related work.
 Section~\ref{sec:conclusion} concludes the paper.
