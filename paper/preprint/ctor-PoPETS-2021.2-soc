@@ -5,7 +5,26 @@ our summary-of-change document according to the PETS resubmission guidelines.
 
 1.  Summary of changes
 
-TODO: 1-2 paragraphs
+We used the feedback provided by all reviewers to clarify the paper and better
+capture its context.  The parts that changed only marginally or not at all are:
+- The initial paragraphs leading up to §1.1
+- Background on Tor (§2.2)
+- The second half of our threat model (§3)
+- Privacy discussion (§8)
+- Related work (§9)
+
+The remaining parts received major revisions that followed from the meta review
+and other minor comments.  We present these revisions in detail subsequently.
+
+The first three sections of the paper capture additional details on CT and the
+intended attacker.  The order in which we present our work is then flipped,
+explaning the full design and how we engineered it step-by-step; followed by its
+security analysis.  This made it easier to justify the need for initial
+increments that can be rolled-out gradually, motivating cross-logging designs.
+Finally, the performance section received a refactor that clarifies the setup
+(public data sets and parameters) as well as the formulas used to compute our
+estimates.  We did not conduct any additional simulation because these estimates
+show the point we are trying to make: CTor's performance overhead is acceptable.
 
 2.  Meta review
 
@@ -34,11 +53,9 @@ We added additional formulas and explanations in the performance section.  This
 clarifies how our estimates were computed, and makes it easier for the reader to
 try a different set of parameters.  The evaluated parameters are also motivated
 better, e.g., the relatively low submission probability follows from our threat
-model: the attacker is risk-averse, and if a subset of users are targeted a low
-submission probability quickly implies high certainty that _someone_ submitted.
-
-We believe that our analysis proves the point we are trying to make: CTor's
-overhead is modest.  Therefore, there is no simulation beyond our estimates.
+model: the attacker is risk-averse and would not gamble with non-negligible
+probabilities of detection.  If a subset of users are targeted, a low submission
+probability quickly implies high certainty that someone submits an SFO as well.
 
 2.3.  Data set and possible biases
 
@@ -102,7 +119,7 @@ Detailed comments:
 be inferred from the SCTs that accompany a certificate chain.  This is probably
 clearer now that the CT enforcements of Chrome and Safari are emphasized more.
 - Answers regarding today's CT log ecosystem can be found in Appendix A.
-- The threat model is motivated better, as requested by the meta review.
+- The intended attacker is motivated better (§1.1, §3).
 
 3.3.  Review#C
 
@@ -130,10 +147,11 @@ Detailed comments:
 provided an advantage to the attacker while attempting to flush.  We cited
 prior work that also used delete-at-random, probably due to similar reasons.
 
-4. Disagreements
+4.  Disagreements
 
-None
+We believe that our updated performance analysis proves the point we are trying
+to make: CTor's overhead is acceptable.  Therefore, there is no simulation.
 
-5. Other changes
+5.  Other changes
 
 Minor edits, none of which need to be mentioned here.
