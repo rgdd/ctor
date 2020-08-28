@@ -1,10 +1,12 @@
 \section{Background} \label{sec:background}
+The theory and current practise of CT is introduced first, then Tor
+and its privacy-preserving Tor Browser.
 
 \subsection{Certificate Transparency} \label{sec:background:ct}
 The idea to transparently log TLS certificates emerged at Google in response to
 a lack of proposals that could be deployed without drastic ecosystem changes
 and/or significant downsides~\cite{ct/a}.  By making the set of issued
-certificate chains\footnote{
+certificate chains\footnote{%
 	A domain owner's certificate is signed by an intermediate CA, whose
 	certificate is in turned signed by a root CA that acts as a trust
 	anchor~\cite{ca-ecosystem}.  Such a \emph{certificate chain} is valid if it
@@ -28,10 +30,8 @@ premise of pairwise-independently trusted logs, which
 avoids the risk of bad user experience~\cite{does-ct-break-the-web}
 and significant system complexity.  For example, web pages are unlikely to
 break, TLS handshake latency stays about the same, and no robust management of
-suspected log misbehavior is needed.  It should be noted that the latter remains
-the case with CTor's cross-logging because all certificates are treated the
-same, in part motivating why it is an appealing first step before attempting to
-eliminate all trust in CT logs.
+suspected log misbehavior is needed.  Retaining the latter property as part of
+our incremental designs simplifies deployment.
 
 \subsubsection{Cryptographic Foundation}
 The operator of a CT log maintains a tamper-evident append-only Merkle
@@ -45,7 +45,7 @@ Given two tree sizes, a log can produce a \emph{consistency proof} that proves
 the newer tree head entails everything that the older tree head does.  As such,
 anyone can verify that the log is append-only without downloading all entries
 and recomputing the tree head.  Membership of an entry can also be proven
-by producing an \emph{inclusion proof} for an STH\@.  These proof techniques are
+by producing an \emph{inclusion proof} for an STH.  These proof techniques are
 formally verified~\cite{secure-logging-and-ct}.
 
 Upon a valid request, a log must add an entry and produce a new STH that covers
@@ -65,16 +65,13 @@ to check the log's accepted trust anchors and added certificates, as well as
 to obtain the most recent STH and to fetch proofs~\cite{ct,ct/bis}.  For
 example, the \texttt{add-chain} endpoint returns an SCT if the added certificate
 chain ends in a trust anchor returned by the \texttt{get-roots} endpoint.  We
-use the \texttt{add-chain} endpoint in Section~\ref{sec:base}, and the
-\texttt{get-proof-by-hash} as well as the \texttt{get-sth} endpoints in
-Section~\ref{sec:auditor}.  
-{\bf \color{red} This is not explicitly referred to anywhere later in
-  the paper.}\\
-The \texttt{get-proof-by-hash} endpoint takes as
-input a leaf certificate hash and an STH's tree size, which indicates the tree
-head that the log should base its inclusion proof on.  The proof is valid if it
-can be used in combination with the certificate to reconstruct the tree head of
-some STH\@.
+use \texttt{add-chain} in Section~\ref{sec:incremental}, as well as several
+other endpoints in Section~\ref{sec:base} to fetch proofs and STHs.  It might be
+helpful to know that an inclusion proof is fetched based on two parameters: a
+certificte hash and the tree size of an STH.  The former specifies the log entry
+of interest, and the latter with regards to which view inclusion should be
+proven.  The returned proof is valid if it can be used in combined with the
+certificate to reconstruct the STH's tree head.
 
 The CT landscape provides limited value unless it is verified that the logs
 play by the rules.  The rules are influenced by the major browser vendors that
@@ -85,9 +82,7 @@ require that a certificate chain must be accompanied by two independent
 SCTs~\cite{chrome-policy,safari-policy}, where independence refers to the
 associated log operators.  While there are several ways that a log can misbehave
 with regards to these policy aspects, the most fundamental forms of cheating are
-omission and split-view attacks.
-{\bf \color{red} Redundant with the first paragraph of Section~\ref{sec:background:ct}. Consolidate? Or accept that a little redundancy reinforces reader understanding?}\\
-A party that follows-up on inclusion and
+omission and split-view attacks.  A party that follows-up on inclusion and
 consistency proofs is said to \emph{audit} the logs.
 
 Widespread client-side auditing is a premise for CT logs to be untrusted, but
@@ -99,9 +94,6 @@ Found log incidents are mostly reported manually to the CT policy mailing list.
 This is in contrast to automated \emph{CT monitors}, which notify domain owners
 of newly issued certificates based on what actually appeared in the public
 logs~\cite{lwm,ct-monitors}.
-
-%CT also assumes that domain owners \emph{monitor} the logs for mis-issuance by
-%inspecting the added certificates~\cite{lwm,ct-monitors}.
 
 \subsection{Tor} \label{sec:background:tor}
 
@@ -158,4 +150,4 @@ number of Tor clients
 able to, for example, flood individual relays to detect traffic signatures of
 honest traffic on a given circuit~\cite{long-paths}. Also, the adversary can
 knock any small number of relays offline via either attacks from clients or
-direct Internet DDoS\@. 
+direct Internet DDoS. 
