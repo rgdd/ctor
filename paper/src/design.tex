@@ -1,18 +1,18 @@
 \section{Design} \label{sec:base}
 
 A complete design---a design that detects misbehavior by both CAs and CT logs
-within our strong threat model---necessitates a considerable degree of
+within our strong threat model---requires a considerable degree of
 complexity. In this section, we present such a full design by breaking it up
 into four phases as shown in Figure~\ref{fig:design}, demonstrating the need for
-the complexity in each step. Later, Section~\ref{sec:incremental} presents two
-incremental versions of the full design that are less complicated but at the
-cost of either only achieving a weaker security goal or by having a weaker
-threat model.
+the involved complexity in each step.  Later on, Section~\ref{sec:incremental}
+presents two incremental versions of the full design that are less complicated
+but which comes at the cost of having a weaker threat model and security goal
+unless an additional CT log API is added.
 
-A too simple design is one that only validates SCTs, which is how CT in Google
-Chrome and other browsers is currently deployed. However, such a design does not
-stand up against a malicious CA and logs working in concert; \emph{auditing} of
-the SCTs is needed.
+A design that starts by validating SCT signatures like Apple's Safari is
+promising and assumed, but it does not stand up against a malicious CA and two
+CT logs that work in concert.  If the logs cannot be trusted blindly, the
+presented SCTs need to be audited further.
 
 \begin{figure*}
     \centering
@@ -42,10 +42,12 @@ An immediate problem with this design is that a primary requirement of Tor
 Browser is to persist no data about browsing behavior after the application
 exits. If we assume that browsers are not left running for long periods of time,
 the inclusion proof request can be easily circumvented by the attacker by using
-a fresh SCT whose MMD has not completed---thus no inclusion proof can be
-provided by the log as per the CT standard. A second problem is that the STH
-returned from any inclusion proof exists in a \emph{trust vacuum}: there is no
-way to know that it is consistent with other STHs and not part of a split view.
+a fresh SCT whose MMD has not completed---thus no inclusion proof needs to be
+provided (yet) by the log as per the CT standard. A second problem is that the
+STH that an inclusion proof refers to exists in a \emph{trust vacuum}:
+	there is no way to know that it is consistent with other STHs and not part
+	of a split view (assuming that there is no proactive STH
+	gossip~\cite{syta,dahlberg}, which is not deployed).
 
 We can evolve the design by adding two components: a list of STHs that Tor
 Browser receives over a trusted channel and the participation of a trusted third
@@ -163,11 +165,12 @@ with regards to an STH\@.  As such, we discard SCTs that cannot be verified due
 to lack of a trusted STH\@.  The sampled CT log $l$ now refers to an entity that
 issued an SCT in the submitted SFO, and it will be challenged to prove inclusion
 in phase~3 sometime after the \texttt{audit\_after} timestamp $t$ elapsed. We
-can choose one SCT (and therefore log) at random from the SFO, because it is
-sufficient to catch only one misbehaving log so long as we report the entire
-SFO, allowing for other malicious logs to be identified. (If one log is
-malicious and others are honest; the honest logs will have ensured publication
-of the malicious certificate.)
+can choose one SCT (and therefore log) at random from the SFO because it is
+sufficient to suspect only one misbehaving log so long as we report the entire
+SFO, allowing for other malicious logs to be identified later on (a risk
+averse-attacker would not conduct an attack without controlling all necessary
+logs, i.e., one benign log would else ensure public disclosure of the mis-issued
+certificate).
 
 \begin{figure}
 	\centering
@@ -226,12 +229,12 @@ CTR is the one fetching proofs significantly increases. The log can repeat this
 process---alternating tagged CTRs it replies to---until it receives the
 offending SFO from a CTR with higher probability than others. This might result
 in many CTRs reporting the log as inaccessible for days, but that is not the
-same as direct evidence of misbehavior.
+same as direct cryptographic evidence of misbehavior.
 
 While there are ways to detect this attack after-the-fact, and there may be ways
 to mitigate it, a more robust design would tolerate the disclosure of a CTRs
 identity to the log during the auditing phase without significant security
-implications.  Aa simple appealing approach is to write the data to disk prior
+implications.  A simple appealing approach is to write the data to disk prior
 to contacting the log; however, Tor relays are explicitly designed not to write
 data about user behavior to disk unless debug-level logging is enabled. Relay
 operators have expressed an explicit desire to never have any user data

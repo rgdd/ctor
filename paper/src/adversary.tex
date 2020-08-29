@@ -9,14 +9,15 @@ However, it is not difficult to perform an attack on all or a subset of unknown
 users of a particular service. A network vantage point to perform such an attack
 is easily obtained by operating an exit relay (for a subset of Tor users) or by
 compromising the network path of multiple exit relays or the final destination.
-Once so positioned, the network traffic can be intercepted (with associated
-forged certificate and SCTs). The subsequent attack on decrypted network traffic
+Once so positioned, the encrypted network traffic can be intercepted using a
+fraudulent certificate and associated SCTs.  The subsequent attack on decrypted
+network traffic
 may be passive (to gather user credentials or other information) or active.
 Typical examples of active attacks are to change cryptocurrency addresses to
 redirect funds to the attacker or to serve an exploit to the user's browser for
-\emph{user deanomymization}. Without the ability to intercept traffic (i.e.,
-forge certificates and SCTs without detection), all of these attacks become more
-difficult as the web moves further towards deprecating plaintext HTTP.
+\emph{user deanomymization}. Without the ability to intercept encrypted traffic,
+these attacks become more difficult as the web moves towards deprecating
+plaintext HTTP.
 
 All of the components of such an attack have been seen in-the-wild
 numerous times. Untargeted attacks on visitors of a particular website
@@ -39,7 +40,7 @@ enforcement serving exploits to Tor Browser users to de-anonymize and
 subsequently arrest individuals~\cite{forbes-fbi-tor,doj-fbi-tor}.
 
 With
-the attacker's goal in mind, we consider someone that controls
+the attacker's profile in mind, we consider someone that controls
 	a CA,
 	enough CT logs to pass Tor Browser's SCT-centric CT policy, 
 	some Tor clients, and
@@ -52,20 +53,18 @@ For example, it is possible to
 		and
 	be partially present in the network.
 This includes a weaker attacker that does not \emph{control} CAs and CT logs,
-but, who \emph{gained access} to the relevant signing keys~\cite{turktrust,%
+but who \emph{gained access} to the relevant signing keys~\cite{turktrust,%
 gdca1-omission}.  A modest fraction of CTor entities can be subject to DoS, but
 not everyone at once and all the time.  In other words, we consider the threat
 model of Tor and Tor Browser as a starting point~\cite{tor,tor-browser}.  Any
 attacker that can reliably disrupt CT and/or Tor well beyond Tor's threat
-model is therefore not within our threat model either.
-% TODO: not sure if we need to emph "it assumed that the attacker knows all Tor
-% relay configurations, e.g., available memory and setup of torlog". now (?).
+model is therefore not within ours.
 
 %
 % Attacker goal and mindset
 %
 Given that we are in the business of enforcing CT, the attacker needs to hide
-mis-issued TLS certificates and SCTs from entities that audit the CT landscape.
+mis-issued certificates and SCTs from entities that audit the CT log ecosystem.
 As described in Section~\ref{sec:background:ct}, this can either be achieved by
 omission or split-view attacks.  Our intended attacker is clearly powerful and
 may successfully issue a certificate chain and associated SCTs without detection
@@ -80,6 +79,6 @@ certificate mis-issuance \emph{after the fact}; not prevent it~\cite{ct/a}.
 % Defer introducing threats that follow from design details
 %
 We identify and analyze specific attack vectors that follow from our threat
-model and design in the security analysis in Section~\ref{sec:analysis:pr}.
-Namely, attack vectors related to timing, Tor relay flooding, and tagging.
-        
+model and design in the security analysis in Section~\ref{sec:analysis:pr}:
+attack vectors related to timing (zero-days), Tor relay flooding, and Tor relay
+tagging.
