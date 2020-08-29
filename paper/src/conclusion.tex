@@ -1,39 +1,53 @@
 \section{Conclusion} \label{sec:conclusion} 
+We proposed CTor, a privacy-preserving and incrementally-deployable design that
+brings CT to Tor.  Tor Browser should start by taking the same proactive
+security measures as Google Chrome and Apple's Safari:
+	require that a certificate is only valid if accompanied by two
+	independent SCTs.
+Such CT enforcement narrows down the attack surface from the weakest-link
+security of the CA ecosystem to a relatively small number of trusted log
+operators \emph{without negatively impacting the user experience to an
+unacceptable degree}.  The problem is that a powerful attacker may gain control
+of the required logs, trivially circumventing enforcement without significant
+risk of exposure.  If deployed incrementally, CTor relaxes the currently
+deployed trust assumption by distributing it across all CT logs.  If the full
+design is put into operation, such trust is completely eliminated.
 
-We have proposed CTor, privacy-preserving and incrementally-deployable support
-for CT in Tor.  Our design is composed of a base that discloses mis-issued
-certificates to public scrutiny by using the CT landscape against the attacker,
-and two orthogonal extensions that additionally catch misbehaving CT logs.  The
-use of Tor relays that cache Tor Browser-observed SFOs and add random auditing delays is
-central within our setting, for both privacy and security.  Our analysis shows
-that the attacker's best bet to break the base design and the following log
-extension is to control and/or DoS a large majority of the entire CTor system,
-or, access a reliable Tor Browser zero-day that escalates privileges within a tiny time
-window.  Our auditor extension does not rely on trust in the CT landscape, but
-at the cost of making flooding attacks that flush the network practical.
-Network-wide flushes are trivially detectable but not necessarily attributable.
+CTor repurposes Tor relays to ensure that today's trust in CT logs is not
+misplaced:
+	Tor Browser probabilistically submits the encountered certificates and SCTs
+	to Tor relays, which
+		cross-log them into independent CT logs (incremental design)
+		or request inclusion proofs with regards to a single fixed view
+			(full design).
+It turns out that delegating verification to a party that can defer it
+is paramount in our setting, both for privacy and security.  Tor and the wider
+web would greatly benefit from each design increment.  The full design turns Tor
+into a
+system for maintaining a probabilistically-verified view of the entire CT log
+ecosystem, provided in Tor's consensus for anyone to use as a basis of trust.
+The idea to cross-log certificates and SCTs further showcase how certificate
+mis-issuance and suspected log misbehavior could be disclosed casually without
+any manual intervention by using the log ecosystem against the attacker.
+%
+% TODO: I liked 'Our base design lets Tor play a vital role in CT's overall goal
+% of detecting-certificate mis-issuance', but kinda failed to incorporate it.
+%
 
-Mitigation of network-wide attacks take us outside of Tor's threat model and
-therefore outside of ours too.  That said, we cannot ignore such attacks given
-the strong attacker we consider, namely, one that controls a trusted CA and
-CT logs.  To this end, CTor is designed so that Tor can \emph{adapt} in response
-to interference.  For example, in Tor Browser the \texttt{ct-max-sfo-bytes} could
-reactively be set such that all SFOs must be sent to a CTR before accepting any
-HTTPS application-layer data to counter zero-days, and the submit probability
-\texttt{ct-submit-pr} could be increased if ongoing attacks are suspected.  When
-it comes to the storage phase, the consensus can minimize or maximize the
-storage time by tuning a log's MMD in the \texttt{ct-log-info} item, as well as
-by updating the distributions that add random auditing delays.  
-The behavior of the
-auditing phase can also be tuned, e.g., by updating log operator relationships.
-
-Our base design lets Tor play a vital role in CT's overall goal of detecting
-certificate mis-issuance.  It also exemplifies a new style of auditing, where
-certificate chains are cross-logged rather verified for inclusion.  The extended
-versions of CTor involves increased deployment burdens, either within Tor or the
-CT landscape.  The wider web could greatly benefit from both, however.  The log
-extension provides a single coherent place to report suspected log misbehavior,
-making it similar to a well-known auditor.  The auditor extension turns Tor into
-a system for maintaining a probabilistically-verified view of the entire CT
-landscape, provided in Tor's consensus for anyone to use as a basis of trust on
-the wider web.
+The attacker's best bet to break CTor involves any of the following:
+	operating significant parts of the CTor infrastructure,
+	spending a reliable Tor Browser zero-day that escalates privileges within a
+		tiny time window, or
+	targeting all Tor relays in an attempt to delete any evidence of certificate
+		mis-issuance and log misbehavior.
+The latter---a so-called network-wide flush---brings us to the boarder of our
+threat model, but it cannot be ignored due to the powerful attacker that we
+consider.  Therefore, CTor is designed so that Tor can \emph{adapt} in response
+to interference.  For example, in Tor Browser the \texttt{ct-large-sfo-size}
+could be set reactively such that all SFOs must be sent to a CTR before
+accepting any HTTPS application-layer data to counter zero-days, and the submit
+probability \texttt{ct-submit-pr} could be increased if ongoing attacks are
+suspected.  When it comes to the storage phase, the consensus can minimize or
+maximize the storage time by tuning a log's MMD in the \texttt{ct-log-info}
+item.  The distribution that adds random buffering delays could also be updated,
+as well as log operator relationships during the auditing phase.
