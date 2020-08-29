@@ -192,17 +192,18 @@ certificate).
 The \texttt{audit\_after} timestamp specifies the earliest point in time that an
 SCT from an SFO will be audited in phase~3, which adds random noise that
 obfuscates real-time browsing patterns in the Tor network and complicates
-predictions of when it is safe to assume no audit will take place.
-Figure~\ref{fig:audit-after} shows that $t$ takes the log's MMD into account.
-This prevents an \emph{early signal} to the issuing CT logs that an SFO is being
-audited.  For example, if an SFO is audited before the MMD elapsed, then the
-issuing CT log could simply merge the underlying certificate chain to avoid any
-MMD violation. However, by taking the MMD into account, this results in a
-relatively large time window during which the attacker can attempt to
-\emph{flood} all CTRs in hope that they delete the omitted SFO at random before
-it is audited. We discuss the threat of flooding further in
-Section~\ref{sec:analysis:pr:phase2}, noting that such an attack can be
-detected if CTRs publish two new metrics in the extra-info document:
+predictions of when it is safe to assume no audit will take place. If memory
+becomes a scarce resource, pending triplets should be deleted at
+random~\cite{nordberg}. Figure~\ref{fig:audit-after} shows that $t$ takes the
+log's MMD into account. This prevents an \emph{early signal} to the issuing CT
+logs that an SFO is being audited.  For example, if an SFO is audited before the
+MMD elapsed, then the issuing CT log could simply merge the underlying
+certificate chain to avoid any MMD violation. However, by taking the MMD into
+account, this results in a relatively large time window during which the
+attacker can attempt to \emph{flood} all CTRs in hope that they delete the
+omitted SFO at random before it is audited. We discuss the threat of flooding
+further in Section~\ref{sec:analysis:pr:phase2}, noting that such an attack can
+be detected if CTRs publish two new metrics in the extra-info document:
 \texttt{ct-receive-bytes} and \texttt{ct-delete-bytes}. These metrics indicate
 how many SFO bytes were received and deleted throughout different time
 intervals, which is similar to other extra-info metrics such as
