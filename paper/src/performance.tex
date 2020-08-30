@@ -78,9 +78,8 @@ $Vp\bar{d}$ is the average number of SFO submissions per time unit, which can be
 converted to bandwidth by weighting each submission with the size of
 a typical SFO and accounting for it being relayed six times:
 	three hops from Tor Browser to a CTR, then
-	another three hops from the CTR to a CT log.\footnote{%
-		Assuming that a Tor relay's available bandwidth is symmetric.
-	}
+	another three hops from the CTR to a CT log
+	(we assumed symmetric Tor relay bandwidth).
 Using
 	$V\gets 140\textrm{~M/day}$,
 	$p \gets \frac{1}{10}$,
@@ -117,15 +116,13 @@ recommended relay configuration:
 
 A cache of processed SFOs reduces the CTR's buffering memory and log
 interactions proportionally to the cache hit ratio.  Mani~\emph{et al.} showed
-that about one third of all website visits over Tor can be attributed to Alexa's
-top-1k, and another one third to the top-1M~\cite{mani}.\footnote{%
-	Assuming the overrepresented
-	\texttt{torproject.org} is removed.
-} If we assume 32~byte cryptographic hashes and seven SFOs per website visit,
-a cache hit ratio of $\frac{1}{3}$ could be achieved by a 256~KiB LFU/LRU cache
-that eventually captures Alexa's top-1k.  Given that the cache requires
-memory as well, this is best viewed as a bandwidth optimization that also
-reduces information leakage to the logs.
+that if the overrepresented \texttt{torproject.org} is removed, about one third
+of all website visits over Tor can be attributed to Alexa's top-1k and another
+one third to the top-1M~\cite{mani}.
+Assuming 32~byte cryptographic hashes and seven SFOs per website visit, a cache
+hit ratio of $\frac{1}{3}$ could be achieved by a 256~KiB LFU/LRU cache that
+eventually captures Alexa's top-1k.  Given that the cache requires memory as
+well, this is mainly a bandwidth optimization.
 
 \textbf{Full design.}
 For each CTR and CT log pair, there is an additional watchdog circuit that

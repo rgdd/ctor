@@ -219,21 +219,21 @@ knows which CTR holds the evidence of its misbehavior, it can take the CTR
 offline, wiping the evidence of the log's misbehavior from its memory. 
 
 We can address this concern in a few ways. The simple proposal of contacting the
-log over a Tor circuit will not suffice---a log can tag each CTR by submitting
-unique SFOs to them all, and recognize the CTR when they are submitted (see
-Section~\ref{sec:analysis:pr:phase3}). Even using a unique Tor circuit for each
-SFO might not suffice to prevent effective tagging attacks. For example, after
-tagging all CTRs, a malicious log could ignore all but innocuous untagged
-requests and tagged requests matching tags for whichever CTR it decides to
-respond to first. If exponential backoff\footnote{A common approach for delaying
-retransmissions, often for the sake of avoiding congestion or unnecessary load.}
-is supported, the rest of the CTRs will backoff repeated attempts to fetch a
-proof while the probability that the first CTR is the one fetching proofs
-significantly increases. The log can repeat this process---alternating tagged
-CTRs it replies to---until it receives the offending SFO from a CTR with higher
-probability than others. This might result in many CTRs reporting the log as
-inaccessible for days, but that is not the same as direct cryptographic evidence
-of misbehavior.
+log over a Tor circuit will not suffice:
+	a log can tag each CTR by submitting unique SFOs to them all, and
+	recognize the CTR when they are submitted (see
+	Section~\ref{sec:analysis:pr:phase3}).
+Even using a unique Tor circuit for each SFO might not suffice to prevent
+effective tagging attacks. For example, after tagging all CTRs, a malicious log
+could ignore all but innocuous untagged requests and tagged requests matching
+tags for whichever CTR it decides to respond to first. If some kind of
+back-off is supported (common to delay retransmissions and avoid congestion),
+the rest of the CTRs will likely be in back-off so that there is a high
+probability that the first CTR is the one fetching proofs.  The log can repeat
+this process---alternating tagged CTRs it replies to---until it receives the
+offending SFO from an identifiable CTR with high probability.  CTRs may report
+the log as inaccessible for days, but that is not the same as direct
+cryptographic evidence of misbehavior.
 
 While there are ways to detect this attack after-the-fact, and there may be ways
 to mitigate it, a more robust design would tolerate the disclosure of a CTRs
@@ -252,9 +252,9 @@ the SFO it is about to audit. After an appropriate response from the log, the
 CTR tells the watchdog that SFO has been adequately addressed.
 
 In more detail, each CTR maintains a single shared circuit that is used to
-interact with all CT logs known to the CTR\@. (We are not using one circuit per
-SFO given the overhead and the unclear security benefit noted above.) For
-\emph{each} such CT log $l$, the CTR runs the following steps indefinitely:
+interact with all CT logs known to the CTR (we are not using one circuit per
+SFO given the overhead and unclear security benefit noted above). For
+\emph{each} such log $l$, the CTR runs the following steps: %indefinitely:
 \begin{enumerate}
     \item\label{enm:auditing:backoff} Sample a delay $d \gets
         \mathsf{random}(\texttt{ct-backoff-dist})$ and wait until $d$ time units
@@ -267,11 +267,10 @@ SFO given the overhead and the unclear security benefit noted above.) For
 				watchdog.
 			\item\label{enm:ext:auditing:challenge} Challenge the log to prove
                                   inclusion to the closest STH in the Tor
-                                  consensus where $t$ $\leq$
-                                  STH\texttt{.timestamp}. Wait at most
-                                  \texttt{ct-log-timeout} time units for the
-                                  complete proof to be delivered before timing
-                                  out.
+								  consensus where $t$ $\leq$
+								  STH\texttt{.timestamp}. Wait
+								  \texttt{ct-log-timeout} time units for the
+								  complete proof before timing out.
 				\begin{itemize}
 					\item\label{enm:ext:auditing:challenge:success} On valid
 						proof: send an acknowledgment to the watchdog, cache $s$
