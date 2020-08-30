@@ -93,9 +93,10 @@ Section~\ref{sec:performance}.
 
 We summarize this phase with the following algorithm that provides more explicit
 steps and details, and adds a parameter \texttt{ct-submit-pr} that indicates a
-probability that an SFO is submitted to a CTR---this provides probabilistic
+probability that an SFO is submitted to a CTR. This provides probabilistic
 security while providing the ability to adjust submission rates to account for
-CTR scaling issues. Given an incoming SFO $s$, Tor Browser should:
+CTR and more general network scaling/health issues. Given an incoming SFO $s$,
+Tor Browser should:
 \begin{enumerate}
     \item Raise a certificate error and stop if the certificate chain of $s$
         is not rooted in Tor Browser's trust store.
@@ -224,13 +225,15 @@ Section~\ref{sec:analysis:pr:phase3}). Even using a unique Tor circuit for each
 SFO might not suffice to prevent effective tagging attacks. For example, after
 tagging all CTRs, a malicious log could ignore all but innocuous untagged
 requests and tagged requests matching tags for whichever CTR it decides to
-respond to first. If exponential backoff is supported, the rest of the CTRs will
-backoff repeated attempts to fetch a proof while the probability that the first
-CTR is the one fetching proofs significantly increases. The log can repeat this
-process---alternating tagged CTRs it replies to---until it receives the
-offending SFO from a CTR with higher probability than others. This might result
-in many CTRs reporting the log as inaccessible for days, but that is not the
-same as direct cryptographic evidence of misbehavior.
+respond to first. If exponential backoff\footnote{A common approach for delaying
+retransmissions, often for the sake of avoiding congestion or unnecessary load.}
+is supported, the rest of the CTRs will backoff repeated attempts to fetch a
+proof while the probability that the first CTR is the one fetching proofs
+significantly increases. The log can repeat this process---alternating tagged
+CTRs it replies to---until it receives the offending SFO from a CTR with higher
+probability than others. This might result in many CTRs reporting the log as
+inaccessible for days, but that is not the same as direct cryptographic evidence
+of misbehavior.
 
 While there are ways to detect this attack after-the-fact, and there may be ways
 to mitigate it, a more robust design would tolerate the disclosure of a CTRs
@@ -263,7 +266,9 @@ SFO given the overhead and the unclear security benefit noted above.) For
 			\item\label{enm:ext:auditing:watchdog} Share $s$ with the current
 				watchdog.
 			\item\label{enm:ext:auditing:challenge} Challenge the log to prove
-                                  inclusion to a known STH, waiting at most
+                                  inclusion to the closest STH in the Tor
+                                  consensus where $t$ $\leq$
+                                  STH\texttt{.timestamp}. Wait at most
                                   \texttt{ct-log-timeout} time units for the
                                   complete proof to be delivered before timing
                                   out.
@@ -321,29 +326,29 @@ over a Tor circuit.\footnote{%
 the same auditor over a new circuit after some back-off delay.
 
 When an auditor receives an SFO, it should persist it to durable storage until
-it can be successfully resolved to a trusted STH.\footnote{%
-	A practical detail is that the inclusion proof should be fetched against the
-	first known STH that must have incorporated the certificate in question.
-	For example, the mis-issued certificate might have been merged into the log
-	reactively despite there being an MMD violation (upon learning that a CTR
-	reported the SFO), such that a valid inclusion proof can be returned with
-	regards to a more recent STH but not earlier ones that captured the log's
-	misbehavior.
-}  Once so persisted, the
-auditor can begin querying the log itself asking for an inclusion proof. If no
-valid inclusion proof can be provided after some threshold of time, the auditor
-software should raise the details to a human operator for investigation.
+it can be successfully resolved to a specific STH.\footnote{%
+	The fetched inclusion proof should be fetched against the first known STH
+	that must have incorporated the certificate in question (a single history of
+	STHs is available in the Tor consensus):
+		the mis-issued certificate might have been merged into the log
+		reactively despite there being an MMD violation (upon learning that a
+			CTR reported the SFO),
+	such that a valid inclusion proof can be returned with regards to a more
+	recent STH but not earlier ones that captured the log's misbehavior.
+}  Once so persisted, the auditor can begin querying the log itself asking for
+an inclusion proof. If no valid inclusion proof can be provided after some
+threshold of time, the auditor software should raise the details to a human
+operator for investigation.
 
 Separately, the auditor should be retrieving the current Tor consensus and
 ensuring that a consistency proof can be provided between STHs from the older
-consensus and the newer.
-If consistency cannot be established after some threshold of time,
-the auditor software should raise the details to a human operator for
-investigation. An auditor could also monitor a log's uptime and report on
-excessive downtime. Finally, it is paramount that the auditor continuously
-monitors its own availability from fresh Tor-circuits by submitting known SFOs
-to itself to ensure that an attacker is not keeping watchdogs from connecting to
-it.
+consensus and the newer. If consistency cannot be established after some
+threshold of time, the auditor software should raise the details to a human
+operator for investigation. An auditor could also monitor a log's uptime and
+report on excessive downtime. Finally, it is paramount that the auditor
+continuously monitors its own availability from fresh Tor-circuits by submitting
+known SFOs to itself to ensure that an attacker is not keeping watchdogs from
+connecting to it.
 
 \subsection{Setup} \label{sec:base:consensus}
 

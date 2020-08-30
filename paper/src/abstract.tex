@@ -4,8 +4,8 @@ web browsers accordingly moved from positive to negative security indicators
 that warn the user if a connection is insecure.  A secure connection requires
 that the server presents a valid certificate that binds the domain name in
 question to a public key.  A certificate used to be valid if signed by a trusted
-Certificate Authority (CA), but modern web browsers like Google Chrome and
-Apple's Safari additionally started to mandate Certificate Transparency (CT)
+Certificate Authority (CA), but web browsers like Google Chrome and
+Apple's Safari have additionally started to mandate Certificate Transparency (CT)
 logging to overcome the weakest-link security of the CA ecosystem.  Tor and the
 Firefox-based Tor Browser have yet to enforce CT.
 
@@ -26,5 +26,4 @@ Given that the current CT deployment lacks strong mechanisms to verify if log
 operators play by the rules, exposing misbehavior is important for the web in
 general and not just Tor.  The full design turns Tor into a system for
 maintaining a probabilistically-verified view of the CT log ecosystem available
-from Tor's consensus.  Each increment leading up to it preserves privacy due to
-and how we use Tor.
+from Tor's consensus. 
