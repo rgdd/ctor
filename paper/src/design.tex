@@ -266,7 +266,9 @@ SFO given the overhead and the unclear security benefit noted above.) For
 			\item\label{enm:ext:auditing:watchdog} Share $s$ with the current
 				watchdog.
 			\item\label{enm:ext:auditing:challenge} Challenge the log to prove
-                                  inclusion to a known STH, waiting at most
+                                  inclusion to the closest STH in the Tor
+                                  consensus where $t$ $\leq$
+                                  STH\texttt{.timestamp}. Wait at most
                                   \texttt{ct-log-timeout} time units for the
                                   complete proof to be delivered before timing
                                   out.
@@ -307,32 +309,32 @@ data exposure) for auditors. This should allow for a smaller number of them to
 operate without needing to scale with the network.
 
 While we consider all auditors trusted---the watchdog needs to take precautions
-talking to them because the network is not trusted\footnote{While our threat
-model, and Tor's, precludes a global network adversary, we both include partial
-network control within the threat model.}.  The watchdog can contact an auditor
-as soon as it receives an SFO it should report; however it must contact the
-auditor over a Tor circuit. If a successful acknowledgement from the auditor is
-not received within \texttt{ct-auditor-timeout}, the SFO is buffered and should
-be reported again to the same auditor over a new circuit, potentially with some
-modest backoff delay.
+talking to them because the network is not trusted (see
+Section~\ref{sec:adversary}).  The watchdog can contact an auditor as soon as it
+receives an SFO it should report; however it must contact the auditor over a Tor
+circuit. If a successful acknowledgement from the auditor is not received within
+\texttt{ct-auditor-timeout}, the SFO is buffered and should be reported again to
+the same auditor over a new circuit, potentially with some modest backoff delay.
 
 When an auditor receives an SFO, it should persist it to durable storage until
-it can be successfully resolved to a trusted STH\@. Once so persisted, the
-auditor can begin querying the log itself asking for an inclusion proof. If no
-inclusion proof can be provided after some threshold of time, or the inclusion
-proof shows evidence of a MMD violation, the auditor software should raise the
-details to a human operator for investigation.
+it can be successfully resolved to a specific STH\@. Once so persisted, the
+auditor can begin querying the log itself asking for an inclusion proof with
+regards to the \emph{first applicable STH} in the history the Tor consensus.
+This prevents an attacker from hiding a MMD violation by delaying the
+certificate inclusion (until the attacker knows if the SFO was selected for
+auditing or not).  If no inclusion proof can be provided after some threshold of
+time, or the inclusion proof shows evidence of a MMD violation, the auditor
+software should raise the details to a human operator for investigation.
 
 Separately, the auditor should be retrieving the current Tor consensus and
 ensuring that a consistency proof can be provided between STHs from the older
-consensus and the newer. If consistency can be established, the older STH can be
-discarded. If consistency cannot be established after some threshold of time,
-the auditor software should raise the details to a human operator for
-investigation. An auditor could also monitor a log's uptime and report on
-excessive downtime. Finally, it is paramount that the auditor continuously
-monitors its own availability from fresh Tor-circuits by submitting known SFOs
-to itself to ensure that an attacker is not keeping watchdogs from connecting to
-it.
+consensus and the newer. If consistency cannot be established after some
+threshold of time, the auditor software should raise the details to a human
+operator for investigation. An auditor could also monitor a log's uptime and
+report on excessive downtime. Finally, it is paramount that the auditor
+continuously monitors its own availability from fresh Tor-circuits by submitting
+known SFOs to itself to ensure that an attacker is not keeping watchdogs from
+connecting to it.
 
 \subsection{Setup} \label{sec:base:consensus}
 
