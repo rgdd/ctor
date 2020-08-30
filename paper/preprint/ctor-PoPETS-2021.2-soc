@@ -22,8 +22,8 @@ and other minor comments.  We present these revisions in detail subsequently.
 
 The first three sections of the paper capture additional details on CT and the
 intended attacker.  The order in which we present our work is then flipped,
-explaning the full design and how we engineered it step-by-step; followed by its
-security analysis.  This made it easier to justify the need for initial
+explaining the full design and how we engineered it step-by-step; followed by
+its security analysis.  This made it easier to justify the need for initial
 increments that can be rolled-out gradually, motivating cross-logging designs.
 Finally, the performance section received a refactor that clarifies the setup
 (public data sets and parameters) as well as the formulas used to compute our
