@@ -11,11 +11,11 @@ Below, the value of an item is computed as the median of all votes.
         Section~\ref{sec:base:phase1}, excessively large SFOs are subject to
         stricter verification criteria.
     \item[ct-log-timeout:] A natural number that determines how long a CTR waits
-        before concluding that a CT log is unresponsive, e.g., 10~seconds. As
+        before concluding that a CT log is unresponsive, e.g., 5~seconds. As
         outlined in Section~\ref{sec:base:phase3}, a timeout causes the watchdog
-        to send a SFO to the auditor.
+        to send an SFO to the auditor.
     \item[ct-delay-dist:] A distribution that determines how long a CTR should
-        wait at minimum before auditing a submitted SFO\@.  As outlined in
+        wait at minimum before auditing a submitted SFO.  As outlined in
         Section~\ref{sec:base:phase2}, random noise is added, e.g., on the order
         of minutes to an hour.
     \item[ct-backoff-dist:]
@@ -24,11 +24,11 @@ Below, the value of an item is computed as the median of all votes.
         Section~\ref{sec:base:phase3}, CTRs audit pending SFOs in batches at
         random time intervals to spread out log overhead.
     \item[ct-watchdog-timeout:] A natural number that determines how long time
-    at most a watchdog waits before considering a SFO for reporting. Prevents
+    at most a watchdog waits before considering an SFO for reporting. Prevents
     the watchdog from having to wait for a circuit timeout caused by an
     unresponsive CTR. Should be set with \texttt{ct-backoff-dist} in mind.
     \item[ct-auditor-timeout] A natural number that determines how long time at
-    most a watchdog waits for an auditor to acknowledge the submission of a SFO.
+    most a watchdog waits for an auditor to acknowledge the submission of an SFO.
 \end{description}
 
 \section{Log Operators \& Trust Anchors} \label{app:ct-trust-anchors}

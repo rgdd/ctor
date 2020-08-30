@@ -151,13 +151,13 @@ defenses are enabled at the cost of trade-offs.
 The full design involves many different components that add deployment burdens,
 such as the requirement of reliable CT auditors that investigate suspected log
 misbehavior further.  Therefore, we additionally propose two initial increments
-that place \emph{some trust in the CT log ecosystem}.  The first increment
-\emph{provides evidence to independent CT logs that fraudulent certificates were
-presented while preserving privacy}.  This greatly impacts risk-averse attackers
-because one part of their malicious behavior becomes transparent \emph{if the
-randomly selected log operator is benign}.  For example, the targeted domain
-name is disclosed as part of the cross-logged certificate, and awareness of the
-event draws unwanted attention.
+that place \emph{some trust in CT logs} (Section~\ref{sec:incremental}).  The
+first increment \emph{provides evidence to independent CT logs that fraudulent
+certificates were presented while preserving privacy}.  This greatly impacts
+risk-averse attackers because one part of their malicious behavior becomes
+transparent \emph{if the randomly selected log operator is benign}.  For
+example, the targeted domain name is disclosed as part of the cross-logged
+certificate, and awareness of the event draws unwanted attention.
 
 The next increment is minor from the perspective of Tor, but requires CT logs to
 support an additional API.  Similar changes were proposed in the context of CT

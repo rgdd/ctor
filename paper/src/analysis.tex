@@ -106,13 +106,12 @@ not within our threat model.  A less intrusive type of DoS would be to
 memory a scarce resource, but without making Tor unavailable. This could
 potentially \emph{flush} a target SFO from the CTR's finite memory, following
 from the delete-at-random strategy in Section~\ref{sec:base:phase2}. Assuming
-that a CTR has at most 1~GiB of memory available for SFOs (conservative in
+that a CTR has at most 1~GiB of memory available for SFOs (conservative and in
 favour of the attacker), Appendix~\ref{app:flush} shows that the attacker's
 flood must involve at least $2.3$~GiB per CTR to accomplish a 90\% success
 certainty.  This means that it takes $7.9$--$39.3$~minutes if the relay
 bandwidth is between 8--40~Mbps.  So it is impractical to flush all CTRs within
-a few minutes:
-	hours are needed not to make everyone unavailable at once.
+a few minutes, and hours are needed not to make everyone unavailable at once.
 
 The CTR criteria set in Section~\ref{sec:base:consensus} matches over
 4000 Tor relays~\cite{relay-by-flag}.  A network-wide flush that succeeds with

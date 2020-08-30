@@ -3,8 +3,8 @@ There is an inherent privacy problem in the setting due to how CT is designed
 and deployed. A browser, like Tor Browser, that wishes to validate that SFOs presented to
 it are \emph{consistent} and \emph{included} in CT logs must directly or
 indirectly interact with CT logs wrt. its observed SFOs. Without protections
-like Private Information Retrieval~\cite{PIR} that require server-side support
-or introduction of additional parties and trust
+like Private Information Retrieval (PIR)~\cite{PIR} that require server-side
+support or introduction of additional parties and trust
 assumptions~\cite{lueks-and-goldberg,kales}, exposing SFOs to any party risks
 leaking (partial) information about the browsing activities of the user.
 
@@ -24,7 +24,7 @@ cache, Tor Browser's security and privacy goals
 state.
 
 In terms of privacy, the main limitation of CTor is that CTor continuously leaks
-to CT logs---and to a \emph{lesser extent} auditors (depending on design)--a
+to CT logs---and to a \emph{lesser extent} auditors (depending on design)---a
 fraction of certificates of websites visited using Tor Browser to those that
 operate CT logs. This provides to a CT log a partial list of websites visited
 via the Tor network over a period of time (determined by
