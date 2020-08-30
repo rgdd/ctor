@@ -281,49 +281,63 @@ SFO given the overhead and the unclear security benefit noted above.) For
 \subsection{Phase 4: Reporting}
 
 At any given time, a CTR may be requesting inclusion proofs from logs and act as
-a watchdog for one or more other CTRs. A CTR acting as a watchdog will have at
+a watchdog for one or more CTRs. A CTR acting as a watchdog will have at
 most one SFO held temporarily for each other CTR it is interacting with. If an
 acknowledgement from the other CTR is not received within
 \texttt{ct-watchdog-timeout}, it becomes the watchdog's responsibility to report
-the SFO for human review. In such a case, the watchdog immediately closes the
-circuit to the CTR. This end-stage process that begins with the watchdog's
-receipt of a suspicious SFO and culminates in human review is referred to as
-auditing, and left mostly-unspecified.
+the SFO such that it culminates in human review if need be.
 
-Because human review and publication\footnote{Most likely on the ct-policy group
-at \url{https://groups.google.com/a/chromium.org/forum/\#!forum/ct-policy}} is
-critical, we envision that the watchdog (which is a Tor relay that may not be
-closely monitored) provides the SFO to an independent auditor run by a human
-closely monitoring its operation. When arriving at the design of the CTR being a
+%\footnote{%
+%	Most likely on the ct-policy group at
+%	\url{https://groups.google.com/a/chromium.org/forum/\#!forum/ct-policy}
+%}
+Because human review and publication is critical at this end-stage, we envision
+that the watchdog (which is a Tor relay that cannot persist any evidence to disk
+and may not be closely monitored by its operator) provides the SFO to an
+independent CT auditor that is run by someone that closely monitors its
+operation. When arriving at the design of the CTR being a
 role played by a Tor relay, we eschewed separate auditors because of the lack of
 automatic scaling with the Tor network, the considerable aggregation of browsing
 behavior across the Tor network, and the difficulties of curation and validation
 of trustworthy individuals. SFOs submitted to auditors at this stage have been
-filtered through the CTR layer, resulting in an exponentially smaller load (and
-data exposure) for auditors. This should allow for a smaller number of them to
-operate without needing to scale with the network.
+filtered through the CTR layer (that additionally backs-off if the logs become
+unavailable to prevent an open pipe of SFOs from being reported), resulting in
+an exponentially smaller load and data exposure for auditors. This should allow
+for a smaller number of them to operate without needing to scale with the
+network.
 
-While we consider all auditors trusted---the watchdog needs to take precautions
-talking to them because the network is not trusted\footnote{While our threat
-model, and Tor's, precludes a global network adversary, we both include partial
-network control within the threat model.}.  The watchdog can contact an auditor
-as soon as it receives an SFO it should report; however it must contact the
-auditor over a Tor circuit. If a successful acknowledgement from the auditor is
-not received within \texttt{ct-auditor-timeout}, the SFO is buffered and should
-be reported again to the same auditor over a new circuit, potentially with some
-modest backoff delay.
+While we assume that most auditors are trusted to actually investigate the
+reported SFOs further, the watchdog needs to take precautions talking to them
+because the network is not trusted.\footnote{%
+	While our threat model, and Tor's, precludes a global network adversary,
+	both include partial control of the network.
+}  The watchdog can contact an auditor
+as soon as it receives an SFO it should report; however, it must do so
+over a Tor circuit.\footnote{%
+	This is also important because CTRs are not necessarily exits, i.e., the
+	exiting traffic must be destined to another Tor relay.
+}  If a successful acknowledgement from the auditor is not received within
+\texttt{ct-auditor-timeout}, the SFO is buffered and should be reported again to
+the same auditor over a new circuit after some back-off delay.
 
 When an auditor receives an SFO, it should persist it to durable storage until
-it can be successfully resolved to a trusted STH\@. Once so persisted, the
+it can be successfully resolved to a trusted STH.\footnote{%
+	A practical detail is that the inclusion proof should be fetched against the
+	first known STH that must have incorporated the certificate in question.
+	For example, the mis-issued certificate might have been merged into the log
+	reactively despite there being an MMD violation (upon learning that a CTR
+	reported the SFO), such that a valid inclusion proof can be returned with
+	regards to a more recent STH but not earlier ones that captured the log's
+	misbehavior.
+}  Once so persisted, the
 auditor can begin querying the log itself asking for an inclusion proof. If no
-inclusion proof can be provided after some threshold of time, or the inclusion
-proof shows evidence of a MMD violation, the auditor software should raise the
-details to a human operator for investigation.
+valid inclusion proof can be provided after some threshold of time, the auditor
+software should raise the details to a human operator for investigation.
 
 Separately, the auditor should be retrieving the current Tor consensus and
 ensuring that a consistency proof can be provided between STHs from the older
-consensus and the newer. If consistency can be established, the older STH can be
-discarded. If consistency cannot be established after some threshold of time,
+consensus and the newer.
+If consistency cannot be established after some threshold of time,
 the auditor software should raise the details to a human operator for
 investigation. An auditor could also monitor a log's uptime and report on
 excessive downtime. Finally, it is paramount that the auditor continuously
