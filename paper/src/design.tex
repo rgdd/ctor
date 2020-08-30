@@ -93,9 +93,10 @@ Section~\ref{sec:performance}.
 
 We summarize this phase with the following algorithm that provides more explicit
 steps and details, and adds a parameter \texttt{ct-submit-pr} that indicates a
-probability that an SFO is submitted to a CTR---this provides probabilistic
+probability that an SFO is submitted to a CTR. This provides probabilistic
 security while providing the ability to adjust submission rates to account for
-CTR scaling issues. Given an incoming SFO $s$, Tor Browser should:
+CTR and more general network scaling/health issues. Given an incoming SFO $s$,
+Tor Browser should:
 \begin{enumerate}
     \item Raise a certificate error and stop if the certificate chain of $s$
         is not rooted in Tor Browser's trust store.
