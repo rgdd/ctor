@@ -110,8 +110,9 @@ that a CTR has at most 1~GiB of memory available for SFOs (conservative in
 favour of the attacker), Appendix~\ref{app:flush} shows that the attacker's
 flood must involve at least $2.3$~GiB per CTR to accomplish a 90\% success
 certainty.  This means that it takes $7.9$--$39.3$~minutes if the relay
-bandwidth is between 8 and 40~Mbps. So it is impractical to flush all CTRs
-within a few minutes, without making the CTR unavailable; hours are needed.
+bandwidth is between 8--40~Mbps.  So it is impractical to flush all CTRs within
+a few minutes:
+	hours are needed not to make everyone unavailable at once.
 
 The CTR criteria set in Section~\ref{sec:base:consensus} matches over
 4000 Tor relays~\cite{relay-by-flag}.  A network-wide flush that succeeds with
@@ -121,26 +122,20 @@ attack is within our threat model because it does not make Tor unavailable.
 Notably the ballpark of these numbers do not change to any significant degree by
 assuming larger success probabilities, e.g., a 99\% probability only doubles the
 overhead. Further, the needed bandwidth scales linearly with the assumed memory
-of CTRs.  This means that we cannot rely on the finite volatile memory of CTRs
+of CTRs.  This makes it difficult to rely on the finite volatile memory of CTRs
 to mitigate network-wide flushes.  As described in
-Section~\ref{sec:base:phase2}, we ensure \emph{detection} of a flush by
-publishing as part of extra-info the number of SFO bytes received and deleted
-throughout different time intervals.
+Section~\ref{sec:base:phase2}, we ensure that flushes are \emph{detected} by
+publishing the number of received and deleted SFO bytes throughout different
+time intervals as extra-info.
 
-Once detected, there are several possible \emph{reactions} to make future
-mis-issues SFOs more likely to be disclosed.  For example, Tor's directory
+Once detected, there are several possible \emph{reactions} that decrease the
+likelihood of a minor impact scenario.  For example, Tor's directory
 authorities could lower MMDs to, say, 30~minutes, so that the SFO is reported to
 an auditor before it is flushed with high probability.  This has the benefit of
 implying significant impact because the mis-issued certificate is detected, but
 also the drawback of allowing the logs to merge the certificate before there is
-any MMD violation to speak of. 
-
-% Removing this below since it involves changing the design:
-% Another option that avoids early signals to the
-% logs would be to toggle a flag in the Tor consensus, such that newly issued SFOs
-% are reported to the auditors directly (i.e., without a failed query).  What is
-% most appropriate is circumstantial and depends on which trade-offs one is
-% willing to accept. Therefore, we leave it at examples.
+any MMD violation to speak of.  The most appropriate response depends on the
+exact attack scenario and which trade-offs one is willing to accept.
 
 \subsubsection{Phase~3: Auditing} \label{sec:analysis:pr:phase3}
 By the time an SFO enters the audit phase, the log in question is expected to
@@ -172,17 +167,15 @@ within seconds} to cancel the watchdog, which cannot be identified later on
 threat model.
 
 \subsubsection{Phase~4: Reporting} \label{sec:analysis:pr:phase4} 
-
-As noted in Section~\ref{sec:analysis:pr:phase3}, the watchdog identity is not
-known by the attacker.  This initiates the process of reporting the SFO in
-question to a random CT auditor in the Tor consensus. Fixating the sampled CT
-auditor is important to avoid the threat of an eventually successful (re)report
-only if it is destined to the attacker's auditor.  Clearly, the probability of
-detection cannot exceed $1-f_{\mathsf{auditor}}$, where $f_{\mathsf{auditor}}$
-is the fraction of malicious CT auditors.  The attacker may attempt to
-(micro)DoS all CT auditors (not under its control) to gain time as the first
-report takes place at a deterministic point in time (after the timeout), but
-besides being outside of our threat model that would only result in
-(re)reporting later on \emph{to the same CT auditor}. Gaining time at this stage
-is of limited help because the CTR identity is unknown and network-wide attacks
-are already more likely to succeed in the buffering phase.
+At this stage the process of reporting the mis-issued SFO to a random CT auditor
+is initiated.  Clearly, the probability of detection cannot exceed
+$1-f_{\mathsf{auditor}}$, where $f_{\mathsf{auditor}}$ is the fraction of
+malicious CT auditors.  Fixating the sampled CT auditor is important to avoid
+the threat of an eventually successful report only if it is destined to the
+attacker's auditor because our attacker is partially present in the network.
+Gaining time at this stage is of limited help because the CTR identity is
+unknown as noted in Section~\ref{sec:analysis:pr:phase3}, and it remains the
+case throughout phase~4 due to reporting on independent Tor circuits (and
+independently of if other SFO reports succeeded or not).  Without an
+identifiable watchdog, the attacker needs a network-wide attack that is already
+more likely to succeed during the lengthy buffer phase.
