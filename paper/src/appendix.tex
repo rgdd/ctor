@@ -36,11 +36,11 @@ The standardized CT protocol suggests that a log's trust anchors should
 ``usefully be the union of root certificates trusted by major browser
 vendors''~\cite{ct,ct/bis}.  Apple further claims that a log in their CT program
 ``must trust all root CA certificates included in Apple's trust
-store''~\cite{apple-log-policy}.  This bodes well for CTor:
+store''~\cite{apple-log-policy}.  This bodes well for the incremental CTor
+designs:
 	we assumed that the existence of independent log operators implies the
-	ability to at least add certificate chains (Section~\ref{sec:base}) and
-	possibly complete SFOs (Section~\ref{sec:log}) into logs that the attacker
-	does not control.
+	ability to at least add certificate chains and possibly complete SFOs
+	into logs that the attacker does not control.
 Google's CT policy currently qualifies 31 logs that are hosted by
 	Cloudflare,
 	DigiCert,
@@ -49,16 +49,17 @@ Google's CT policy currently qualifies 31 logs that are hosted by
 	Sectigo~\cite{google-log-policy}.
 No log accepts all roots, but the overlap between root certificates that are
 trusted by major browser vendors and CT logs increased over
-time~\cite{ct-root-landscape}.  Despite relatively few independent log
-operators and an incomplete root coverage, the basic and extended
-cross-logging in CTor still provides value:
+time~\cite{ct-root-landscape}.  This trend would likely continue if there are
+user agents that benefit from it, e.g., Tor Browser.  Despite relatively few
+log operators and an incomplete root coverage, the basic and extended
+cross-logging in CTor still provide significant value as is:
 \begin{itemize}
 	\item Even if there are no independent logs available for a certificate
-		issued by some CA, adding it again \emph{to the same logs} come with
-		practical security gains.  For example, if the attacker gained access to
-		the secret signing keys but not the actual log infrastructures the
-		mis-issued certificate trivially makes it into the public.  If the full
-		SFO is added, the log operators could also notice that they were
+		issued by some CA, adding it again \emph{to the same logs} would come
+		with practical security gains.  For example, if the attacker gained
+		access to the secret signing keys but not the logs' infrastructures
+		the mis-issued certificate trivially makes it into the public.  If the
+		full SFO is added, the log operators could also notice that they were
 		compromised.
 	\item Most log operators only exclude a small fraction of widely accepted
 		root certificates: 1--5\%~\cite{ct-root-landscape}.  This narrows down
