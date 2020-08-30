@@ -23,23 +23,22 @@ security analysis.  This made it easier to justify the need for initial
 increments that can be rolled-out gradually, motivating cross-logging designs.
 Finally, the performance section received a refactor that clarifies the setup
 (public data sets and parameters) as well as the formulas used to compute our
-estimates.  Our previous analysis and presentation may have made it
-seem that a simulation would strengthen confidence in CTor's
-performance. This refactored analysis should make unambiguous that
-CTor's performance overhead is acceptable.
+estimates.  Our previous analysis and presentation may have made it seem that a
+simulation would strengthen confidence in CTor's performance. This refactored
+analysis should make unambiguous that CTor's performance overhead is acceptable.
 
 2.  Meta review
 
 2.1.  Critical evaluation of the current CT deployment
 
-A short justification of the focus on the current trust-based CT
-deployment appears in the
-introduction, and an extended justification follows in the background: we can be
-certain that the user experience remains about the same by starting from the
-assumption of pairwisely trusted CT logs that other major web browsers already
-deployed.  This makes it easier to motivate initial deployment in Tor Browser.
-CTor integrates into the existing CT ecosystem by retaining these desirable
-properties, but additionally protects against increasingly powerful attackers.
+A short justification of the focus on the current trust-based CT deployment
+appears in the introduction, and an extended justification follows in the
+background: we can be certain that the user experience remains about the same by
+starting from the assumption of pairwisely trusted CT logs that other major web
+browsers already deployed.  This makes it easier to motivate initial deployment
+in Tor Browser.  CTor integrates into the existing CT ecosystem by retaining
+these desirable properties, but additionally protects against increasingly
+powerful attackers.
 
 The second part of our critical evaluation of the current CT deployment is
 in-lined as context throughout our designs (§4, §6).  We decided to restructure
@@ -57,9 +56,9 @@ clarifies how our estimates were computed, and makes it easier for the reader to
 try a different set of parameters.  The evaluated parameters are also motivated
 better, e.g., the relatively low submission probability follows from our threat
 model: the attacker is risk-averse and would not gamble with non-negligible
-probabilities of detection.  If a subset of users are targeted, even a
-low submission
-probability quickly implies high certainty that someone submits an SFO as well.
+probabilities of detection.  If a subset of users are targeted, even a low
+submission probability quickly implies high certainty that someone submits an
+SFO as well.
 
 2.3.  Data set and possible biases
 
@@ -105,7 +104,7 @@ need for initial increments that gradually reduce trust in today's CT logs.
 
 Detailed comments:
 - Voting on constants can be valuable as a reaction to network events.  Examples
-are provided in the updated paper, see §5.2.2.
+are provided in the updated paper, see the final paragraphs of §5.1.2 and §10.
 - Certificate cross-logging can in fact speed-up detection of certificate
 mis-issuance (if a benign log is sampled).  We clarified this as part of §6.
 
