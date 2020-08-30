@@ -124,7 +124,8 @@ top-1k, and another one third to the top-1M~\cite{mani}.\footnote{%
 } If we assume 32~byte cryptographic hashes and seven SFOs per website visit,
 a cache hit ratio of $\frac{1}{3}$ could be achieved by a 256~KiB LFU/LRU cache
 that eventually captures Alexa's top-1k.  Given that the cache requires
-memory as well, this is best viewed as a bandwidth optimization.
+memory as well, this is best viewed as a bandwidth optimization that also
+reduces information leakage to the logs.
 
 \textbf{Full design.}
 For each CTR and CT log pair, there is an additional watchdog circuit that

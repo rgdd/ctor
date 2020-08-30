@@ -81,15 +81,15 @@ There are no changes to phase~1 because cross-logging is instantiated at CTRs.
 Phases~3--4 are now merged, such that the encountered certificates are added to
 independent CT logs that the attacker does/may not control.  Watchdogs are no
 longer needed since either the certificates are added to a log that the attacker
-controls, or they are not.  The other main difference takes place in phase~2,
+controls, or they are not (which makes them public).  The other main difference takes place in phase~2,
 during which CTRs buffer SFOs.  The buffer time used to be lengthy due to taking
-early signals and MMDs into account, but it is now a moot point as the MMD is
-irrelevant for CTRs.  The expected buffer time can therefore be shortened down
+early signals and MMDs into account, but it is now irrelevant as no inclusion
+proofs are fetched.  The expected buffer time can therefore be shortened down
 to \emph{minutes} that follow only from the randomness in the
 \texttt{audit\_after} timestamp (for the sake of privacy), making network-wide
 flushes impractical while at the same time reducing the time that a mis-issued
-certificate stays unnoticed (a benign log is likely to add an entry before all
-MMDs elapsed).
+certificate stays unnoticed:
+	a benign log is likely to add an entry before all MMDs elapsed.
 
 The extended cross-logging also aims to expose log misbehavior.  As such, it is
 paramount that no cross-logged SFO becomes public before the issuing CT logs can

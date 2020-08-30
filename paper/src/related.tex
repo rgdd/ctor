@@ -2,7 +2,7 @@
 Google Chrome and Apple's Safari enforce CT by mandating that every TLS
 certificate must be accompanied by two independent
 SCTs~\cite{chrome-policy,safari-policy}.  We proposed that Tor Browser should
-follow suit, but, unlike any other web browser that enforces CT, CTor provides
+follow suit, but unlike any other web browser that enforces CT, CTor provides
 \emph{concrete next steps} that relax the centralized trust which is otherwise
 and evidently misplaced in CT logs~\cite{%
 	izenpe-disqualified,%
@@ -24,7 +24,7 @@ itself~\cite{ct/bis}. Lueks and Goldberg proposed that a separate database of
 inclusion proofs could be maintained that supports information-theoretic
 PIR~\cite{lueks-and-goldberg}. Kales~\emph{et~al.} improved scalability by
 reducing the size of each entry in the PIR database at the cost of transforming
-logs into multi-tier Merkle trees, and additionally, showed how the upper tier
+logs into multi-tier Merkle trees, and additionally showed how the upper tier
 could be expressed as a two-server computational PIR database to ensure that any
 inclusion proof can be computed privately on-the-fly~\cite{kales}.
 Nordberg~\emph{et~al.} avoid inclusion proof fetching by hanging on to presented
@@ -52,13 +52,13 @@ as-a-service~\cite{dahlberg}. Syta~\emph{et~al.} proposed an alternative to
 reactive gossip mechanisms by showing how an STH can be cosigned efficiently by
 many independent witnesses~\cite{syta}. A scaled-down version of witness
 cosigning could be instantiated by cross-logging STHs in other CT
-logs~\cite{minimal-gossip}, or, in other append-only ledgers~\cite{catena}.
+logs~\cite{minimal-gossip}, or in other append-only ledgers~\cite{catena}.
 CTor's full design (Section~\ref{sec:base}) ensures that anyone connected to the
 Tor network is on the same view by making STHs public in the Tor consensus.  In
 contrast, the first incremental design (Section~\ref{sec:incremental}) is not
 concerned with catching log misbehavior, while the second incremental design
 (also Section~\ref{sec:incremental}) exposes misbehaving logs \emph{without}
-inclusion proofs.
+first trying to fetch inclusion proofs.
 
 %%%
 % Other work that is closely related to our approach
