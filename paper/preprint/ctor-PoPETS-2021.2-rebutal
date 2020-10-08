@@ -1,0 +1,51 @@
+Dear reviewers,
+
+Thank you for your time and comments.  A summary of proposed changes:
+- Polish our introduction according to review-A and do the easy fix list.
+- Mention that bandwidth amplification is not a significant DoS threat.
+- Take the announcements from CT days 2020 into account [1].
+
+The remainder of the rebuttal will focus on content-related comments.
+
+# Review-A
+We were also concerned that the added circuit overhead might be significant at
+first, but after a conversation with tor's developers it is no longer the case.
+The TL;DR is that circuit establishment involves queueing of onionskin requests
+[2], and presently the Tor network does not have issues with large queues.  So,
+our circuit establishment overhead is not something that the tor developers are
+worried about as long as it serves a clear privacy and security purpose.
+
+# Review-C
+It is somewhat non-trivial to evaluate how CTor might be effected by ecosystem
+changes that have yet to be proposed and deployed.  But, the submission phase in
+Tor Browser would likely not change and we would still want Tor relays as our
+intermediates (automatic scaling, privacy benefits, and so forth).  If these Tor
+relays cross-log, fetch inclusion proofs against STHs in the Tor consensus, or
+do something completely different in the future we will have to wait and see.
+
+A typical MMD timing is 24 hours, but it can be lowered artificially by Tor's
+directory authorities (assuming that it is conveyed as a consensus parameter).
+
+It is correct that cross-logging to other CT logs (or generally anyone with
+persistent storage) can make network-wide flushes impractical.  But, it is not
+the only possibility.  We provided an example that is reactive in §5.1.2.
+
+Traffic amplification is a good observation, but the extent to which it is
+possible does not really change the DoS ballpark.  When compared to any circuit
+that the attacker could open, a CTor circuit with a valid SFO results in an
+amplification factor of approximately two: either to cross-log or to push the
+SFO in question to a watchdog (for now excluding inclusion proof fetching).  If
+we understand the identified threat correctly: it is that an SFO might be
+several orders of magnitude smaller than an inclusion proof, such that a weak
+attacker can do a bandwidth-DoS on Tor by submitting many smaller SFOs.
+
+An inclusion proof for a large Merkle tree is roughly 1KiB, and to be a valid
+SFO you need both SCTs (at least 64 bytes per ECDSA signature) and a valid
+certificate chain (with additional signatures and mandatory fields).  So, even
+for the smallest possible certificate chain we are not that far off (and
+probably exceed) the 1KiB inclusion proof.  Hopefully this clarifies that there
+are no large amplification factors to be found.  We will mention this somewhere,
+perhaps in Appendix C where another SFO size corner case is already included.
+
+1: https://docs.google.com/document/d/18hRJQW5Qzgcb87P-YIkWIuna9_pRUNGsZPC4V0fiq5w/edit
+2: https://src-ref.docs.torproject.org/tor/onion__queue_8c_source.html
