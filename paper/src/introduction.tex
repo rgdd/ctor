@@ -74,8 +74,8 @@ to a service linking an identity.
 \subsection{Introducing CTor}
 We propose an incrementally deployable and privacy-preserving design that is
 henceforth referred to as CTor.  By bringing CT to Tor, HTTPS-based
-man-in-the-middle attacks against Tor Browser can be detected \emph{after the
-fact} when conducted by an attacker that:
+man-in-the-middle attacks against Tor Browser users can be detected \emph{after
+the fact} when conducted by attackers that:
 \begin{enumerate}
 	\item can acquire any certificate from a trusted CA,
 	\item with the necessary cryptographic proofs from CT logs so that
@@ -151,13 +151,13 @@ defenses are enabled at the cost of trade-offs.
 The full design involves many different components that add deployment burdens,
 such as the requirement of reliable CT auditors that investigate suspected log
 misbehavior further.  Therefore, we additionally propose two initial increments
-that place \emph{some trust in the CT log ecosystem}.  The first increment
-\emph{provides evidence to independent CT logs that fraudulent certificates were
-presented while preserving privacy}.  This greatly impacts risk-averse attackers
-because one part of their malicious behavior becomes transparent \emph{if the
-randomly selected log operator is benign}.  For example, the targeted domain
-name is disclosed as part of the cross-logged certificate, and awareness of the
-event draws unwanted attention.
+that place \emph{some trust in CT logs} (Section~\ref{sec:incremental}).  The
+first increment \emph{provides evidence to independent CT logs that fraudulent
+certificates were presented while preserving privacy}.  This greatly impacts
+risk-averse attackers because one part of their malicious behavior becomes
+transparent \emph{if the randomly selected log operator is benign}.  For
+example, the targeted domain name is disclosed as part of the cross-logged
+certificate, and awareness of the event draws unwanted attention.
 
 The next increment is minor from the perspective of Tor, but requires CT logs to
 support an additional API.  Similar changes were proposed in the context of CT

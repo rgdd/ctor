@@ -11,11 +11,11 @@ Below, the value of an item is computed as the median of all votes.
         Section~\ref{sec:base:phase1}, excessively large SFOs are subject to
         stricter verification criteria.
     \item[ct-log-timeout:] A natural number that determines how long a CTR waits
-        before concluding that a CT log is unresponsive, e.g., 10~seconds. As
+        before concluding that a CT log is unresponsive, e.g., 5~seconds. As
         outlined in Section~\ref{sec:base:phase3}, a timeout causes the watchdog
-        to send a SFO to the auditor.
+        to send an SFO to the auditor.
     \item[ct-delay-dist:] A distribution that determines how long a CTR should
-        wait at minimum before auditing a submitted SFO\@.  As outlined in
+        wait at minimum before auditing a submitted SFO.  As outlined in
         Section~\ref{sec:base:phase2}, random noise is added, e.g., on the order
         of minutes to an hour.
     \item[ct-backoff-dist:]
@@ -24,11 +24,11 @@ Below, the value of an item is computed as the median of all votes.
         Section~\ref{sec:base:phase3}, CTRs audit pending SFOs in batches at
         random time intervals to spread out log overhead.
     \item[ct-watchdog-timeout:] A natural number that determines how long time
-    at most a watchdog waits before considering a SFO for reporting. Prevents
+    at most a watchdog waits before considering an SFO for reporting. Prevents
     the watchdog from having to wait for a circuit timeout caused by an
     unresponsive CTR. Should be set with \texttt{ct-backoff-dist} in mind.
     \item[ct-auditor-timeout] A natural number that determines how long time at
-    most a watchdog waits for an auditor to acknowledge the submission of a SFO.
+    most a watchdog waits for an auditor to acknowledge the submission of an SFO.
 \end{description}
 
 \section{Log Operators \& Trust Anchors} \label{app:ct-trust-anchors}
@@ -36,11 +36,11 @@ The standardized CT protocol suggests that a log's trust anchors should
 ``usefully be the union of root certificates trusted by major browser
 vendors''~\cite{ct,ct/bis}.  Apple further claims that a log in their CT program
 ``must trust all root CA certificates included in Apple's trust
-store''~\cite{apple-log-policy}.  This bodes well for CTor:
+store''~\cite{apple-log-policy}.  This bodes well for the incremental CTor
+designs:
 	we assumed that the existence of independent log operators implies the
-	ability to at least add certificate chains (Section~\ref{sec:base}) and
-	possibly complete SFOs (Section~\ref{sec:log}) into logs that the attacker
-	does not control.
+	ability to at least add certificate chains and possibly complete SFOs
+	into logs that the attacker does not control.
 Google's CT policy currently qualifies 31 logs that are hosted by
 	Cloudflare,
 	DigiCert,
@@ -49,16 +49,17 @@ Google's CT policy currently qualifies 31 logs that are hosted by
 	Sectigo~\cite{google-log-policy}.
 No log accepts all roots, but the overlap between root certificates that are
 trusted by major browser vendors and CT logs increased over
-time~\cite{ct-root-landscape}.  Despite relatively few independent log
-operators and an incomplete root coverage, the basic and extended
-cross-logging in CTor still provides value:
+time~\cite{ct-root-landscape}.  This trend would likely continue if there are
+user agents that benefit from it, e.g., Tor Browser.  Despite relatively few
+log operators and an incomplete root coverage, the basic and extended
+cross-logging in CTor still provide significant value as is:
 \begin{itemize}
 	\item Even if there are no independent logs available for a certificate
-		issued by some CA, adding it again \emph{to the same logs} come with
-		practical security gains.  For example, if the attacker gained access to
-		the secret signing keys but not the actual log infrastructures the
-		mis-issued certificate trivially makes it into the public.  If the full
-		SFO is added, the log operators could also notice that they were
+		issued by some CA, adding it again \emph{to the same logs} would come
+		with practical security gains.  For example, if the attacker gained
+		access to the secret signing keys but not the logs' infrastructures
+		the mis-issued certificate trivially makes it into the public.  If the
+		full SFO is added, the log operators could also notice that they were
 		compromised.
 	\item Most log operators only exclude a small fraction of widely accepted
 		root certificates: 1--5\%~\cite{ct-root-landscape}.  This narrows down
@@ -113,36 +114,31 @@ misbehavior on-the-fly.
 % options).  This goes back to the point of general ecosystem value.
 
 \section{Flushing a Single CTR} \label{app:flush}
-TODO: elaborate as details were removed from the analysis section
-%Appendix~\ref{app:flush} shows that the
-%Number of SFO submissions~$k$ that the attacker needs to flush a buffer of $n>2$
-%Entries with some probability~$p\in[0,1)$ is:
-%\begin{equation} \label{eq:flush}
-%	k = \frac{\log(1-p)}{\log(1 - \frac{1}{n})}
-%\end{equation}
-%
-%It is recommended that a non-exit relay should have at least 512MB of memory.
-%If the available bandwidth exceeds 40Mbps, it should have at least
-%1GB~\cite{relay-config}.  Given that these recommendations are lower bounds,
-%Suppose the average memory available to store SFOs is 1GiB (a conservative
-%Assumption).  Further, Section~\ref{sec:performance} shows that the average SFO
-%Size is roughly 6KiB.  This means that the buffer capacity is $n \gets 174763$
-%SFOs. Plugging it into Equation~\ref{eq:flush} for $p \gets
-%\frac{9}{10}$, the attacker's flood must involve $k \gets 402406$ submissions.
-%In other words, 2.3GiB must be transmitted to flush a single CTR with 90\%
-%Success probability,\footnote{%
-%	As a corner case and implementation detail, it is important that Tor Browser
-%	and CTRs \emph{reject} SFOs that are bogus in terms of size: it is a trivial
-%	DoS vector to load data indefinitely. Analysis based on, e.g., 1~MiB SFOs
-%	also requires 2.3~GiB of data to flush.
-%} which takes $7.9$--$39.3$~minutes if the relay bandwidth is between 8 and
-%40~Mbps.  Thus, it is definitely impractical to flush all CTRs within
-%\emph{minutes}.
-
 Let $n$ be the number of SFOs that a CTR can store in its buffer.  The
 probability to sample a target SFO is thus $\frac{1}{n}$, and the probability to
 not sample a target SFO is $q = 1 - \frac{1}{n}$.  The probability to not sample
 a target SFO after $k$ submissions is $q^k$.  Thus, the probability to sample
 the relevant buffer index at least once is $p = 1 - q^k$.  Solving for $k$ we
 get: $k = \frac{\log(1 - p)}{\log(q)}$.  Substituting $q$ for $1 - \frac{1}{n}$
-yields Equation~\ref{eq:flush}, which was to be shown.
+yields Equation~\ref{eq:flush}, which can be used to compute the number of
+SFO submissions that the attacker needs to flush a buffer of $n>2$
+entries with some probability~$p\in[0,1)$.
+
+\begin{equation} \label{eq:flush}
+	k = \frac{\log(1-p)}{\log(1 - \frac{1}{n})}
+\end{equation}
+
+It is recommended that a non-exit relay should have at least 512MB of memory.
+If the available bandwidth exceeds 40Mbps, it should have at least
+1GB~\cite{relay-config}.  Given that these recommendations are lower bounds,
+suppose the average memory available to store SFOs is 1GiB.
+Section~\ref{sec:performance} further showed that the average SFO size is
+roughly 6KiB.  This means that the buffer capacity is $n \gets 174763$ SFOs.
+Plugging it into Equation~\ref{eq:flush} for $p \gets \frac{9}{10}$, the
+attacker's flood must involve $k \gets 402406$ submissions.  In other words,
+2.3GiB must be transmitted to flush a single CTR with 90\% success probability.
+
+As a corner case and implementation detail, it is important that Tor Browser and
+CTRs \emph{reject} SFOs that are bogus in terms of size: it is a trivial DoS
+vector to load data indefinitely. Analysis based on, e.g., 1~MiB SFOs also
+requires 2.3~GiB of data to flush, however.

@@ -6,7 +6,7 @@ complexity. In this section, we present such a full design by breaking it up
 into four phases as shown in Figure~\ref{fig:design}, demonstrating the need for
 the involved complexity in each step.  Later on, Section~\ref{sec:incremental}
 presents two incremental versions of the full design that are less complicated
-but which comes at the cost of having a weaker threat model and security goal
+but which come at the cost of having a weaker threat model and security goal
 unless an additional CT log API is added.
 
 A design that starts by validating SCT signatures like Apple's Safari is
@@ -20,7 +20,7 @@ presented SCTs need to be audited further.
 	\vspace{-8px}
 	\caption{%
 		An overview of the four phases of the full CTor design. In phase 1 Tor
-	Browser submits a SFO (SCT Feedback Object) to a Certificate Transparency
+	Browser submits an SFO (SCT Feedback Object) to a Certificate Transparency
 	Relay (CTR), followed by phase 2 where the CTR buffers the SFO. In phase 3
 	the relays attempts to audit the SFO, and in case of failure, it reports the
 	SFO to an auditor with the help of a watchdog CTR in phase 4.}
@@ -208,7 +208,7 @@ be detected if CTRs publish two new metrics in the extra-info document:
 \texttt{ct-receive-bytes} and \texttt{ct-delete-bytes}. These metrics indicate
 how many SFO bytes were received and deleted throughout different time
 intervals, which is similar to other extra-info metrics such as
-\texttt{read-history}.
+\texttt{read-history} and \texttt{write-history}.
 
 \subsection{Phase 3: Auditing} \label{sec:base:phase3}
 
@@ -219,21 +219,21 @@ knows which CTR holds the evidence of its misbehavior, it can take the CTR
 offline, wiping the evidence of the log's misbehavior from its memory. 
 
 We can address this concern in a few ways. The simple proposal of contacting the
-log over a Tor circuit will not suffice---a log can tag each CTR by submitting
-unique SFOs to them all, and recognize the CTR when they are submitted (see
-Section~\ref{sec:analysis:pr:phase3}). Even using a unique Tor circuit for each
-SFO might not suffice to prevent effective tagging attacks. For example, after
-tagging all CTRs, a malicious log could ignore all but innocuous untagged
-requests and tagged requests matching tags for whichever CTR it decides to
-respond to first. If exponential backoff\footnote{A common approach for delaying
-retransmissions, often for the sake of avoiding congestion or unnecessary load.}
-is supported, the rest of the CTRs will backoff repeated attempts to fetch a
-proof while the probability that the first CTR is the one fetching proofs
-significantly increases. The log can repeat this process---alternating tagged
-CTRs it replies to---until it receives the offending SFO from a CTR with higher
-probability than others. This might result in many CTRs reporting the log as
-inaccessible for days, but that is not the same as direct cryptographic evidence
-of misbehavior.
+log over a Tor circuit will not suffice:
+	a log can tag each CTR by submitting unique SFOs to them all, and
+	recognize the CTR when they are submitted (see
+	Section~\ref{sec:analysis:pr:phase3}).
+Even using a unique Tor circuit for each SFO might not suffice to prevent
+effective tagging attacks. For example, after tagging all CTRs, a malicious log
+could ignore all but innocuous untagged requests and tagged requests matching
+tags for whichever CTR it decides to respond to first. If some kind of
+back-off is supported (common to delay retransmissions and avoid congestion),
+the rest of the CTRs will likely be in back-off so that there is a high
+probability that the first CTR is the one fetching proofs.  The log can repeat
+this process---alternating tagged CTRs it replies to---until it receives the
+offending SFO from an identifiable CTR with high probability.  CTRs may report
+the log as inaccessible for days, but that is not the same as direct
+cryptographic evidence of misbehavior.
 
 While there are ways to detect this attack after-the-fact, and there may be ways
 to mitigate it, a more robust design would tolerate the disclosure of a CTRs
@@ -252,9 +252,9 @@ the SFO it is about to audit. After an appropriate response from the log, the
 CTR tells the watchdog that SFO has been adequately addressed.
 
 In more detail, each CTR maintains a single shared circuit that is used to
-interact with all CT logs known to the CTR\@. (We are not using one circuit per
-SFO given the overhead and the unclear security benefit noted above.) For
-\emph{each} such CT log $l$, the CTR runs the following steps indefinitely:
+interact with all CT logs known to the CTR (we are not using one circuit per
+SFO given the overhead and unclear security benefit noted above). For
+\emph{each} such log $l$, the CTR runs the following steps: %indefinitely:
 \begin{enumerate}
     \item\label{enm:auditing:backoff} Sample a delay $d \gets
         \mathsf{random}(\texttt{ct-backoff-dist})$ and wait until $d$ time units
@@ -267,11 +267,10 @@ SFO given the overhead and the unclear security benefit noted above.) For
 				watchdog.
 			\item\label{enm:ext:auditing:challenge} Challenge the log to prove
                                   inclusion to the closest STH in the Tor
-                                  consensus where $t$ $\leq$
-                                  STH\texttt{.timestamp}. Wait at most
-                                  \texttt{ct-log-timeout} time units for the
-                                  complete proof to be delivered before timing
-                                  out.
+								  consensus where $t$ $\leq$
+								  STH\texttt{.timestamp}. Wait
+								  \texttt{ct-log-timeout} time units for the
+								  complete proof before timing out.
 				\begin{itemize}
 					\item\label{enm:ext:auditing:challenge:success} On valid
 						proof: send an acknowledgment to the watchdog, cache $s$
@@ -292,10 +291,6 @@ acknowledgement from the other CTR is not received within
 \texttt{ct-watchdog-timeout}, it becomes the watchdog's responsibility to report
 the SFO such that it culminates in human review if need be.
 
-%\footnote{%
-%	Most likely on the ct-policy group at
-%	\url{https://groups.google.com/a/chromium.org/forum/\#!forum/ct-policy}
-%}
 Because human review and publication is critical at this end-stage, we envision
 that the watchdog (which is a Tor relay that cannot persist any evidence to disk
 and may not be closely monitored by its operator) provides the SFO to an
@@ -316,25 +311,24 @@ reported SFOs further, the watchdog needs to take precautions talking to them
 because the network is not trusted.\footnote{%
 	While our threat model, and Tor's, precludes a global network adversary,
 	both include partial control of the network.
-}  The watchdog can contact an auditor
-as soon as it receives an SFO it should report; however, it must do so
-over a Tor circuit.\footnote{%
+}  The watchdog can contact the auditor immediately, but must do so over
+an independent Tor circuit.\footnote{%
 	This is also important because CTRs are not necessarily exits, i.e., the
 	exiting traffic must be destined to another Tor relay.
 }  If a successful acknowledgement from the auditor is not received within
-\texttt{ct-auditor-timeout}, the SFO is buffered and should be reported again to
-the same auditor over a new circuit after some back-off delay.
+\texttt{ct-auditor-timeout}, the SFO is buffered for a random time using
+\texttt{ct-delay-dist} before being reported to the same auditor again over a
+new independent Tor circuit.
 
 When an auditor receives an SFO, it should persist it to durable storage until
 it can be successfully resolved to a specific STH.\footnote{%
-	The fetched inclusion proof should be fetched against the first known STH
-	that must have incorporated the certificate in question (a single history of
-	STHs is available in the Tor consensus):
+	The fetched inclusion proof must be against the first known STH that
+	should have incorporated the certificate in question by using the
+	history of STHs in Tor's consensus:
 		the mis-issued certificate might have been merged into the log
-		reactively despite there being an MMD violation (upon learning that a
-			CTR reported the SFO),
-	such that a valid inclusion proof can be returned with regards to a more
-	recent STH but not earlier ones that captured the log's misbehavior.
+		reactively upon learning that a CTR reported the SFO, such that a valid
+		inclusion proof can be returned with regards to a more recent STH but
+		not earlier ones that actually captured the log's misbehavior.
 }  Once so persisted, the auditor can begin querying the log itself asking for
 an inclusion proof. If no valid inclusion proof can be provided after some
 threshold of time, the auditor software should raise the details to a human
@@ -355,7 +349,7 @@ connecting to it.
 There are a number of additional details missing to setup phases 1--4 for the
 design. Most of these details relate to the Tor consensus. Directory authorities
 influence the way in which Tor Browser and CTRs behave by voting on necessary
-parameters, such as the probability of submission of a SFO
+parameters, such as the probability of submission of an SFO
 (\texttt{ct-submit-pr}) and the timeout used by CTRs when auditing CT logs
 (\texttt{ct-log-timeout}), as introduced earlier as part of the design. See
 Appendix~\ref{app:consensus-params} for details on these parameters and their
@@ -371,10 +365,10 @@ bandwidth and only use relays that can be expected to stay online.
 Section~\ref{sec:privacy} discusses trade-offs in the assignment of the
 \texttt{CTR} flag.
 
-The consensus should also capture a fixed view of the CT landscape by publishing
-STHs from all recognized logs.  A CT log is recognized if a majority of
+The consensus should also capture a fixed view of the CT log ecosystem by
+publishing STHs from all known logs.  A CT log is known if a majority of
 directory authorities proposed a \texttt{ct-log-info} item, which contains a
-log's ID, public key, base URL, MMD, and most recent STH\@.  Each directory
+log's ID, public key, base URL, MMD, and most recent STH.  Each directory
 authority proposes its own STH, and agrees to use the most recent STH as
 determined by timestamp and lexicographical order.  Since CTRs verify inclusion
 with regards to SCTs that Tor Browser accepts, the CT logs recognized by Tor
