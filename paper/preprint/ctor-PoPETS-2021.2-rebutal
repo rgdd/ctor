@@ -3,16 +3,14 @@ Dear reviewers,
 Thank you for your time and comments.  A summary of proposed changes:
 - Polish our introduction according to review-A and do the easy fix list.
 - Mention that bandwidth amplification is not a significant DoS threat.
-- Take the announcements from CT days 2020 into account [1].
 
 The remainder of the rebuttal will focus on content-related comments.
 
 # Review-A
-
 We were also concerned that the added circuit overhead might be significant at
 first, but after a conversation with several Tor developers it is not the case.
 The TL;DR is that circuit establishment involves queueing of onionskins (likely
-bottleneck) [2], and presently the Tor network does not have issues with large
+bottleneck) [1], and presently the Tor network does not have issues with large
 queues since ntor was introduced.  So, our circuit establishment overhead is not
 something that the Tor developers are worried about as long as it serves a clear
 purpose and is adjustable in the case of unexpected events (which we accomplish
@@ -51,5 +49,4 @@ probably exceed) the 1KiB inclusion proof.  Hopefully this clarifies that there
 are no large amplification factors to be found.  We will mention this somewhere,
 perhaps in Appendix C where another SFO size corner case is already included.
 
-1: https://docs.google.com/document/d/18hRJQW5Qzgcb87P-YIkWIuna9_pRUNGsZPC4V0fiq5w/edit
-2: https://src-ref.docs.torproject.org/tor/onion__queue_8c_source.html
+1: https://src-ref.docs.torproject.org/tor/onion__queue_8c_source.html
