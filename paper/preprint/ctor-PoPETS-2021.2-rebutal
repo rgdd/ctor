@@ -34,19 +34,19 @@ the only possibility.  We provided an example that is reactive in §5.1.2.
 
 Traffic amplification is a good observation, but the extent to which it is
 possible does not really change the DoS ballpark.  When compared to any circuit
-that the attacker could open, a CTor circuit with a valid SFO results in an
+that the attacker can open, a CTor circuit with a valid SFO results in an
 amplification factor of approximately two: either to cross-log or to push the
-SFO in question to a watchdog (for now excluding inclusion proof fetching).  If
-we understand the identified threat correctly: it is that an SFO might be
+SFO in question to a watchdog (assuming that inclusion proof fetching is cheap).
+If we understand the identified threat correctly: it is that an SFO might be
 several orders of magnitude smaller than an inclusion proof, such that a weak
-attacker can do a bandwidth-DoS on Tor by submitting many smaller SFOs.
+attacker can suddently do a bandwidth-DoS on Tor by submitting many small SFOs.
 
 An inclusion proof for a large Merkle tree is roughly 1KiB, and to be a valid
 SFO you need both SCTs (at least 64 bytes per ECDSA signature) and a valid
 certificate chain (with additional signatures and mandatory fields).  So, even
-for the smallest possible certificate chain we are not that far off (and
-probably exceed) the 1KiB inclusion proof.  Hopefully this clarifies that there
-are no large amplification factors to be found.  We will mention this somewhere,
-perhaps in Appendix C where another SFO size corner case is already included.
+for the smallest possible SFO we are not that far off (and probably exceed) the
+1KiB inclusion proof.  Hopefully this clarifies that there are no large
+amplification factors to be found.  We will mention this somewhere in the paper.
+Appendix C could be a good fit since it highlights another SFO size corner case.
 
 1: https://src-ref.docs.torproject.org/tor/onion__queue_8c_source.html
