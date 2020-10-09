@@ -16,15 +16,16 @@ our circuit establishment overhead is not something that the tor developers are
 worried about as long as it serves a clear privacy and security purpose.
 
 # Review-C
-It is somewhat non-trivial to evaluate how CTor might be effected by ecosystem
+It is somewhat non-trivial to evaluate how CTor might be affected by ecosystem
 changes that have yet to be proposed and deployed.  But, the submission phase in
 Tor Browser would likely not change and we would still want Tor relays as our
 intermediates (automatic scaling, privacy benefits, and so forth).  If these Tor
 relays cross-log, fetch inclusion proofs against STHs in the Tor consensus, or
 do something completely different in the future we will have to wait and see.
 
-A typical MMD timing is 24 hours, but it can be lowered artificially by Tor's
-directory authorities (assuming that it is conveyed as a consensus parameter).
+As noted in the paper, a typical MMD timing is 24 hours, but it can be
+lowered artificially by Tor's directory authorities (assuming that it
+is conveyed as a consensus parameter).
 
 It is correct that cross-logging to other CT logs (or generally anyone with
 persistent storage) can make network-wide flushes impractical.  But, it is not
