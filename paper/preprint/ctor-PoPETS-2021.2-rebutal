@@ -8,12 +8,15 @@ Thank you for your time and comments.  A summary of proposed changes:
 The remainder of the rebuttal will focus on content-related comments.
 
 # Review-A
+
 We were also concerned that the added circuit overhead might be significant at
-first, but after a conversation with tor's developers it is no longer the case.
-The TL;DR is that circuit establishment involves queueing of onionskin requests
-[2], and presently the Tor network does not have issues with large queues.  So,
-our circuit establishment overhead is not something that the tor developers are
-worried about as long as it serves a clear privacy and security purpose.
+first, but after a conversation with several Tor developers it is not the case.
+The TL;DR is that circuit establishment involves queueing of onionskins (likely
+bottleneck) [2], and presently the Tor network does not have issues with large
+queues since ntor was introduced.  So, our circuit establishment overhead is not
+something that the Tor developers are worried about as long as it serves a clear
+purpose and is adjustable in the case of unexpected events (which we accomplish
+by having the submit probability as part of the consensus).
 
 # Review-C
 It is somewhat non-trivial to evaluate how CTor might be affected by ecosystem
