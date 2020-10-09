@@ -24,9 +24,8 @@ intermediates (automatic scaling, privacy benefits, and so forth).  If these Tor
 relays cross-log, fetch inclusion proofs against STHs in the Tor consensus, or
 do something completely different in the future we will have to wait and see.
 
-As noted in the paper, a typical MMD timing is 24 hours, but it can be
-lowered artificially by Tor's directory authorities (assuming that it
-is conveyed as a consensus parameter).
+A typical MMD is 24 hours (§2.1.1), but it can be lowered artificially by Tor's
+directory authorities (assuming that it is conveyed as a consensus parameter).
 
 It is correct that cross-logging to other CT logs (or generally anyone with
 persistent storage) can make network-wide flushes impractical.  But, it is not
