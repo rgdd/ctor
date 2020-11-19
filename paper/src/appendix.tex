@@ -79,40 +79,6 @@ requires manual intervention.  Wide support of certificate chain and SCT
 cross-logging allows anyone to \emph{casually} disclose suspected log
 misbehavior on-the-fly.
 
-% \section{Trusted Auditor} \label{app:auditor}
-% An trusted auditor is expected to accept SFOs at a dedicated endpoint,
-% endeavoring to validate the inclusion status of each SCT with regards to the
-% first STH in the Tor consensus that elapsed the log's MMD.  If a log appears to
-% function correctly except for some evidence that cannot be
-% resolved despite multiple attempts that span a given time period, it is
-% paramount that the auditor software alerts its operator who can investigate
-% the issue further before submitting a full report to the CT-policy mailing list.
-% Cases of misbehavior, in detail:
-% \begin{itemize}
-% 	\item If the log fails to provide a valid inclusion proof for an SCT with
-% 		regards to the first applicable STH in the Tor consensus
-% 		(certificate omission).
-% 	\item If the log fails to provide a valid consistency proof between two
-% 		STHs in the Tor consensus
-% 		(split-view).
-% 	\item If a published STH is future-dated or backdated more than an MMD
-% 		(general log misbehavior).
-% 	\item If a log ignores some CTRs (uptime misbehavior).
-% \end{itemize}
-
-% An unresponsive log can be suspected by observing the watchdog report frequency,
-% and possibly confirmed by querying the log in question from different vantage
-% points.  Among other extra-info metrics that go beyond received and deleted
-% SFO-bytes that the announced CT auditors should check, it could be valuable to
-% publish the extent to which CTR-to-log interactions fail.
-
-% While not within our threat model, we do encourage that the announced auditors
-% verify whether STHs in the Tor consensus are consistent with external views of
-% the CT landscape.  For example, operate an STH pollination
-% endpoint~\cite{nordberg} and fetch STHs actively from many diverse vantage
-% points using Tor, VPN services, DoH resolvers, and RIPE Atlas (to mention a few
-% options).  This goes back to the point of general ecosystem value.
-
 \section{Flushing a Single CTR} \label{app:flush}
 Let $n$ be the number of SFOs that a CTR can store in its buffer.  The
 probability to sample a target SFO is thus $\frac{1}{n}$, and the probability to

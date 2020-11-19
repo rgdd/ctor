@@ -1,6 +1,4 @@
 \section{Security Analysis} \label{sec:analysis}
-
-%\subsection{Impact of Being Detected} \label{sec:analysis:impact}
 We consider four types of impact for an attacker that conducted
 HTTPS-based man-in-the-middle attacks on Tor Browser.  Other than \emph{none},
 these impact types are:
@@ -32,10 +30,6 @@ CT logs plan to keep any promise of public logging:
 The risk of exposure is instead bound by the probability that \emph{any} of the
 four phases in our design fail to propagate the mis-issued SFO to a pinned CT
 auditor that is benign.
-
-%In sum the probability of detection cannot exceed the likelihood that Tor
-%Browser submits an SFO to a genuine CTR, which in turn must initiate a report to
-%a trusted CT auditor through a genuine watchdog.
 
 \subsubsection{Phase~1: Submission} \label{sec:analysis:pr:phase1} 
 The probability of detection cannot exceed the probability of submission

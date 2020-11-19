@@ -121,8 +121,6 @@ assigned a weight based on their apparent capacity to carry traffic. In keeping
 with avoiding storing of linkable state, even circuits that share an origin will
 only permit new connections over that circuit for ten minutes. After that, if
 all connections are closed, all state associated with the circuit is cleared.
-%Similarly, at each relay state associated with a given circuit is cleared
-%shortly after a circuit is closed.
 
 Tor clients use this information when choosing relays with which to build a
 circuit. They receive the information via an hourly updated \emph{consensus}.

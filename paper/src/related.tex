@@ -12,9 +12,7 @@ and evidently misplaced in CT logs~\cite{%
 }.  Several proposals surfaced that aim to do better than today's CT
 policies, targeting omissions and split-views.
 
-%%%
 % Privacy preserving inclusion proofs
-%%%
 Laurie proposed that inclusion proofs could be fetched over DNS to avoid
 additional privacy leaks, i.e., a user's browsing patterns are already exposed
 to the DNS resolver but not the logs in the CT landscape~\cite{ct-over-dns}.
@@ -34,9 +32,7 @@ by submitting SFOs on independent Tor circuits to CTRs, which in turn add random
 noise before there is any log interaction.  The use of CTRs enable caching
 similar to CT-over-DNS, but it does not put the logs in the dark like PIR could.
 
-%%%
 % The same consistent view
-%%%
 Inclusion proofs are only meaningful if everyone observes the same consistent
 STHs. One option is to configure client software with a list of entities that
 they should gossip with, e.g., CT monitors~\cite{chase}, or, browser vendors
@@ -60,9 +56,7 @@ concerned with catching log misbehavior, while the second incremental design
 (also Section~\ref{sec:incremental}) exposes misbehaving logs \emph{without}
 first trying to fetch inclusion proofs.
 
-%%%
 % Other work that is closely related to our approach
-%%%
 Nordberg proposed that Tor clients could enforce public logging of consensus
 documents and votes~\cite{consensus-transparency}.  Such an initiative is mostly
 orthogonal to CTor, as it strengthens the assumption of a secure Tor consensus

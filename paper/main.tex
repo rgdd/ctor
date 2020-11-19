@@ -4,16 +4,6 @@
 %\RequirePackage[no-math]{fontspec}%(only for the luatex or the xetex engine)
 \usepackage[big]{dgruyter_NEW}
 
-%%%%
-% Paul's preprint settings (1/2)
-%%%
-%\usepackage{fancyhdr}
-%\renewcommand{\headrulewidth}{0pt}
-%\lhead{}
-%\rhead{}
-%\cfoot{DISTRIBUTION A:  Approved for public release, distribution is unlimited}
-
-
 \input{src/preamble}
  
 \DOI{foobar}
@@ -21,15 +11,6 @@
 \cclogo{\includegraphics{by-nc-nd.pdf}}
   
 \begin{document}
-%   \author*[1]{Corresponding Author}
-%   \author[2]{Second Author}
-%   \author[3]{Third Author}
-%   \author[4]{Fourth Author}
-%   \affil[1]{Affil, E-mail: email@email.edu}
-%   \affil[2]{Affil, E-mail: email@email.edu}
-%   \affil[3]{Affil, E-mail: email@email.edu}
-%   \affil[4]{Affil, E-mail: email@email.edu}
-
 \author*[1]{Rasmus Dahlberg}
 \author[2]{Tobias Pulls}
 \author[3]{Tom Ritter}
@@ -40,12 +21,11 @@
 \affil[4]{U.S. Naval Research Laboratory, E-mail: paul.syverson@nrl.navy.mil}
 
   \title{\huge%
-  Privacy-Preserving \& Incrementally-Deployable Support for Certificate Transparency in Tor
+      Privacy-Preserving \& Incrementally-Deployable Support for Certificate Transparency in Tor
   }
   \runningtitle{%
-	Privacy-Preserving \& Incrementally-Deployable Support for Certificate Transparency in Tor
+      Privacy-Preserving \& Incrementally-Deployable Support for Certificate Transparency in Tor
   }
-  %\subtitle{...}
 
   \begin{abstract}
       {\input{src/abstract}}
@@ -68,11 +48,6 @@
   \journalissue{..}
  
   \maketitle
-  %%%%
-  % Paul's preprint settings (1/2)
-  %%%
-  %\pagestyle{fancy}
-  %\thispagestyle{fancy}
 
   \input{src/introduction}
   \input{src/background}
@@ -85,7 +60,8 @@
   \input{src/related}
   \input{src/conclusion}
 
-  %\section*{Acknowledgements}
+  \section*{Acknowledgements}
+  \input{src/acknowledgements}
 
   \bibliographystyle{abbrv}
   \bibliography{src/ref}
