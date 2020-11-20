@@ -104,7 +104,13 @@ Plugging it into Equation~\ref{eq:flush} for $p \gets \frac{9}{10}$, the
 attacker's flood must involve $k \gets 402406$ submissions.  In other words,
 2.3GiB must be transmitted to flush a single CTR with 90\% success probability.
 
-As a corner case and implementation detail, it is important that Tor Browser and
+As a corner case and implementation detail it is important that Tor Browser and
 CTRs \emph{reject} SFOs that are bogus in terms of size: it is a trivial DoS
-vector to load data indefinitely. Analysis based on, e.g., 1~MiB SFOs also
-requires 2.3~GiB of data to flush, however.
+vector to load data indefinitely.  If such a threshold is added the required
+flushing bandwidth is still 2.3GiB (e.g., use 1MiB SFOs in the above
+computations).  What can be said about bandwidth and potential adversarial
+advantages is that a submitted SFO yields amplification:
+	twofold for cross-logging, and
+	slightly more for proof-fetching as the SFO is pushed up-front to a
+		watchdog.
+Note that such amplification is smaller than a typical website visit.
