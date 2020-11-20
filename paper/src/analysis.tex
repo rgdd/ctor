@@ -141,7 +141,7 @@ forged or that nobody ever checks whether the trusted STHs are consistent.
 This leaves two options:
 	the attacker either responds to the query with an invalid inclusion proof or
 	not at all.
-The former is immediately detected and starts Phase~4, whereas the latter forces
+The former is immediately detected and starts phase~4, whereas the latter forces
 the CTR to wait for \texttt{ct-watchdog-timeout} to trigger (which is a
 few seconds to avoid premature auditor reports).  A rational attacker prefers
 the second option to gain time.

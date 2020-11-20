@@ -78,9 +78,9 @@ man-in-the-middle attacks against Tor Browser users can be detected \emph{after
 the fact} when conducted by attackers that:
 \begin{enumerate}
 	\item can acquire any certificate from a trusted CA,
-	\item with the necessary cryptographic proofs from CT logs so that
-		Tor Browser accepts the certificate as valid (with no intent of making
-		the fraudulent certificate publicly available in any of the logs), and
+	\item with the necessary cryptographic proofs from enough CT logs so that
+		Tor Browser accepts the certificate as valid without the attacker
+		making it publicly available in any of the controlled logs, and
 	\item with the ability to gain full control of Tor Browser shortly after
 		establishing an HTTPS connection.
 \end{enumerate}
