@@ -55,9 +55,14 @@ parameters are tuned up or down.
 Using $p\gets\frac{1}{10}$ and our approximated SFO distribution $\bar{d}\gets7$
 yields an average circuit overhead of $0.70$, i.e., for every three Tor Browser
 circuits CTor adds another two.  Such an increase might sound
-daunting at first, but these additional circuits are short-lived and
-light-weight; transporting 6~KiB on average.  Each CTR also maintains a 
-long-lived circuit for CT log interactions.
+daunting at first,\footnote{%
+	Circuit establishment involves queueing of onionskins~\cite{onionskins} and
+	it is a likely bottleneck, but since the introduction of ntor it is not a
+	scarce resource so such overhead is acceptable if it (i) serves a purpose,
+	and (ii) can be tuned.  Confirmed by Tor developers.
+} but these additional circuits are short-lived and light-weight; transporting
+6~KiB on average.  Each CTR also maintains a long-lived circuit for CT log
+interactions.
 
 \textbf{Bandwidth overhead.}  Equation~\ref{eq:bw} shows the expected
 bandwidth overhead for the Tor network over time, where
