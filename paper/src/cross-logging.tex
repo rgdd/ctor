@@ -99,4 +99,6 @@ which brings back the threat and complexity of minor impact scenarios. Another
 option that is appealing for Tor (but less so for CT) is to operate the
 \texttt{add-sfo} API with the expectation of \emph{delayed merges} that account
 for MMDs before making an SFO public, effectively moving lengthy buffering from
-CTRs to CT logs with persistent storage.
+CTRs to CT logs with persistent storage.  Trillian-based CT logs already support
+delayed merges of (pre)certificates, see
+\texttt{sequencer\_guard\_window}~\cite{delayed-merge}.
