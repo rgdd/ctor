@@ -70,3 +70,12 @@ of possible man-in-the-middle attacks~\cite{doublecheck}.  The submission phase
 in CTor is similar to double-checking, except that there are normally no TLS
 handshake blocking, browser warnings, or strict assumptions regarding the
 attacker's location.
+
+% Paralell to our work
+In parallel to our work Stark \emph{et~al.} proposed that Chrome clients
+submit a random subset of encountered SCTs to a trusted auditor that Google
+runs~\cite{stark}.  CTor also propagates a random subset of SCTs to a trusted
+auditor, but does so while preserving privacy because of and how Tor is used.
+Meiklejohn additionally proposed witness cosigning on-top of consistent
+STHs~\cite{meiklejohn}.  CTor adds signatures on-top of STHs too, but only as
+part of the Tor consensus that directory authorities sign.
