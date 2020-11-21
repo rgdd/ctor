@@ -100,8 +100,14 @@ the log ecosystem would be an insignificant Tor Browser improvement when
 compared to no CT at all, but CTor takes us several steps further by relaxing
 and ultimately eliminating the trust which is currently (mis)placed in today's
 browser-recognized CT logs.
+We already observed instances of CT logs that happened to
+	violate their promises of public logging~\cite{gdca1-omission},
+	show inconsistent certificate contents to different
+		parties~\cite{izenpe-disqualified,venafi-disqualified}, and
+	get their secret signing keys compromised due to disclosed remote
+		code-execution vulnerabilities~\cite{digicert-log-compromised}. 
 
-The initial design increment uses the CT landscape against the attacker to
+The first design increment uses the CT landscape against the attacker to
 ensure a non-zero (tweakable) probability of public disclosure \emph{each time}
 a fraudulent certificate is used against Tor Browser.  This is done by randomly
 adding a subset of presented certificates to CT logs that the attacker may not
@@ -114,39 +120,32 @@ ensures that log operators like Google and Cloudflare get less information
 regarding browsing activities from Tor (in addition to what their privileged
 Internet positions already provide~\cite{1mtrack,TorDNS}).
 
-The next increment and the full CTor design have in common that their goal is
-to make violated promises of public logging transparent, which can otherwise be
-used to silently trick today's CT-enforcing web browsers into accepting
-malicious HTTPS connections.  If such proofs are disclosed it would likely
-disqualify all offending CT logs and thus come at great cost to the
-attacker in terms of lost capability:
-	even a small probability of detection might entail unacceptable risk of
-	exposure.
-We already observed instances of CT logs that happened to
-	violate their promises of public logging~\cite{gdca1-omission},
-	show inconsistent certificate contents to different
-		parties~\cite{izenpe-disqualified,venafi-disqualified}, and
-	get their secret signing keys compromised due to disclosed remote
-		code-execution vulnerabilities~\cite{digicert-log-compromised}. 
-While there was little real-world impact from these incidents, they
-showcase that full trust in CT logs is likely a mistake.
+The next incremental step is to not only cross-log certificates but also their
+promises of public logging.  While it requires an additional CT log API
+endpoint, it facilitates auditing by anyone if some logs are trustworthy.  The
+full design also holds logs accountable but without any such assumption:
+	Tor relays challenge the logs to prove correct operation with regards to a
+		single fixed view in Tor's consensus, and
+	potential issues are reported to auditors that investigate them further.
+A higher degree of complexity and the lack of reliable auditors are significant
+factors that make the full design difficult to deploy from the get-go.  In
+contrast, certificate cross-logging is simpler and backwards compatible.
 
 \subsection{Contribution and Structure}
-Section~\ref{sec:background} introduces background on the theory and
-practise of CT, as well as the anonymity network Tor.
-Section~\ref{sec:adversary} motivates the intended attacker and presents a
-unified threat model for CT and Tor.
-Section~\ref{sec:base} describes the full CTor design that \emph{eliminates
-all trust in the browser-recognized CT logs} by challenging them to prove
-certificate inclusion cryptographically, and would
-result in a \emph{single probabilistically-verified view of the CT log ecosystem
-available from Tor's consensus}.  This view could be used by other browsers as
-the basis of trust, \emph{greatly improving the security posture of the entire
-web}.  The security analysis in Section~\ref{sec:analysis} shows that one of the
-best bets for the attacker would be to take network-wide actions against Tor to
-avoid public disclosure of certificate mis-issuance and log misbehavior.  Such
-an attack is trivially detected, but it is hard to attribute unless reactive
-defenses are enabled at the cost of trade-offs.
+Section~\ref{sec:background} introduces background on the theory and practise of
+CT, as well as the anonymity network Tor.  Section~\ref{sec:adversary} motivates
+the intended attacker and presents a unified threat model for CT and Tor.
+Section~\ref{sec:base} describes the full CTor design that \emph{eliminates all
+trust in the browser-recognized CT logs} by challenging them to prove
+certificate inclusion cryptographically, and would result in a \emph{single
+probabilistically-verified view of the CT log ecosystem available from Tor's
+consensus}.  This view could be used by other browsers as the basis of trust,
+\emph{greatly improving the security posture of the entire web}.  The security
+analysis in Section~\ref{sec:analysis} shows that one of the best bets for the
+attacker would be to take network-wide actions against Tor to avoid public
+disclosure of certificate mis-issuance and log misbehavior.  Such an attack is
+trivially detected, but it is hard to attribute unless reactive defenses are
+enabled at the cost of trade-offs.
 
 The full design involves many different components that add deployment burdens,
 such as the requirement of reliable CT auditors that investigate suspected log
