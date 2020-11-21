@@ -122,8 +122,9 @@ Internet positions already provide~\cite{1mtrack,TorDNS}).
 
 The next incremental step is to not only cross-log certificates but also their
 promises of public logging.  While it requires an additional CT log API
-endpoint, it facilitates auditing by anyone if some logs are trustworthy.  The
-full design also holds logs accountable but without any such assumption:
+endpoint, it facilitates auditing of these promises if some logs are
+trustworthy.  The full design also holds logs accountable but without any such
+assumption:
 	Tor relays challenge the logs to prove correct operation with regards to a
 		single fixed view in Tor's consensus, and
 	potential issues are reported to auditors that investigate them further.
