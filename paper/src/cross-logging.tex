@@ -17,7 +17,7 @@ propose two incremental designs in this section.
 	\includegraphics[width=0.8\textwidth]{img/design-incremental}
 	\vspace{-8px}
 	\caption{%
-		Scaled-down design that can be deployed incrementally without any
+		Incremental design that can be deployed without any
 		trusted CT auditors.  Tor Browser still submits SFOs to CTRs on
 		independent Tor circuits for the sake of privacy and security.  After
 		CTR buffering, the submitted certificates are \emph{cross-logged} by
@@ -51,7 +51,7 @@ also room for further simplification: there is no point in challenging the logs
 to prove inclusion if the fallback behavior of no response only makes the issued
 certificate public, not the associated SCTs. Thus, CTRs could opt to cross-log
 immediately \emph{without ever distinguishing between certificates that are
-benign and possibly fraudulent}.  This results in the scaled-down design shown
+benign and possibly fraudulent}.  This results in the incremental design shown
 in Figure~\ref{fig:cross-log}, which initially removes several system
 complexities such as extra-info metrics, auditor infrastructure, watchdog
 collaborations, and inclusion proof fetching against trusted STHs in Tor's
