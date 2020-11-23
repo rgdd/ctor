@@ -203,7 +203,7 @@ certificate chain to avoid any MMD violation. However, by taking the MMD into
 account, this results in a relatively large time window during which the
 attacker can attempt to \emph{flood} all CTRs in hope that they delete the
 omitted SFO at random before it is audited. We discuss the threat of flooding
-further in Section~\ref{sec:analysis:pr:phase2}, noting that such an attack can
+further in Section~\ref{sec:analysis}, noting that such an attack can
 be detected if CTRs publish two new metrics in the extra-info document:
 \texttt{ct-receive-bytes} and \texttt{ct-delete-bytes}. These metrics indicate
 how many SFO bytes were received and deleted throughout different time
@@ -222,7 +222,7 @@ We can address this concern in a few ways. The simple proposal of contacting the
 log over a Tor circuit will not suffice:
 	a log can tag each CTR by submitting unique SFOs to them all, and
 	recognize the CTR when they are submitted (see
-	Section~\ref{sec:analysis:pr:phase3}).
+	Section~\ref{sec:analysis}).
 Even using a unique Tor circuit for each SFO might not suffice to prevent
 effective tagging attacks. For example, after tagging all CTRs, a malicious log
 could ignore all but innocuous untagged requests and tagged requests matching

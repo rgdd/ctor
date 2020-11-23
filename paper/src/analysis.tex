@@ -15,11 +15,10 @@ these impact types are:
 Our design leads to significant and catastrophic impact events, but does
 unfortunately not preclude minor ones.  It is possible to overcome this
 shortcoming at different trade-offs, e.g., by tuning CTor parameters reactively
-(Section~\ref{sec:analysis:pr:phase3}) or relying on different trust
-assumptions, as in the incremental cross-logging designs in
-Section~\ref{sec:incremental}.
+(phase~2 below) or relying on different trust assumptions as in the
+incremental cross-logging designs (Section~\ref{sec:incremental}).
 
-\subsection{Probability of Detection} \label{sec:analysis:pr}
+\textbf{Probability of detection.}
 Suppose the attacker mis-issued a certificate that Tor Browser trusts, and that
 it is considered valid because it is accompanied by enough SCTs from CT logs
 that the attacker controls.  The resulting SFO is then used to man-in-the-middle
@@ -31,7 +30,7 @@ The risk of exposure is instead bound by the probability that \emph{any} of the
 four phases in our design fail to propagate the mis-issued SFO to a pinned CT
 auditor that is benign.
 
-\subsubsection{Phase~1: Submission} \label{sec:analysis:pr:phase1} 
+\textbf{Phase~1: Submission.}
 The probability of detection cannot exceed the probability of submission
 (\texttt{ct-submit-pr}). We analyze the outcome of submitting the mis-issued
 SFO from Tor Browser to a CTR\@.  There are two cases to consider, namely, the
@@ -67,7 +66,7 @@ Note that the attack surface could, in theory, be eliminated by setting
 \texttt{ct-large-sfo-size} to zero.  However, that is likely  too costly in
 terms of latency~\cite{no-hard-fail}.
 
-\subsubsection{Phase~2: Buffering} \label{sec:analysis:pr:phase2}
+\textbf{Phase~2: Buffering.}
 The probability of detection cannot exceed $1-(f_{\mathsf{ctr}} +
 f_{\mathsf{dos}})$, where $f_{\mathsf{ctr}}$ is the fraction of
 malicious CTRs and $f_{\mathsf{dos}}$ the fraction of CTRs that suffer from
@@ -130,7 +129,7 @@ also the drawback of allowing the logs to merge the certificate before there is
 any MMD violation to speak of.  The most appropriate response depends on the
 exact attack scenario and which trade-offs one is willing to accept.
 
-\subsubsection{Phase~3: Auditing} \label{sec:analysis:pr:phase3}
+\textbf{Phase~3: Auditing.}
 By the time an SFO enters the audit phase, the log in question is expected to
 respond with a valid inclusion proof.  There is no such proof if the log
 violated its MMD, and it is too late to create a split-view that merged the
@@ -159,7 +158,7 @@ within seconds} to cancel the watchdog, which cannot be identified later on
 (same premise as the sampled CTR in phase~1).  Such an attacker is not in Tor's
 threat model.
 
-\subsubsection{Phase~4: Reporting} \label{sec:analysis:pr:phase4} 
+\textbf{Phase~4: Reporting.}
 At this stage the process of reporting the mis-issued SFO to a random CT auditor
 is initiated.  Clearly, the probability of detection cannot exceed
 $1-f_{\mathsf{auditor}}$, where $f_{\mathsf{auditor}}$ is the fraction of
@@ -167,8 +166,8 @@ malicious CT auditors.  Fixating the sampled CT auditor is important to avoid
 the threat of an eventually successful report only if it is destined to the
 attacker's auditor because our attacker is partially present in the network.
 Gaining time at this stage is of limited help because the CTR identity is
-unknown as noted in Section~\ref{sec:analysis:pr:phase3}, and it remains the
+unknown as noted above, and it remains the
 case throughout phase~4 due to reporting on independent Tor circuits (and
 independently of if other SFO reports succeeded or not).  Without an
 identifiable watchdog, the attacker needs a network-wide attack that is already
-more likely to succeed during the lengthy buffer phase.
+more likely to succeed in the buffer phase.
