@@ -113,12 +113,11 @@ a fraudulent certificate is used against Tor Browser.  This is done by randomly
 adding a subset of presented certificates to CT logs that the attacker may not
 control (inferred from the accompanied promises of public logging).  Such
 \emph{certificate cross-logging} distributes trust across all CT logs, raising
-the bar towards unnoticed certificate mis-issuance.  Motivated by factors such
-as privacy, security and deployability, Tor Browser uses Tor relays as
-intermediates to cache and interact with CT logs on its behalf.  For example, it
-ensures that log operators like Google and Cloudflare get less information
-regarding browsing activities from Tor (in addition to what their privileged
-Internet positions already provide~\cite{1mtrack,TorDNS}).
+the bar towards unnoticed certificate mis-issuance.  Motivated by factors like
+privacy, security and deployability, Tor Browser uses Tor relays as
+intermediates to cache and interact with CT logs on its behalf.  Such deferred
+auditing is a fundamental part of our setting unless future distributed auditing
+mechanisms turn out to be non-interactive from the browser's perspective.
 
 The next incremental step is to not only cross-log certificates but also their
 promises of public logging.  While it requires an additional CT log API
@@ -128,9 +127,6 @@ assumption:
 	Tor relays challenge the logs to prove correct operation with regards to a
 		single fixed view in Tor's consensus, and
 	potential issues are reported to auditors that investigate them further.
-A higher degree of complexity and the lack of reliable auditors are significant
-factors that make the full design difficult to deploy from the get-go.  In
-contrast, certificate cross-logging only involves simpler changes to Tor.
 
 \subsection{Contribution and Structure}
 Section~\ref{sec:background} introduces background on the theory and practise of
