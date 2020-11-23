@@ -150,9 +150,9 @@ processed as follows by a CTR:
     \item\label{enm:storage:close} Close the circuit to enforce one-time use.
     \item\label{enm:storage:unrecognized} Discard all SCTs in the SFO for logs
         the CTR is not aware of; if no SCT remains then discard the SFO\@.
-    \item\label{enm:storage:cached} Stop if $s$ is cached (see
-        Section~\ref{sec:performance}) or already pending to be audited (in the
-        buffer).
+	\item\label{enm:storage:cached} Stop if $s$ is cached or already pending to
+		be audited in the buffer.  See caching details in
+		Section~\ref{sec:performance:estimates}.
     \item\label{enm:storage:fix-log} Sample a CT log $l$ that issued a
         remaining SCT in~$s$.
     \item\label{enm:storage:audit-after} Compute an \texttt{audit\_after}
