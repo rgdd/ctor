@@ -162,12 +162,12 @@ mis-issued certificates and the operators that promised to log them publicly
 \emph{without the complexity of ever distinguishing between what is benign and
 fraudulent}.
 This API change happens to also build auditor infrastructure
-directly into CT log software, paving the path towards the missing component of
-the full design.  We argue that CTor \emph{can be deployed incrementally}:
+directly into CT log software, thereby paving the path towards the missing component of
+the full design.  We argue that CTor can be deployed incrementally:
 	complete Firefox's CT enforcement~\cite{ffct},
-	deploy certificate cross-logging, and
-	eventually the full design can be put into operation.
-Each CTor increment would \emph{greatly contribute to the open question of how
+	add our cross-logging increments, and
+	finally put the full design into operation.
+Each part of CTor would \emph{greatly contribute to the open question of how
 to reduce and/or eliminate trust in browser-recognized log operators}, which is
 caused by the lack of an appropriate gossip mechanism as well as privacy issues
 while interacting with the logs~\cite{minimal-gossip,nordberg,ct-with-privacy}.

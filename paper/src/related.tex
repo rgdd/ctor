@@ -1,16 +1,15 @@
 \section{Related Work} \label{sec:related}
-Google Chrome and Apple's Safari enforce CT by mandating that every TLS
-certificate must be accompanied by two independent
-SCTs~\cite{chrome-policy,safari-policy}.  We proposed that Tor Browser should
-follow suit, but unlike any other web browser that enforces CT, CTor provides
-\emph{concrete next steps} that relax the centralized trust which is otherwise
-and evidently misplaced in CT logs~\cite{%
-	izenpe-disqualified,%
+The status quo is to consider a certificate CT compliant if it is accompanied by
+two independent SCTs~\cite{chrome-policy,apple-on-independence}.  Therefore we
+proposed that Tor Browser should do the same, but unlike any other CT-enforcing
+web browser CTor also provides concrete next steps that relax the centralized
+trust which is otherwise misplaced in CT logs~\cite{%
+izenpe-disqualified,%
 	venafi-disqualified,%
 	gdca1-omission,%
 	digicert-log-compromised%
-}.  Several proposals surfaced that aim to do better than today's CT
-policies, targeting omissions and split-views.
+}.  Several proposals surfaced that aim to do better with regards to omissions
+and split-views.
 
 % Privacy preserving inclusion proofs
 Laurie proposed that inclusion proofs could be fetched over DNS to avoid

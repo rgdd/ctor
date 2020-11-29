@@ -15,18 +15,18 @@ certificate chains\footnote{%
 mis-issuance \emph{after the fact}.  It would be somewhat circular to solve
 issues in the CA ecosystem by adding trusted CT logs.  Therefore, the
 cryptographic foundation of CT is engineered to avoid any such reliance.
-Google's \emph{gradual} CT rollout started in 2015, and evolved from merely
+Google's \emph{gradual} CT roll-out started in 2015, and evolved from 
 downgrading user-interface indicators in Chrome to the current state of hard
 failures unless a certificate is accompanied by a signed \emph{promise} that it
-will appear in two independent CT logs~\cite{does-ct-break-the-web}.  Unlike
-Apple's CT enforcement~\cite{safari-policy}, one of these logs must additionally
-be operated by Google~\cite{chrome-policy}.
+will appear in two CT logs~\cite{does-ct-break-the-web}.  Unlike Apple's
+Safari~\cite{safari-policy}, these two logs must additionally be operated by
+Google and not-Google to ensure independence~\cite{chrome-policy}.
 
 The lack of mainstream verification, i.e., beyond checking signatures, allows an
 attacker to side-step the current CT enforcement with minimal risk of exposure
 \emph{if the required logs are controlled by the attacker}.  
-CTor integrates into the gradual CT roll-out by starting on the same
-premise of pairwise-independently trusted logs, which
+CTor integrates into the gradual CT roll-out by starting on the
+premise of pairwise-independently trusted CT logs, which
 avoids the risk of bad user experience~\cite{does-ct-break-the-web}
 and significant system complexity.  For example, web pages are unlikely to
 break, TLS handshake latency stays about the same, and no robust management of
@@ -68,22 +68,20 @@ chain ends in a trust anchor returned by the \texttt{get-roots} endpoint.  We
 use \texttt{add-chain} in Section~\ref{sec:incremental}, as well as several
 other endpoints in Section~\ref{sec:base} to fetch proofs and STHs.  It might be
 helpful to know that an inclusion proof is fetched based on two parameters: a
-certificte hash and the tree size of an STH.  The former specifies the log entry
+certificate hash and the tree size of an STH.  The former specifies the log entry
 of interest, and the latter with regards to which view inclusion should be
 proven.  The returned proof is valid if it can be used in combination with the
 certificate to reconstruct the STH's tree head.
 
-The CT landscape provides limited value unless it is verified that the logs
-play by the rules.  The rules are influenced by the major browser vendors that
-define \emph{CT policies}.  For example, how is CT enforced by their user
-agents, and what is required to become a recognized CT log in terms of uptime
-requirements and accepted trust anchors.  Google Chrome and Apple's Safari
-require that a certificate chain must be accompanied by two independent
-SCTs~\cite{chrome-policy,safari-policy}, where independence refers to the
-associated log operators.  While there are several ways that a log can misbehave
-with regards to these policy aspects, the most fundamental forms of cheating are
-omission and split-view attacks.  A party that follows-up on inclusion and
-consistency proofs is said to \emph{audit} the logs.
+The CT landscape provides a limited value unless it is verified that the logs
+play by the rules.  What the rules are changed over time, but they are largely
+influenced by the major browser vendors that define \emph{CT policies}.  For
+example, what is required to become a recognized CT log in terms of uptime and
+trust anchors, and which criteria should pass to consider a certificate CT
+compliant~\cite{chrome-policy,safari-policy}.  While there are several ways that
+a log can misbehave with regards to these policy aspects, the most fundamental
+forms of cheating are omission and split-view attacks.  A party that follows-up
+on inclusion and consistency proofs is said to \emph{audit} the logs.
 
 Widespread client-side auditing is a premise for CT logs to be untrusted, but
 none of the web browsers that enforce CT engage in such activities yet.  For

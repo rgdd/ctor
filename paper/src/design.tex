@@ -2,17 +2,18 @@
 
 A complete design---a design that detects misbehavior by both CAs and CT logs
 within our strong threat model---requires a considerable degree of
-complexity. In this section, we present such a full design by breaking it up
+complexity. In this section we present such a full design by breaking it up
 into four phases as shown in Figure~\ref{fig:design}, demonstrating the need for
-the involved complexity in each step.  Later on, Section~\ref{sec:incremental}
-presents two incremental versions of the full design that are less complicated
-but which come at the cost of having a weaker threat model and security goal
-unless an additional CT log API is added.
+the involved complexity in each step.  Section~\ref{sec:incremental} presents
+two incremental versions of the full design that are less complicated.  The
+first increment comes as the cost of having a weaker threat model and security
+goal.  The second increment does not have a weaker security goal but requires a
+new CT log API.
 
 A design that starts by validating SCT signatures like Apple's Safari is
-promising and assumed, but it does not stand up against a malicious CA and two
-CT logs that work in concert.  If the logs cannot be trusted blindly, the
-presented SCTs need to be audited further.
+promising and assumed~\cite{safari-policy,apple-on-independence}, but it does
+not stand up against a malicious CA and two CT logs that work in concert.  If
+the logs cannot be trusted blindly, the presented SCTs need to be audited.
 
 \begin{figure*}
     \centering
