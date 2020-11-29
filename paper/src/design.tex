@@ -150,7 +150,7 @@ processed as follows by a CTR:
 \begin{enumerate}
     \item\label{enm:storage:close} Close the circuit to enforce one-time use.
     \item\label{enm:storage:unrecognized} Discard all SCTs in the SFO for logs
-        the CTR is not aware of; if no SCT remains then discard the SFO\@.
+        the CTR is not aware of; if no SCT remains then discard the SFO.
 	\item\label{enm:storage:cached} Stop if $s$ is cached or already pending to
 		be audited in the buffer.  See caching details in
 		Section~\ref{sec:performance:estimates}.
@@ -162,17 +162,16 @@ processed as follows by a CTR:
     audit.
 \end{enumerate}
 
-Recall from Section~\ref{sec:background:ct} that an inclusion proof is fetched
-with regards to an STH\@.  As such, we discard SCTs that cannot be verified due
-to lack of a trusted STH\@.  The sampled CT log $l$ now refers to an entity that
-issued an SCT in the submitted SFO, and it will be challenged to prove inclusion
-in phase~3 sometime after the \texttt{audit\_after} timestamp $t$ elapsed. We
-can choose one SCT (and therefore log) at random from the SFO because it is
-sufficient to suspect only one misbehaving log so long as we report the entire
-SFO, allowing for other malicious logs to be identified later on (a risk
-averse-attacker would not conduct an attack without controlling all necessary
-logs, i.e., one benign log would else ensure public disclosure of the mis-issued
-certificate).
+What makes a CT log known to the CTR is part of the Tor consensus, see
+Section~\ref{sec:base:consensus}.  It implies knowledge of a trusted STH for the
+sampled CT log $l$, which refers to an entity that (i) issued an SCT in the
+submitted SFO, and (ii) will be challenged to prove inclusion in phase~3
+sometime after the \texttt{audit\_after} timestamp $t$ elapsed. We choose one
+SCT (and thus log) at random from the SFO because it is sufficient to suspect
+only one misbehaving log so long as we report the entire SFO, allowing us to
+identify the other malicious CT logs later on (a risk averse-attacker would not
+conduct an attack without controlling enough logs, i.e., one benign log would
+otherwise make the mis-issued certificate public).
 
 \begin{figure}
 	\centering
