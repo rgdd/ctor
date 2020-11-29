@@ -1,5 +1,4 @@
 \section{Design} \label{sec:base}
-
 A complete design---a design that detects misbehavior by both CAs and CT logs
 within our strong threat model---requires a considerable degree of
 complexity. In this section we present such a full design by breaking it up
@@ -61,7 +60,7 @@ with the entire Tor network. A small number of auditors presents privacy and
 single-point-of-failure concerns. A large number would be ideal but presents
 difficulties in curation and independent management and still requires scaling
 independent of the Tor network. These concerns do not entirely preclude the
-design, but they can be easily avoided by reusing relays in the Tor Network as
+design, but they can be easily avoided by reusing relays in the Tor network as
 our trusted third parties: we call the relays so designated Certificate
 Transparency Relays (CTRs).
 
@@ -92,10 +91,11 @@ between SFO submission and exploitation. The parameter can be set such that it
 happens extremely rarely on legitimate connections, as shown in
 Section~\ref{sec:performance}.
 
-We summarize this phase with the following algorithm that provides more explicit
-steps and details, and adds a parameter \texttt{ct-submit-pr} that indicates a
-probability that an SFO is submitted to a CTR. This provides probabilistic
-security while providing the ability to adjust submission rates to account for
+We summarize phase~1 with the following algorithm that provides more explicit
+steps and details, including the addition of a parameter \texttt{ct-submit-pr}
+that indicates a probability that an SFO is submitted to a CTR. This provides
+probabilistic security while providing the ability to adjust submission rates to
+account for
 CTR and more general network scaling/health issues. Given an incoming SFO $s$,
 Tor Browser should:
 \begin{enumerate}
