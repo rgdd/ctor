@@ -66,9 +66,10 @@ $ ls parsed
 ```
 
 ## Download raw and parsed dataset
-The raw dataset is hosted over [here: TODO fix me]().
-Download and unzip, which gives you a directory named `share`.  It contains the
-files and directories that the above steps generated.
+Here you can [download the the raw
+dataset](http://dart.cse.kau.se/ctor/reddit-sfo-dist.zip).Download and unzip,
+which gives you a directory named `share`.  It contains the files and
+directories that the above steps generated.
 
 ## Derive dataset values from §7.1
 First install numpy (`apt install python-pip && pip install numpy`), then run
