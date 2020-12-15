@@ -74,8 +74,8 @@ the browser, having succeeded, will progress to the HTTP request and response,
 at which point the exploit will be served, and the SFO (containing the
 cryptographic evidence of CA and log misbehavior) will be deleted by the exploit
 code. While blocking the TLS connection until the CT log responds is an option,
-experience related to OCSP hard-fail indicates that this notion is doomed to
-fail~\cite{no-hard-fail}.
+experience related to OCSP hard-fail indicates that this notion is likely doomed
+to fail~\cite{no-hard-fail}.
 
 The final change of the design has Tor Browser submit the SFO to the CTR
 immediately upon receipt (with some probability) in all cases. A consequence of
