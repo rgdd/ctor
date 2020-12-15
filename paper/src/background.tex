@@ -19,8 +19,8 @@ Google's \emph{gradual} CT roll-out started in 2015, and evolved from
 downgrading user-interface indicators in Chrome to the current state of hard
 failures unless a certificate is accompanied by a signed \emph{promise} that it
 will appear in two CT logs~\cite{does-ct-break-the-web}.  Unlike Apple's
-Safari~\cite{safari-policy}, these two logs must additionally be operated by
-Google and not-Google to ensure independence~\cite{chrome-policy}.
+Safari~\cite{apple-log-policy}, these two logs must additionally be operated by
+Google and not-Google to ensure independence~\cite{google-log-policy}.
 
 The lack of mainstream verification, i.e., beyond checking signatures, allows an
 attacker to side-step the current CT enforcement with minimal risk of exposure
@@ -78,7 +78,7 @@ play by the rules.  What the rules are changed over time, but they are largely
 influenced by the major browser vendors that define \emph{CT policies}.  For
 example, what is required to become a recognized CT log in terms of uptime and
 trust anchors, and which criteria should pass to consider a certificate CT
-compliant~\cite{chrome-policy,safari-policy}.  While there are several ways that
+compliant~\cite{google-log-policy,apple-log-policy}.  While there are several ways that
 a log can misbehave with regards to these policy aspects, the most fundamental
 forms of cheating are omission and split-view attacks.  A party that follows-up
 on inclusion and consistency proofs is said to \emph{audit} the logs.
