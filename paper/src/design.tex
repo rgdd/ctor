@@ -22,7 +22,7 @@ the logs cannot be trusted blindly, the presented SCTs need to be audited.
 		An overview of the four phases of the full CTor design. In phase 1 Tor
 	Browser submits an SFO (SCT Feedback Object) to a Certificate Transparency
 	Relay (CTR), followed by phase 2 where the CTR buffers the SFO. In phase 3
-	the relays attempts to audit the SFO, and in case of failure, it reports the
+	the relay attempts to audit the SFO, and in case of failure, it reports the
 	SFO to an auditor with the help of a watchdog CTR in phase 4.}
 	\label{fig:design}
 	\vspace{-10px}
@@ -249,7 +249,7 @@ The final design is to have the CTR work with a partner CTR---we call it a
 \emph{watchdog}---that they choose at random and contact over a circuit. Prior
 to attempting to fetch a proof from a log, the CTR provides the watchdog with
 the SFO it is about to audit. After an appropriate response from the log, the
-CTR tells the watchdog that SFO has been adequately addressed.
+CTR tells the watchdog that the SFO has been adequately addressed.
 
 In more detail, each CTR maintains a single shared circuit that is used to
 interact with all CT logs known to the CTR (we are not using one circuit per
