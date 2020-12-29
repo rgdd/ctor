@@ -42,7 +42,7 @@ The incremental cross-logging designs are analyzed first without any caching.
 Caching is then considered, followed by overhead that appears only in the full
 design.
 
-\textbf{Circuit overhead.}
+\textbf{Circuit Overhead.}
 Equation~\ref{eq:sub-oh} shows the expected circuit overhead from Tor Browser
 over time, where $p$ is the submit probability and $\bar{d}$ the average number
 of SFOs per website visit.  The involved overhead is linear as either of the two
@@ -64,7 +64,7 @@ daunting at first,\footnote{%
 6~KiB on average.  Each CTR also maintains a long-lived circuit for CT log
 interactions.
 
-\textbf{Bandwidth overhead.}  Equation~\ref{eq:bw} shows the expected
+\textbf{Bandwidth Overhead.}  Equation~\ref{eq:bw} shows the expected
 bandwidth overhead for the Tor network over time, where
 	$V$ is the number of website visits per time unit,
 	$p$ the submit probability,
@@ -90,7 +90,7 @@ and converting the result to bps yields 334.5~Mbps in total.  Such order of
 overhead is small when compared to Tor's capacity:
 450~Gbps~\cite{tor-bandwidth}.
 
-\textbf{Memory overhead.}
+\textbf{Memory Overhead.}
 Equation~\ref{eq:memory} shows the expected buffering overhead, where
 	$V_m$ is the number of website visits per minute,
 	$t$ the average buffer time in minutes,
@@ -125,7 +125,7 @@ hit ratio of $\frac{1}{3}$ could be achieved by a 256~KiB LFU/LRU cache that
 eventually captures Alexa's top-1k.  Given that the cache requires memory as
 well, this is mainly a bandwidth optimization.
 
-\textbf{Full design.}
+\textbf{Full Design.}
 For each CTR and CT log pair, there is an additional watchdog circuit that
 transports the full SFO upfront before fetching an inclusion proof.  The
 expected bandwidth overhead is at most $9Vp\bar{d}\bar{s}$, i.e., now
