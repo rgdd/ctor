@@ -8,10 +8,31 @@ src=reddit-front-all.list
 dst=raw
 tmp=.tmp-collect
 timeout=15 # seconds that we wait while loading a given web page
+chrome=./77/chrome-linux/chrome
+pkgs=(xvfb dbus-x11 python3)
 
+# Check dependencies
+if [[ ! -e $src ]]; then
+	echo "Error: path $src is not a file"
+	exit 1
+fi
+if [[ ! -x $chrome ]]; then
+	echo "Error: path $chrome is not an executable"
+	exit 1
+fi
+for pkg in ${pkgs[@]}; do
+	stat=$(dpkg-query -W --showformat='${Status}\n' $pkg | grep "install ok installed")
+	if [[ ! $stat == "install ok installed" ]]; then
+		echo "Error: package $pkg is not installed"
+		exit 1
+	fi
+done
+
+# Use a clean working directory
 rm -rf $tmp $dst
 mkdir -p $tmp $dst
 
+# Collect
 i=0
 while (( i++ )); read -r url; do
 	sleep 1 # limit the number of spawned children
@@ -22,7 +43,7 @@ while (( i++ )); read -r url; do
 
 	xvfb-run -a \
 		timeout -s9 $timeout \
-		./77/chrome-linux/chrome --no-sandbox --user-data-dir=$tmp/$i --log-net-log=$dst/$i $url >/dev/null 2>&1 &
+		$chrome --no-sandbox --user-data-dir=$tmp/$i --log-net-log=$dst/$i $url >/dev/null 2>&1 &
 done < $src
 wait
 

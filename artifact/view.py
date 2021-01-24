@@ -27,7 +27,10 @@ def read(dir_path):
     data = []
     for filename in os.listdir(dir_path):
         with open("/".join((dir_path, filename))) as f:
-            data.append(json.load(f))
+            try:
+                data.append(json.load(f))
+            except:
+                log.warning("could not load json data from file: {} (skipping)".format(filename))
     return data
 
 def extract_sfo_dist(data):

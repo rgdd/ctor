@@ -6,11 +6,14 @@ reproduce the dataset today and/or download it as observed by us on February 26,
 2020.
 
 ## Reproduce raw and parsed dataset
-We used a headless VM running Ubuntu Desktop 19.10 and Chromium 77.  You can get
-the latter by downloading `chrome-linux.zip` from
-[here](https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?prefix=Linux_x64/681090/)
-and then unzipping it as a directory named `77`.  We also installed the
-following dependencies: `apt install xvfb dbus-x11 python3`.
+We used a headless VM running Ubuntu Desktop 19.10 and Chromium 77.  We also
+tested these instructions on Ubuntu Desktop 20.04.
+
+Download `chrome-linux.zip` from
+[here](https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?prefix=Linux_x64/681090/).
+Unzip it into a directory named `77`: `unzip /path/to/chrome-linux.zip -d 77`.
+
+Install the following dependencies: `apt install xvfb dbus-x11 python3`.
 
 The list of webpages that we visited can be found
 [here](https://github.com/pylls/padding-machines-for-tor/blob/master/collect-traces/lists/unmonitored/reddit-front-all.list):
@@ -65,14 +68,17 @@ $ ls parsed
 1.json  2.json  3.json
 ```
 
+You will need to install `python3-pip` and additional dependencies before
+parsing: `apt install python3-pip && pip3 install -r requirements.txt`.
+
 ## Download raw and parsed dataset
-Here you can [download the the raw
-dataset](http://dart.cse.kau.se/ctor/reddit-sfo-dist.zip).Download and unzip,
+Here you can [download our
+dataset](http://dart.cse.kau.se/ctor/reddit-sfo-dist.zip). Download and unzip,
 which gives you a directory named `share`.  It contains the files and
 directories that the above steps generated.
 
 ## Derive dataset values from §7.1
-First install numpy (`apt install python-pip && pip install numpy`), then run
+First install our python dependencies, see parsing section above. Then run
 `view.py` as shown below.
 ```
 $ [[ -d parsed ]] && ./view.py
