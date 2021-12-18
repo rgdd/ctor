@@ -1,8 +1,3 @@
 # Certificate Transparency in Tor
-
-## Overview
-
-## Tags
-We removed unused experiments and obsolete design documents while preparing the
-camera-ready paper.  You can still access that content in the tag
-`before-camera-ready`.
+This work was published in PoPETs 2021, issue 2.  An introductory blog post is
+available at https://blog.torproject.org/tor-certificate-transparency/.
